@@ -1,0 +1,46 @@
+
+embed {
+#include "SDL.h"
+}
+
+import "sdl_surface.znn";
+import "sdl_window.znn";
+
+export embed {
+  struct SDL_Texture;
+}
+
+extern struct SDL_Texture;
+
+export struct sdl_texture {
+  SDL_Texture mutable* texture;
+};
+
+export sdl_texture!string to_texture(sdl_surface* s, sdl_window* window) {
+  const getResult = [](SDL_Texture mutable* s) -> sdl_texture!string {
+    return sdl_texture(s);
+  };
+  const getError = [](string s) -> sdl_texture!string {
+    return s;
+  };
+  embed_returns {
+    if (auto t = SDL_CreateTextureFromSurface(window->renderer, s->surface))
+      return invoke(&getResult, t);
+    else
+      return invoke(&getError, zenon_string::reference(SDL_GetError()));
+  }
+}
+
+export vec2!string size(sdl_texture* t) {
+  mutable ret = vec2(0, 0);
+  const getError = [](string s) -> vec2!string {
+    return s;
+  };
+  embed {
+    if (SDL_QueryTexture(t->texture, nullptr, nullptr, &ret.x, &ret.y) != 0)
+      return invoke(&getError, zenon_string::reference(SDL_GetError()));
+  }
+  return move(ret);
+}
+
+

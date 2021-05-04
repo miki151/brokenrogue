@@ -1,0 +1,43 @@
+
+export import "ui_canvas.znn";
+export import "sdl_window.znn";
+import "std/io.znn";
+import "sdl_ttf.znn";
+export import "std/hash_map.znn";
+
+export struct sdl_canvas {
+  sdl_window* window;
+  sdl_font* font;
+  hash_map<string, sdl_texture> textures;
+};
+
+export void fill_rectangle(sdl_canvas* canvas, rectangle* r, color* color) {
+  *canvas->window->filled_rectangle(r, *color);
+}
+
+export void frame_rectangle(sdl_canvas* canvas, rectangle* r, color* color, int width) {
+  *canvas->window->outlined_rectangle(r, *color, 1);
+}
+
+export void draw_texture(sdl_canvas* canvas, rectangle* r, string id, texture_flip flip) {
+  if (const t = canvas->textures.get_maybe(&id))
+    *canvas->window->blit_from(r->v1, *t, r->size());
+  else
+    canvas->draw_text(r->v1, "bad texture id: {id}", &color(255, 0, 0));
+}
+
+export vec2 get_texture_size(sdl_canvas* canvas, string id) {
+  if (const t = canvas->textures.get_maybe(&id))
+    return *(*t)->size();
+  return vec2(100, 20);
+}
+
+export void draw_text(sdl_canvas* canvas, vec2 pos, string text, color* color) {
+  *canvas->window->draw_text(pos, canvas->font, *color, text);
+}
+
+export vec2 get_text_size(sdl_canvas* canvas, string text) {
+  return *canvas->window->get_text_size(canvas->font, text);
+}
+
+

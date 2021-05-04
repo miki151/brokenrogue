@@ -1,0 +1,21 @@
+
+export enum Direction {
+  N, E, S, W, NW, NE, SW, SE
+};
+
+export enum Direction4 {
+  N, E, S, W
+};
+
+export Direction4 rotateRight(Direction4 dir) {
+  embed_returns {
+    return Direction4((int(dir) + 1)% 4);
+  }
+}
+
+export Direction4 rotateLeft(Direction4 dir) {
+  embed_returns {
+    return Direction4((int(dir) + 3)% 4);
+  }
+}
+

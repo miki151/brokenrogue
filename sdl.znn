@@ -1,0 +1,40 @@
+
+
+embed {
+#include "SDL.h"
+}
+
+export import "std/expected.znn";
+
+export import "sdl_surface.znn";
+export import "sdl_texture.znn";
+export import "sdl_window.znn";
+export import "sdl_event.znn";
+
+import "std/io.znn";
+
+export void!string sdl_init() {
+  const getError = [](string s) -> expected<void, string> {
+    return s;
+  };
+  embed {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
+      return invoke(&getError, zenon_string::reference(SDL_GetError()));
+    SDL_JoystickEventState(SDL_ENABLE);
+  }
+}
+
+export string sdl_write_directory_path(string appId) {
+  embed_returns {
+    auto path = SDL_GetPrefPath("comzenon", appId.data());
+    if (!path)
+      return zenon_string::reference("./");
+    return zenon_string::reference(path);
+  }
+}
+
+export void sdl_delay(int time) {
+  embed {
+    SDL_Delay(time);
+  }
+}

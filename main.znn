@@ -1,0 +1,66 @@
+
+
+import "sdl.znn";
+import "sdl_surface.znn";
+import "sdl_canvas.znn";
+import "ui.znn";
+import "std/io.znn";
+import "ui_reader.znn";
+import "sdl_ttf.znn";
+import "ui_data.znn";
+import "game.znn";
+
+struct Y {
+  int u;
+};
+
+struct X {
+  int a;
+  bool b;
+  Y y;
+};
+
+hash_map<string, sdl_texture> load_textures(sdl_window* window) {
+  mutable ret = hash_map<string, sdl_texture>();
+  ret.insert("tex1", *sdl_load_bmp("texture1.bmp")->to_texture(window));
+  return move(ret);
+}
+
+template <T>
+any as_any(T t) {
+  return move(t);
+}
+
+
+int main() {
+  const file = *open_file_r("ui.txt");
+  const content = *file.read_content();
+  const ui = *read_ui(move(content));
+  *sdl_init();
+  const window = *sdl_create_window(vec2(300, 200), "Emilka");
+  const font = *load_sdl_font("font.ttf", 20);
+  const canvas = sdl_canvas(&window, &font, load_textures(&window));
+  const ui_rectangle = rectangle(vec2(0, 0), window.size());
+  mutable game1 = game();
+  const game_data1 = game_data(&game1);
+  mutable ui_data = ui_record(hash_map<string, any>());
+  ui_data.data.insert("game_data", as_any(move(game_data1)));
+  mutable exit = false;
+  const exit_callback = [&exit] { exit = true; };
+  ui_data.data.insert("exit_callback", as_any(ui_callback(&exit_callback)));
+  while (!exit) {
+    for (event = SDLPollEvent(); !!event; event = SDLPollEvent()) {
+      if (exit)
+        break;
+      switch (*event) {
+        case (quit) { return 0; }
+        case (key) { if (key.key == key_type::ESCAPE) return 0; }
+        case (mouse) { discard ui.on_mouse_event(&canvas, &ui_data, &ui_rectangle, &mouse); }
+        default {}
+      }
+    }
+    ui.render(&canvas, &ui_data, &ui_rectangle);
+    window.update();
+  }
+  return 0;
+}

@@ -1,0 +1,277 @@
+
+export import "std/vector.znn";
+export import "std/expected.znn";
+import "std/pair.znn";
+import "std/hash_map.znn";
+import "std/io.znn";
+import "std/char.znn";
+export import "pretty_input.znn";
+
+input_stream_position implicit_copy(input_stream_position*) = default;
+
+export struct preprocess_result {
+  string content;
+  vector<vector<input_stream_position>> positions;
+};
+
+struct StreamChar {
+  vector<input_stream_position> pos;
+  char c;
+};
+
+StreamChar copy(StreamChar*) = default;
+
+string get_pos_error(vector<input_stream_position>* positions, string message) {
+  mutable allPos = "";
+  for (pos : *positions)
+    if (pos->line > -1)
+      allPos += "line: {pos->line} column: {pos->column}:\n";
+  return allPos + message;
+}
+
+bool contains(vector<StreamChar>* a, string substring, int index) {
+  if (a->size() - index < substring.size())
+    return false;
+  for (i = index; i < index + substring.size(); ++i)
+    if ((*a)[i].c != substring[i - index])
+      return false;
+  return true;
+}
+
+void eatWhitespace(vector<StreamChar>* s, int mutable* index) {
+  while (*index < s->size() && isspace((*s)[*index].c))
+    ++*index;
+}
+
+vector<StreamChar> subStream(vector<StreamChar>* s, int index, int count) {
+  mutable ret = vector<StreamChar>();
+  ret.reserve(count);
+  for (i = index; i < index + count && i < s->size(); ++i)
+    ret.push_back((*s)[i].copy());
+  return move(ret);
+}
+
+vector<vector<StreamChar>> parseArgs(vector<StreamChar>* s, int mutable* index) {
+  mutable ret = vector<vector<StreamChar>>();
+  eatWhitespace(s, index);
+  if (*index >= s->size())
+    return move(ret);
+  if ((*s)[*index].c == '(') {
+    ++*index;
+    while (true) {
+      eatWhitespace(s, index);
+      mutable int? beginArg = null;
+      if ((*s)[*index].c != ')')
+        beginArg = *index;
+      eatArgument(s, index);
+      if (beginArg) {
+        eatWhitespace(s, &*beginArg);
+        ret.push_back(subStream(s, *beginArg, *index - *beginArg));
+        while (isspace(ret.back()->back()->c))
+          discard ret.back()->pop_back();
+      }
+      if (*index >= s->size())
+        return move(ret);
+      if ((*s)[*index].c == ',')
+        ++*index;
+      eatWhitespace(s, index);
+      if ((*s)[*index].c == ')') {
+        ++*index;
+        break;
+      }
+      if (*index >= s->size())
+        return move(ret);
+    }
+  }
+  return move(ret);
+}
+
+string getString(vector<StreamChar>* s) {
+  mutable ret = "";
+  //ret.reserve(s->size());
+  for (elem : *s)
+    ret += elem->c;
+  return move(ret);
+}
+
+void eatArgument(vector<StreamChar>* s, int mutable* index) {
+  while (true) {
+    eatWhitespace(s, index);
+    if ((*s)[*index].c == ')')
+      return;
+    if ((*s)[*index].c == '(')
+      discard parseArgs(s, index);
+    ++*index;
+    eatWhitespace(s, index);
+    if (*index >= s->size() || (*s)[*index].c == ',') {
+      return;
+    }
+  }
+}
+
+string? scanWord(vector<StreamChar>* s, int mutable* index) {
+  mutable ret = "";
+  const origIndex = *index;
+  while (*index < s->size() && isspace((*s)[*index].c))
+    ++*index;
+  while (*index < s->size() && isalnum((*s)[*index].c)) {
+    ret += (*s)[*index].c;
+    ++*index;
+  }
+  if (ret.empty()) {
+    *index = origIndex;
+    return null;
+  }
+  return move(ret);
+}
+
+string? peekWord(vector<StreamChar>* s, mutable int index) {
+  return scanWord(s, &index);
+}
+
+void replaceInStream(vector<StreamChar> mutable* s, int index, int length, vector<StreamChar>* content) {
+  s->erase(index, length);
+  s->insert(index, content);
+}
+
+struct DefInfo {
+  int begin;
+  int end;
+  vector<string> args;
+};
+
+DefInfo copy(DefInfo*) = default;
+
+struct DefsMap {
+  hash_map<pair<string, int>, DefInfo> defs;
+};
+
+pair<DefsMap, vector<StreamChar>>!string parseDefs(vector<StreamChar>* content) {
+  mutable ret = vector<StreamChar>();
+  mutable inQuote = false;
+  mutable pair<pair<string, int>, DefInfo>? currentDef = null;
+  mutable defs = DefsMap(hash_map<pair<string, int>, DefInfo>());
+  const defKeyword = "Def";
+  for (i = 0; i < content->size(); ++i) {
+    if ((*content)[i].c == '"' && (i == 0 || (*content)[i - 1].c != '\\'))
+      inQuote = !inQuote;
+    if (!inQuote && contains(content, defKeyword, i)) {
+      if (!!currentDef)
+        return get_pos_error(&(*content)[i].pos, "Definition inside another definition is not allowed");
+      i += defKeyword.size();
+      if (const name = scanWord(content, &i)) {
+        mutable beforeArgs = i;
+        const args = parseArgs(content, &i);
+        if (i >= content->size())
+          return get_pos_error(&(*content)[beforeArgs].pos, "Couldn't parse macro arguments");
+        currentDef = pair(pair(*name, args.size()),
+            DefInfo(i, 0, args.transform([](vector<StreamChar>* arg) { return getString(arg); } ) ));
+        if (defs.defs.contains(&pair(*name, args.size())))
+          return get_pos_error(&(*content)[i].pos, *name + " defined more than once");
+      } else
+        return get_pos_error(&(*content)[i].pos, *name + "Definition name expected");
+      while (i < content->size() && peekWord(content, i) != "End")
+        ++i;
+      if (i >= content->size())
+        return get_pos_error(&(*content)[currentDef->second.begin].pos, "Definition lacks an End token");
+      currentDef->second.end = i;
+      defs.defs.insert(currentDef->first, currentDef->second.copy());
+      currentDef = null;
+      discard scanWord(content, &i);
+    } else if (i < content->size())
+      ret.push_back((*content)[i].copy());
+  }
+  return pair(move(defs), move(ret));
+}
+
+void append(vector<input_stream_position> mutable* to, vector<input_stream_position>* from) {
+  for (it : *from)
+    to->push_back(*it);
+}
+
+vector<StreamChar>!string preprocess(vector<StreamChar>* content) {
+  mutable inQuote = false;
+  mutable ret = try parseDefs(content);
+  for (i = 0; i < ret.second.size(); ++i) {
+    if (ret.second[i].c == '"' && (i == 0 || ret.second[i - 1].c != '\\'))
+      inQuote = !inQuote;
+    if (!inQuote) {
+      const beginCall = i;
+      if (const name = scanWord(&ret.second, &i)) {
+        mutable argsPos = i;
+        const args = parseArgs(&ret.second, &argsPos);
+        if (const def = ret.first.defs.get_maybe(&pair(*name, args.size()))) {
+          if (args.size() != (*def)->args.size())
+            return get_pos_error(&ret.second[argsPos].pos, "Wrong number of arguments to macro {*name}");
+          mutable body = subStream(content, (*def)->begin, (*def)->end - (*def)->begin);
+          for (elem : body)
+            append(&elem->pos, &ret.second[i].pos);
+          for (argNum : args) {
+            mutable bodyInQuote = false;
+            for (bodyIndex = 0; bodyIndex < body.size(); ++bodyIndex) {
+              if (body[bodyIndex].c == '"' && (bodyIndex == 0 || body[bodyIndex - 1].c != '\\'))
+                bodyInQuote = !bodyInQuote;
+              eatWhitespace(&body, &bodyIndex);
+              const beginOccurrence = bodyIndex;
+              if (!bodyInQuote && scanWord(&body, &bodyIndex) == (*def)->args[argNum.index]) {
+                replaceInStream(&body, beginOccurrence, bodyIndex - beginOccurrence, &args[argNum.index]);
+                bodyIndex = beginOccurrence + argNum->size();
+              }
+            }
+          }
+          replaceInStream(&ret.second, beginCall, argsPos - beginCall, &body);
+          i = beginCall;
+        }
+      }
+    }
+  }
+  return move(ret).second;
+}
+vector<StreamChar> removeFormatting(string contents) {
+  mutable ret = vector<StreamChar>();
+  const addChar = [&ret] (input_stream_position pos, char c) {
+    ret.push_back(StreamChar({move(pos)}.as_vector(), c));
+  };
+  mutable cur = input_stream_position(1, 1);
+  mutable inQuote = false;
+  for (it : contents) {
+    mutable addSpace = false;
+    if (*it == '"' && (it.index == 0 || contents[it.index - 1] != '\\')) {
+      inQuote = !inQuote;
+      if (inQuote) {
+        addChar(cur, ' ');
+      } else
+        addSpace = true;
+    }
+    if (*it == '#' && !inQuote) {
+      while (*it != '\n' && it.index < contents.size() - 1)
+        discard ++it;
+    }
+    else if (!inQuote && (*it == '{' || *it == '}' || *it == ',' || *it == '(' || *it == ')')) {
+      addChar(cur, ' ');
+      addChar(cur, *it);
+      addChar(cur, ' ');
+    } else {
+      addChar(cur, *it);
+    }
+    if (addSpace)
+      addChar(cur, ' ');
+    addSpace = false;
+    if (*it == '\n') {
+      ++cur.line;
+      cur.column = 1;
+    } else
+      ++cur.column;
+  }
+  return move(ret);
+}
+
+export preprocess_result!string preprocess(string content) {
+  mutable res = preprocess_result("", vector<vector<input_stream_position>>());
+  const formatted = try preprocess(&removeFormatting(move(content)));
+  for (it : formatted) {
+    res.content += it->c;
+    res.positions.push_back(it->pos.copy());
+  }
+  return move(res);
+}

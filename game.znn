@@ -1,0 +1,40 @@
+
+export import "std/vector.znn";
+import "vec2.znn";
+
+export struct tile {
+  char symbol;
+};
+
+export tile copy(tile*) = default;
+
+export struct level {
+  string name;
+  vector<vector<tile>> tiles;
+};
+
+export level(string name, vec2 size) {
+  const tiles = vector(size.x, vector(size.y, tile('.')));
+  return level::level(name, move(tiles));
+}
+
+export struct creature {
+  double pos_x;
+  double pos_y;
+  double dir;
+  char symbol;
+};
+
+export struct game {
+  level level;
+  creature player;
+};
+
+export game() {
+  return game::game(level("Level 1", vec2(30, 30)), creature(10.0, 10.0, 0.0, '@'));
+}
+
+export struct game_data {
+  game* game;
+};
+

@@ -1,0 +1,47 @@
+embed {
+#include "SDL_mixer.h"
+}
+
+export import "std/expected.znn";
+export import "std/enum_map.znn";
+
+import "std/io.znn";
+
+extern struct Mix_Chunk;
+
+export struct SDLSound {
+  Mix_Chunk mutable* chunk;
+};
+
+export expected<SDLSound, string> SDLLoadSound(string path) {
+  const getResult = [](Mix_Chunk mutable* s) -> expected<SDLSound, string> {
+    return SDLSound(s);
+  };
+  const getError = [](string s) -> expected<SDLSound, string> {
+    return s;
+  };
+  embed_returns {
+    if (auto sound = Mix_LoadWAV(path.data()))
+      return invoke(&getResult, sound);
+    else
+      return invoke(&getError, zenon_string::reference(Mix_GetError()));
+  }
+}
+
+export string? SDLPlaySound(SDLSound* sound, int channel) {
+  embed {
+    if (Mix_PlayChannel(channel, sound->chunk, 0) < 0)
+      return zenon_string::reference(Mix_GetError());
+  }
+  return null;
+}
+
+export string? SDLSoundInit() {
+  embed {
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+      return zenon_string::reference(Mix_GetError());
+    Mix_ReserveChannels(1);
+  }
+  return null;
+}
+

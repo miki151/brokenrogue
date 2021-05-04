@@ -1,0 +1,8 @@
+
+export struct color {
+  int r;
+  int g;
+  int b;
+};
+
+export color implicit_copy(color*) = default;

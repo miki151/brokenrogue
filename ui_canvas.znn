@@ -1,0 +1,16 @@
+export import "rectangle.znn";
+export import "color.znn";
+
+export enum texture_flip {
+  NONE, FLIP_X, FLIP_Y, FLIP_XY
+};
+
+export concept<T> ui_canvas {
+  void fill_rectangle(T*, rectangle*, color*);
+  void frame_rectangle(T*, rectangle*, color*, int width);
+  void draw_texture(T*, rectangle*, string, texture_flip);
+  vec2 get_texture_size(T*, string);
+  void draw_text(T*, vec2, string, color*);
+  vec2 get_text_size(T*, string);
+};
+

@@ -1,0 +1,54 @@
+
+export import "ui.znn";
+import "game_ui.znn";
+import "pretty_input.znn";
+import "std/io.znn";
+
+template <T> requires (T == margins || T == fill || T == label || T == texture || T == position || T == button
+    || T == frame || T == game_ui)
+bool round_brackets(dummy_struct<T>) {
+  return true;
+}
+
+ui_element!string read_data(input_stream mutable* stream, dummy_struct<ui_element>) {
+  const last_index = stream->index;
+  const s = stream->read_string();
+  const cast = [&](ui_element elem) -> ui_element!string {
+    return move(elem);
+  };
+  if (s == "margins")
+    return cast(try stream->read_data<margins>());
+  if (s == "fill")
+    return cast(try stream->read_data<fill>());
+  if (s == "label")
+    return cast(try stream->read_data<label>());
+  if (s == "texture")
+    return cast(try stream->read_data<texture>());
+  if (s == "position")
+    return cast(try stream->read_data<position>());
+  if (s == "vertical")
+    return cast(try stream->read_data<vertical>());
+  if (s == "button")
+    return cast(try stream->read_data<button>());
+  if (s == "frame")
+    return cast(try stream->read_data<frame>());
+  if (s == "using")
+    return cast(try stream->read_data<using_ui>());
+  if (s == "width")
+    return cast(try stream->read_data<width_ui>());
+  if (s == "height")
+    return cast(try stream->read_data<height_ui>());
+  if (s == "game_ui")
+    return cast(try stream->read_data<game_ui>());
+  if (s == "\{") {
+    stream->index = last_index;
+    return cast(try stream->read_data<chain>());
+  }
+  stream->index = last_index;
+  return stream->get_error("Not an UI type: \"{s}\"");
+}
+
+export ui_element!string read_ui(string content) {
+  mutable stream = try create_input_stream(content);
+  return stream.read_data<ui_element>();
+}

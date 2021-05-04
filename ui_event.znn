@@ -1,0 +1,26 @@
+
+export import "vec2.znn";
+
+export enum key_type {
+  UP,
+  DOWN,
+  LEFT,
+  RIGHT,
+  ESCAPE
+};
+
+export struct key_event {
+  key_type key;
+};
+
+export enum mouse_event_type {
+  LEFT,
+  MIDDLE,
+  RIGHT
+};
+
+export struct mouse_event {
+  mouse_event_type type;
+  vec2 pos;
+};
+

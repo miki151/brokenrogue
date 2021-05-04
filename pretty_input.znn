@@ -1,0 +1,176 @@
+
+export import "std/expected.znn";
+import "std/io.znn";
+import "std/char.znn";
+export import "std/vector.znn";
+export import "std/enum.znn";
+import "pretty_preprocess.znn";
+
+export struct input_stream_position {
+  int line;
+  int column;
+};
+
+
+export struct input_stream {
+  string buffer;
+  vector<vector<input_stream_position>> positions;
+  int index;
+};
+
+export input_stream!string create_input_stream(string s) {
+  const positions = try preprocess(s);
+  const content = positions.content;
+  printf("After prep:\n{content}\n===\n");
+  return input_stream(move(content), move(positions).positions, 0);
+}
+
+export template <T>
+struct dummy_struct {};
+
+export enum bracket_to_parse {
+  OPEN,
+  COMMA,
+  CLOSE
+};
+
+export template <T>
+bool round_brackets(dummy_struct<T>) {
+  return false;
+}
+
+export template <T>
+void!string parse_bracket(input_stream mutable* stream, bracket_to_parse b) {
+  if (round_brackets(dummy_struct<T>()))
+    switch (b) {
+      case (OPEN) { return stream->expect("("); }
+      case (CLOSE) { return stream->expect(")"); }
+      case (COMMA) { return stream->expect(","); }
+    }
+}
+
+export template <T> requires is_struct<T>
+T!string read_data(input_stream mutable* stream, dummy_struct<T>) {
+  static mutable readStmt = "";
+  static mutable returnStmt = "return " + to_string(T) + "(";
+  try parse_bracket<T>(stream, bracket_to_parse::OPEN);
+  static for (i = 0; i < struct_count(T); ++i) {
+    static if (i > 0) {
+      returnStmt = returnStmt + ", ";
+      readStmt = readStmt + "try parse_bracket<T>(stream, bracket_to_parse::COMMA);";
+    }
+    readStmt = readStmt +
+        "const elem" + to_string(i) + " = try read_data<$get_member_type(" + to_string(T) + ", " + to_string(i) + ")>(stream);";
+    returnStmt = returnStmt + "move(elem" + to_string(i) + ")";
+  }
+  readStmt = readStmt + "try parse_bracket<T>(stream, bracket_to_parse::CLOSE);";
+  mixin "\{" + readStmt + returnStmt + ");\}";
+}
+
+export template <T> requires is_enum<T>
+T!string read_data(input_stream mutable* stream, dummy_struct<T>) {
+  const s = stream->read_string();
+  for (e : enum_range<T>()) {
+    if (e->asString() == s)
+      return *e;
+  }
+  return "Unrecognized {to_string(T)} element: \"{s}\"";
+}
+
+char get_char(input_stream mutable* stream) {
+  return stream->buffer[stream->index];
+}
+
+export string peek_string(input_stream mutable* stream) {
+  while (stream->get_char().isspace())
+    ++stream->index;
+  char next = stream->get_char();
+  if (next == '"')
+    return "{next}";
+  mutable end = stream->index;
+  while (end < stream->buffer.size() && !stream->buffer[end].isspace())
+    ++end;
+  return stream->buffer.substring(stream->index, end - stream->index);
+}
+
+export string read_string(input_stream mutable* stream) {
+  const ret = stream->peek_string();
+  stream->index += ret.size();
+  return move(ret);
+}
+
+export string get_error(input_stream* stream, string error) {
+  const pos = &stream->positions[stream->index][0];
+  return "Line {pos->line}, column {pos->column}: {error}";
+}
+
+export void!string expect(input_stream mutable* stream, string s) {
+  const prevIndex = stream->index;
+  const read = stream->read_string();
+  if (read != s) {
+    stream->index = prevIndex;
+    return stream->get_error("Expected token: \"{s}\", got: \"{read}\"");
+  }
+}
+
+export bool!string read_data(input_stream mutable* stream, dummy_struct<bool>) {
+  const s = stream->read_string();
+  if (s == "false")
+    return false;
+  if (s == "true")
+    return true;
+  return stream->get_error("Not a bool value: \"{s}\"");
+}
+
+export int!string read_data(input_stream mutable* stream, dummy_struct<int>) {
+  const s = stream->read_string();
+  if (const i = s.to_int())
+    return *i;
+  return stream->get_error("Not an int value: \"{s}\"");
+}
+
+export string!string read_data(input_stream mutable* stream, dummy_struct<string>) {
+  mutable ret = "";
+  while (stream->get_char().isspace())
+    ++stream->index;
+  if (const res = stream->expect("\""); !res)
+    return expected<string, string>::error(res.get_error());
+  while (true) {
+    const c = stream->get_char();
+    if (c == '"') {
+      ++stream->index;
+      break;
+    }
+    ret += "{c}";
+    ++stream->index;
+  }
+  return expected<string, string>::value(move(ret));
+}
+
+export concept <T> read_data_overload {
+  T!string read_data(input_stream mutable*, dummy_struct<T>);
+};
+
+export template <T> requires read_data_overload<T>
+T?!string read_data(input_stream mutable* stream, dummy_struct<T?>) {
+  if (stream->expect("null"))
+    return expected<T?, string>::value(null);
+  return expected<T?, string>::value(try stream->read_data<T>());
+}
+
+export template <T> requires read_data_overload<T>
+vector<T>!string read_data(input_stream mutable* stream, dummy_struct<vector<T>>) {
+  try stream->expect("\{");
+  mutable ret = vector<T>();
+  while (true) {
+    if (stream->expect("\}"))
+      break;
+    ret.push_back(try stream->read_data<T>());
+  }
+  return move(ret);
+}
+
+export template <T> requires read_data_overload<T>
+T!string read_data(input_stream mutable* stream) {
+  return read_data(stream, dummy_struct<T>());
+}
