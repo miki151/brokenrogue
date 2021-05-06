@@ -34,7 +34,3 @@ export game() {
   return game::game(level("Level 1", vec2(30, 30)), creature(10.0, 10.0, 0.0, '@'));
 }
 
-export struct game_data {
-  game* game;
-};
-

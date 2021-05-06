@@ -4,23 +4,19 @@ import "rectangle.znn";
 import "ui_event.znn";
 import "game.znn";
 export import "std/any.znn";
+import "std/io.znn";
+export import "ui.znn";
 
-export struct game_ui {
+export [@ui_element]
+struct game_level_ui {
 };
 
-/*export bool on_mouse_event(chain* c, ui_canvas* canvas, any* data, rectangle* rect, mouse_event* event) {
-  for (it : c->elems)
-    if (it->on_mouse_event(canvas, data, rect, event))
-      return true;
-  return false;
-}*/
-
-export void render(game_ui* t, ui_canvas* canvas, any* any_data, rectangle* r) {
+export void render(game_level_ui* t, ui_canvas* canvas, any* any_data, rectangle* r) {
   canvas->fill_rectangle(r, &color(0, 0, 0));
-  if (const data = any_data->cast_to<game_data>())
-    canvas->draw_text(r->v1, (*data)->game->level.name, &color(0, 255, 0));
+  if (const l = any_data->cast_to<level*>())
+    canvas->draw_text(r->v1, (**l)->name, &color(0, 255, 0));
   else
-    canvas->draw_text(r->v1, "no game data", &color(255, 0, 0));
+    canvas->draw_text(r->v1, "Bad game data: {any_data->get_type()}", &color(255, 0, 0));
 }
 
 

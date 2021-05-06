@@ -1,11 +1,12 @@
 
 export import "std/hash_map.znn";
 export import "std/any.znn";
+export import "std/box.znn";
 
 export struct ui_callback {
   invoke<void>* callback;
 };
 
 export struct ui_record {
-  hash_map<string, any> data;
+  hash_map<string, box<any>> data;
 };
