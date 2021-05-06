@@ -20,6 +20,12 @@ export struct sdl_surface {
   SDL_Surface mutable* surface;
 };
 
+export void destruct(sdl_surface* s) {
+  embed {
+    SDL_FreeSurface(s->surface);
+  }
+}
+
 export enum SDLTransformType {
   NONE,
   ROTATE_LEFT,
