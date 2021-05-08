@@ -129,6 +129,13 @@ export int!string read_data(input_stream mutable* stream, dummy_struct<int>) {
   return stream->get_error("Not an int value: \"{s}\"");
 }
 
+export double!string read_data(input_stream mutable* stream, dummy_struct<double>) {
+  const s = stream->read_string();
+  if (const i = s.to_double())
+    return *i;
+  return stream->get_error("Not a double value: \"{s}\"");
+}
+
 export string!string read_data(input_stream mutable* stream, dummy_struct<string>) {
   mutable ret = "";
   while (stream->get_char().isspace())

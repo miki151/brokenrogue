@@ -6,17 +6,31 @@ export enum key_type {
   DOWN,
   LEFT,
   RIGHT,
-  ESCAPE
+  ESCAPE,
+  F1,
+  A,
+  W,
+  S,
+  D,
 };
 
-export struct key_event {
+export enum key_event_type {
+  DOWN,
+  UP,
+  HELD,
+};
+
+export [@auto_equality]
+struct key_event {
   key_type key;
+  key_event_type type;
 };
 
 export enum mouse_event_type {
   LEFT,
   MIDDLE,
-  RIGHT
+  RIGHT,
+  RELATIVE_MOTION
 };
 
 export struct mouse_event {

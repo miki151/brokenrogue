@@ -9,13 +9,13 @@ export import "ui_event.znn";
 import "ui_data.znn";
 export import "std/math.znn";
 export import "std/any.znn";
-import "std/io.znn";
+export import "std/io.znn";
 export import "std/box.znn";
 
 export concept<T> ui_element {
   void render(T*, ui_canvas*, any*, rectangle*);
   vec2 size(T*, ui_canvas*);
-  bool on_key_event(T*, ui_canvas*, rectangle*, key_event*);
+  bool on_key_event(T*, ui_canvas*, any*, rectangle*, key_event*);
   bool on_mouse_event(T*, ui_canvas*, any*, rectangle*, mouse_event*);
   void destruct(T*);
 };
@@ -37,7 +37,7 @@ vec2 size(T*, ui_canvas*) {
 }
 
 export template <T> requires has_attribute<T, @ui_element>
-bool on_key_event(T*, ui_canvas*, rectangle*, key_event*) {
+bool on_key_event(T*, ui_canvas*, any*, rectangle*, key_event*) {
   return false;
 }
 
@@ -49,6 +49,18 @@ bool on_mouse_event(T*, ui_canvas*, any*, rectangle*, mouse_event*) {
 export template <T>
 any*!string transform_data(T*, any* a) {
   return a;
+}
+
+export concept<T, D> render_with_data {
+  void render(T*, ui_canvas*, D*, rectangle*);
+};
+
+export template <T, D> requires render_with_data<T, D>, (!(D == any))
+void render(T* t, ui_canvas* canvas, any* any_data, rectangle* r) {
+  if (const data = any_data->cast_to<D>())
+    render(t, canvas, *data, r);
+  else
+    canvas->draw_text(r->v1, "{any_data->get_type()}, expected: {to_string(D)}", &color(255, 0, 0));
 }
 
 export template <T> requires container_ui<T>
@@ -72,10 +84,12 @@ vec2 size(T* t, ui_canvas* canvas) {
 }
 
 export template <T> requires container_ui<T>
-bool on_key_event(T* t, ui_canvas* canvas, rectangle* r, key_event* key) {
-  for (elem : t->get_elems())
-    if (elem->get()->on_key_event(canvas, r, key))
-      return true;
+bool on_key_event(T* t, ui_canvas* canvas, any* any, rectangle* r, key_event* key) {
+  printf("key event\n");
+  if (const data = t->transform_data(any))
+    for (elem : t->get_elems())
+      if (elem->get()->on_key_event(canvas, *data, r, key))
+        return true;
   return false;
 }
 
@@ -108,8 +122,8 @@ struct button {
 
 export bool on_mouse_event(button* b, ui_canvas*, any* data, rectangle* rect, mouse_event* event) {
   if (rect->contains(&event->pos))
-    if (const callback = data->cast_to<ui_callback>()) {
-      (*callback)->callback->invoke();
+    if (const callback = data->cast_to<box<ui_callback>>()) {
+      (**callback)->invoke();
       return true;
     }
   return false;
@@ -296,5 +310,19 @@ export rectangle get_bounds(height_ui* c, int, ui_canvas*, rectangle* r) {
 
 export vec2 size(height_ui* t, ui_canvas* canvas) {
   return vec2(t->elem->size(canvas).x, t->height);
+}
+
+export [@ui_element]
+struct key_handler {
+  key_event event;
+};
+
+export bool on_key_event(key_handler* k, ui_canvas*, any* data, rectangle* rect, key_event* event) {
+  if (*event == k->event)
+    if (const callback = data->cast_to<box<ui_callback>>()) {
+      (**callback)->invoke();
+      return true;
+    }
+  return false;
 }
 

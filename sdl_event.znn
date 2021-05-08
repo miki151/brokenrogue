@@ -3,8 +3,13 @@ embed {
 #include "SDL.h"
 }
 
+export import "std/expected.znn";
+export import "std/vector.znn";
 export import "vec2.znn";
 export import "ui_event.znn";
+export import "std/enum_set.znn";
+import "std/enum.znn";
+
 
 export struct SDLQuitEvent {
 };
@@ -20,55 +25,95 @@ export union SDLEvent {
   SDLUnknownEvent unknown;
 };
 
-export void SDLFlushEvents() {
-  while (!!SDLPollEvent()) {}
+export void!string sdl_set_relative_mouse_mode(bool state) {
+  const getError = [](string s) -> void!string {
+    return s;
+  };
+  embed {
+    if (SDL_SetRelativeMouseMode(state ? SDL_TRUE : SDL_FALSE) != 0)
+      return invoke(&getError, zenon_string::reference(SDL_GetError())); 
+  }
 }
 
-export SDLEvent? SDLPollEvent() {
+export struct sdl_events_state {
+  enum_set<key_type> pressed_keys;
+};
+
+export sdl_events_state() {
+  return sdl_events_state::sdl_events_state(enum_set<key_type>());
+}
+
+export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
+  mutable ret = vector<SDLEvent>();
+  const update_key = [&] (key_type k, bool s) {
+    state->pressed_keys.set(k, s);
+  };
   embed {
     SDL_Event event;
-    if (SDL_PollEvent(&event)) {
-      if (event.type == SDL_JOYBUTTONDOWN) {
-        switch (event.jbutton.button) {
-          case 8: return SDLEvent::key(key_event{ key_type::UP });
-          case 4:
-          case 10:  return SDLEvent::key(key_event{ key_type::LEFT });
-          case 5:
-          case 11: return SDLEvent::key(key_event{ key_type::RIGHT });
-          case 9:  return SDLEvent::key(key_event{ key_type::DOWN });
-          case 2:  return SDLEvent::key(key_event{ key_type::ESCAPE });
+    while (SDL_PollEvent(&event)) {
+      auto get = [&] {
+/*        if (event.type == SDL_JOYBUTTONDOWN) {
+          switch (event.jbutton.button) {
+            case 8: return SDLEvent::key_down(key_event{ key_type::UP });
+            case 4:
+            case 10:  return SDLEvent::key_down(key_event{ key_type::LEFT });
+            case 5:
+            case 11: return SDLEvent::key_down(key_event{ key_type::RIGHT });
+            case 9:  return SDLEvent::key_down(key_event{ key_type::DOWN });
+            case 2:  return SDLEvent::key_down(key_event{ key_type::ESCAPE });
+          }
+        }*/
+        if (event.type == SDL_QUIT)
+          return SDLEvent::quit(SDLQuitEvent{});
+        if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+          auto get_event = [&](key_type key) {
+            invoke(&update_key, key, event.type == SDL_KEYDOWN);
+            return SDLEvent::key(key_event{key,
+                event.type == SDL_KEYDOWN
+                    ? key_event_type::DOWN
+                    : key_event_type::UP});
+          };
+          switch (event.key.keysym.sym) {
+            case SDLK_UP:    return get_event( key_type::UP );
+            case SDLK_LEFT:  return get_event( key_type::LEFT );
+            case SDLK_RIGHT: return get_event( key_type::RIGHT );
+            case SDLK_DOWN:  return get_event( key_type::DOWN );
+            case SDLK_ESCAPE:return get_event( key_type::ESCAPE );
+            case SDLK_F1:    return get_event( key_type::F1 );
+            case SDLK_a:    return get_event( key_type::A );
+            case SDLK_w:    return get_event( key_type::W );
+            case SDLK_s:    return get_event( key_type::S );
+            case SDLK_d:    return get_event( key_type::D );
+            default: break;
+          }
         }
-      }
-      if (event.type == SDL_QUIT)
-        return SDLEvent::quit(SDLQuitEvent{});
-      if (event.type == SDL_KEYDOWN)
-        switch (event.key.keysym.sym) {
-          case SDLK_UP:    return SDLEvent::key(key_event{ key_type::UP });
-          case SDLK_LEFT:  return SDLEvent::key(key_event{ key_type::LEFT });
-          case SDLK_RIGHT: return SDLEvent::key(key_event{ key_type::RIGHT });
-          case SDLK_DOWN:  return SDLEvent::key(key_event{ key_type::DOWN });
-          case SDLK_ESCAPE:return SDLEvent::key(key_event{ key_type::ESCAPE });
-          default: break;
+        if (event.type == SDL_MOUSEMOTION) {
+          return SDLEvent::mouse({mouse_event_type::RELATIVE_MOTION, {event.motion.xrel, event.motion.yrel}});
         }
-      if (event.type == SDL_MOUSEBUTTONDOWN) {
-        mouse_event_type button = mouse_event_type::LEFT;
-        switch (event.button.button) {
-          case SDL_BUTTON_LEFT:
-            button = mouse_event_type::LEFT;
-            break;
-          case SDL_BUTTON_RIGHT:
-            button = mouse_event_type::RIGHT;
-            break;
-          case SDL_BUTTON_MIDDLE:
-            button = mouse_event_type::MIDDLE;
-            break;
+        if (event.type == SDL_MOUSEBUTTONDOWN) {
+          mouse_event_type button = mouse_event_type::LEFT;
+          switch (event.button.button) {
+            case SDL_BUTTON_LEFT:
+              button = mouse_event_type::LEFT;
+              break;
+            case SDL_BUTTON_RIGHT:
+              button = mouse_event_type::RIGHT;
+              break;
+            case SDL_BUTTON_MIDDLE:
+              button = mouse_event_type::MIDDLE;
+              break;
+          }
+          return SDLEvent::mouse(mouse_event{ button, vec2{event.button.x, event.button.y} });
         }
-        return SDLEvent::mouse(mouse_event{ button, vec2{event.button.x, event.button.y} });
-      }
-      return SDLEvent::unknown(SDLUnknownEvent{});
+        return SDLEvent::unknown(SDLUnknownEvent{});
+      };
+      ret.push_back(get());
     }
   }
-  return null;
+  for (e : enum_range<key_type>())
+    if (state->pressed_keys.contains(*e))
+      ret.push_back(SDLEvent::key(key_event(*e, key_event_type::HELD)));
+  return move(ret);
 }
 
 

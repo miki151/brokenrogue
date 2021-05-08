@@ -3,8 +3,9 @@ export import "std/hash_map.znn";
 export import "std/any.znn";
 export import "std/box.znn";
 
-export struct ui_callback {
-  invoke<void>* callback;
+export concept <Fun> ui_callback {
+  void invoke(Fun*);
+  void destruct(Fun*);
 };
 
 export struct ui_record {

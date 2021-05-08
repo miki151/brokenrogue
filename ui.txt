@@ -1,0 +1,20 @@
+
+Def Button(Text) {
+  fill(0 0 0)
+  frame(1, 255 255 255)
+  position(CENTER, margins(10, label(Text, 255 255 255)))
+  button()
+}
+End
+
+{
+  using "reload_ui" key_handler(F1 DOWN)
+  using "exit_callback" key_handler(ESCAPE DOWN)
+  using "player_forward" key_handler(W HELD)
+  using "player_back" key_handler(S HELD)
+  using "player_left" key_handler(A HELD)
+  using "player_right" key_handler(D HELD)
+  fill(0 0 0)
+  using "game_level" game_level(300, 50, 0.8)
+#      using "exit_callback" position(CENTER, margins(5, Button("exit")))
+}

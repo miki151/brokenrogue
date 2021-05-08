@@ -37,7 +37,7 @@ export void draw_text(sdl_canvas* canvas, vec2 pos, string text, color* color) {
 }
 
 export vec2 get_text_size(sdl_canvas* canvas, string text) {
-  return *canvas->window->get_text_size(canvas->font, text);
+  return get_text_size(canvas->font, text);
 }
 
 

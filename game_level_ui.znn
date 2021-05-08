@@ -6,17 +6,36 @@ import "game.znn";
 export import "std/any.znn";
 import "std/io.znn";
 export import "ui.znn";
+import "rectangle.znn";
 
 export [@ui_element]
 struct game_level_ui {
+  int los;
+  int tile_size;
+  double view_angle;
 };
 
-export void render(game_level_ui* t, ui_canvas* canvas, any* any_data, rectangle* r) {
+vec2 project_on_screen(creature* player, vec2 pos, int zoom, double view_angle) {
+  const diff_x = pos.x - player->pos_x;
+  const diff_y = pos.y - player->pos_y;
+  const dist = zoom.as_double() * sqrt(diff_x * diff_x + diff_y * diff_y);
+  const angle = player->dir - atan2(diff_x, diff_y);
+  return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * view_angle).as_int());
+}
+
+export void render(game_level_ui* ui, ui_canvas* canvas, game** g1, rectangle* r) {
+  const g = *g1;
   canvas->fill_rectangle(r, &color(0, 0, 0));
-  if (const l = any_data->cast_to<level*>())
-    canvas->draw_text(r->v1, (**l)->name, &color(0, 255, 0));
-  else
-    canvas->draw_text(r->v1, "Bad game data: {any_data->get_type()}", &color(255, 0, 0));
+  const pos_int = vec2(g->player.pos_x.as_int(), g->player.pos_y.as_int());
+  const view_angle = 0.4;
+  const origin = vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
+  for (pos : centered_rect(pos_int, ui->los))
+    if (const t = g->level.get_tile(*pos)) {
+      const coord = origin + project_on_screen(&g->player, *pos, ui->tile_size, ui->view_angle);
+      if (r->plus_margin(ui->tile_size).contains(&coord))
+        canvas->draw_text(coord, "{(*t)->symbol}", &color(0, 255, 0));
+      canvas->draw_text(origin, "{g->player.symbol}", &color(255, 255, 255));
+    }
 }
 
 

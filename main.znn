@@ -9,6 +9,9 @@ import "ui_reader.znn";
 import "sdl_ttf.znn";
 import "ui_data.znn";
 import "game.znn";
+import "std/enum_set.znn";
+import "std/enum.znn";
+import "std/time.znn";
 
 struct Y {
   int u;
@@ -36,29 +39,45 @@ int main() {
   *sdl_init();
   mutable ui = read_ui_from("ui.txt");
   const window = *sdl_create_window(vec2(640, 480), "Infinihack");
-  const font = *load_sdl_font("font.ttf", 20);
+  *sdl_set_relative_mouse_mode(true);
+  const font = *window.load_sdl_font("font.ttf", 50);
   const canvas = sdl_canvas(&window, &font, load_textures(&window));
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   mutable game1 = game();
   mutable ui_data = ui_record(hash_map<string, box<any>>());
-  ui_data.data.insert("game_level", box_as<any, level*>(&game1.level));
+  ui_data.data.insert("game_level", box_as<any, game*>(&game1));
   mutable exit = false;
-  const exit_callback = [&exit] { exit = true; };
-  ui_data.data.insert("exit_callback", ui_callback(&exit_callback).box_as<any>());
+  mutable diff_time = 0.0;
+  ui_data.data.insert("exit_callback", [&exit] { exit = true; }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("reload_ui", [&ui] { ui = read_ui_from("ui.txt"); }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("player_forward",
+      [&game1, &diff_time] { game1.player.advance(4 * diff_time, 0); }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("player_back",
+      [&game1, &diff_time] { game1.player.advance(-4 * diff_time, 0); }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("player_left",
+      [&game1, &diff_time] { game1.player.advance(4 * diff_time, 1.57); }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("player_right",
+      [&game1, &diff_time] { game1.player.advance(-4 * diff_time, 1.57); }.box_as<ui_callback>().box_as<any>());
+  mutable last_update = current_time_milli();
+  mutable events_state = sdl_events_state();
   while (!exit) {
-    for (event = SDLPollEvent(); !!event; event = SDLPollEvent()) {
+    const cur_time = current_time_milli();
+    diff_time = 0.001 * (cur_time - last_update);
+    last_update = cur_time;
+    for (event : events_state.get_events()) {
       if (exit)
         break;
       switch (*event) {
         case (quit) { return 0; }
         case (key) {
-          switch (key.key) {
-            case (ESCAPE) { return 0; }
-            case (UP) { ui = read_ui_from("ui.txt"); }
-            default {}
-          }
+          discard ui->on_key_event(&canvas, &ui_data, &ui_rectangle, &key);
         }
-        case (mouse) { discard ui->on_mouse_event(&canvas, &ui_data, &ui_rectangle, &mouse); }
+        case (mouse) {
+          if (mouse.type == mouse_event_type::LEFT)
+            discard ui->on_mouse_event(&canvas, &ui_data, &ui_rectangle, &mouse);
+          if (mouse.type == mouse_event_type::RELATIVE_MOTION)
+            game1.player.dir -= 0.0008 * mouse.pos.x;
+        }
         default {}
       }
     }

@@ -6,71 +6,52 @@ import "sdl_surface.znn";
 import "sdl_window.znn";
 
 embed {
-#include "SDL.h"
-#include "SDL_ttf.h"
+//#include "SDL.h"
+//#include "SDL_ttf.h"
 }
 
-extern struct TTF_Font;
+extern struct FC_Font;
+
+embed {
+#include "SDL_FontCache.h"
+}
 
 export embed {
-  struct _TTF_Font;
-  typedef struct _TTF_Font TTF_Font;  
+  struct FC_Font;
 }
 
 export struct sdl_font {
-  TTF_Font mutable* font;
+  FC_Font mutable* font;
 };
 
-export sdl_font!string load_sdl_font(string path, int size) {
+export sdl_font!string load_sdl_font(sdl_window* window, string path, int size) {
   const gen_error = [] (string s) -> expected<sdl_font, string> {
     return s;
   };
-  const gen_value = [] (TTF_Font mutable* f) -> expected<sdl_font, string> {
+  const gen_value = [] (FC_Font mutable* f) -> expected<sdl_font, string> {
     return sdl_font(f);
   };
   embed_returns {
-    if (!TTF_WasInit() && TTF_Init() == -1)
+    auto font = FC_CreateFont();
+    if (!FC_LoadFont(font, window->renderer, path.data(), size, FC_MakeColor(255, 255, 255, 255),
+        TTF_STYLE_NORMAL))
       return invoke(&gen_error, zenon_string::reference(TTF_GetError()));
-    if (auto font = TTF_OpenFont(path.data(), size))
-      return invoke(&gen_value, font);
-    else
-      return invoke(&gen_error, zenon_string::reference(TTF_GetError()));
-  }
-}
-
-sdl_surface!string get_text_surface(sdl_font* font, color color, string text) {
-  const gen_error = [] (string s) -> expected<sdl_surface, string> {
-    return s;
-  };
-  const gen_value = [] (SDL_Surface mutable* s) -> expected<sdl_surface, string> {
-    return sdl_surface(s);
-  };
-  embed_returns {
-    SDL_Color sdlColor = {(Uint8)color.r, (Uint8)color.g, (Uint8)color.b};
-    if (auto text_surface = TTF_RenderText_Solid(font->font, text.data(), sdlColor))
-      return invoke(&gen_value, text_surface);
-    else
-      return invoke(&gen_error, zenon_string::reference(TTF_GetError()));
+    return invoke(&gen_value, font);
   }
 }
 
 export void!string draw_text(sdl_window* window, vec2 pos, sdl_font* font, color color, string text) {
-  return window->blit_from(pos, &try (try get_text_surface(font, color, text)).to_texture(window), null);
-}
-
-export vec2!string get_text_size(sdl_window* surface, sdl_font* font, string text) {
-  const gen_error = [] (string s) -> expected<vec2, string> {
-    return s;
-  };
-  const gen_value = [] (int a, int b) -> expected<vec2, string> {
-    return vec2(a, b);
-  };
-  embed_returns {
-    int a, b;
-    if (TTF_SizeText(font->font, text.data(), &a, &b) == 0)
-      return invoke(&gen_value, a, b);
-    else
-      return invoke(&gen_error, zenon_string::reference(TTF_GetError()));
+  embed {
+    FC_DrawColor(font->font, window->renderer, pos.x, pos.y, FC_MakeColor(color.r, color.g, color.b, 255), "%s", text.data());
   }
 }
 
+export vec2 get_text_size(sdl_font* font, string text) {
+  embed_returns {
+    return {FC_GetWidth(font->font, "%s", text.data()), FC_GetHeight(font->font, "%s", text.data())};
+  }
+}
+
+embed {
+#include "SDL_FontCache.c"
+}

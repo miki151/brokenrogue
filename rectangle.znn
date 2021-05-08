@@ -7,6 +7,10 @@ export struct rectangle {
   vec2 v2;
 };
 
+export rectangle centered_rect(vec2 pos, int radius) {
+  return rectangle(pos - vec2(radius, radius), pos + vec2(radius + 1, radius + 1));
+}
+
 export bool contains(rectangle* r, vec2* pos) {
   return pos->x >= r->v1.x && pos->y >= r->v1.y && pos->y < r->v2.y && pos->x < r->v2.x;
 }
