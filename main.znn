@@ -55,17 +55,30 @@ int main(string[] args) {
   ui_data.data.insert("game_level", box_as<any, game*>(&game1));
   mutable exit = false;
   mutable diff_time = 0.0;
+  mutable last_update = current_time_milli();
+  mutable real_time_end = 0;
   ui_data.data.insert("exit_callback", [&exit] { exit = true; }.box_as<ui_callback>().box_as<any>());
   ui_data.data.insert("reload_ui", [&ui] { ui = read_ui_from("ui.txt"); }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_forward",
-      [&game1, &diff_time] { game1.get_player()->advance(&game1, 4 * diff_time, 0); }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_back",
-      [&game1, &diff_time] { game1.get_player()->advance(&game1, -4 * diff_time, 0); }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_left",
-      [&game1, &diff_time] { game1.get_player()->advance(&game1, 2 * diff_time, 1.57); }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_right",
-      [&game1, &diff_time] { game1.get_player()->advance(&game1, -2 * diff_time, 1.57); }.box_as<ui_callback>().box_as<any>());
-  mutable last_update = current_time_milli();
+  ui_data.data.insert("player_forward", [&game1, &diff_time] {
+      game1.advance(diff_time);
+      discard game1.get_player()->advance(&game1, 4 * diff_time, 0);
+  }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("player_back", [&game1, &diff_time] {
+      game1.advance(diff_time);
+      discard game1.get_player()->advance(&game1, -4 * diff_time, 0);
+  }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("player_left", [&game1, &diff_time] {
+      game1.advance(diff_time);
+      discard game1.get_player()->advance(&game1, 2 * diff_time, 1.57);
+  }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("player_right", [&game1, &diff_time] {
+      game1.advance(diff_time);
+      discard game1.get_player()->advance(&game1, -2 * diff_time, 1.57);
+  }.box_as<ui_callback>().box_as<any>());
+  ui_data.data.insert("player_shoot", [&] {
+      game1.spawn_projectile(game1.get_player(), glyph(')', color(100, 100, 100), 0.7));
+      real_time_end = last_update + 100;
+  }.box_as<ui_callback>().box_as<any>());
   mutable events_state = sdl_events_state();
   mutable fps = fps_meter();
   while (!exit) {
@@ -73,6 +86,8 @@ int main(string[] args) {
     ui_data.data.insert("fps", "{fps.get_fps()}".box_as<any>());
     const cur_time = current_time_milli();
     diff_time = 0.001 * (cur_time - last_update);
+    if (cur_time <= real_time_end)
+      game1.advance(diff_time);
     last_update = cur_time;
     for (event : events_state.get_events()) {
       if (exit)

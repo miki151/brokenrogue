@@ -1,0 +1,23 @@
+
+export import "color.znn";
+export import "ui_canvas.znn";
+import "std/math.znn";
+import "std/io.znn";
+
+export struct glyph {
+  char sym;
+  color col;
+  double size;
+};
+
+export glyph(char, color, double) = default;
+export glyph(char c, color col) {
+  return glyph(c, col, 1.0);
+}
+
+export glyph copy(glyph*) = default;
+
+export void render(glyph* g, ui_canvas* canvas, int font_size, vec2 pos) {
+  canvas->draw_text(pos, "{g->sym}", (g->size * font_size).as_int(), &g->col, ui_text_flag::CENTER_XY);
+
+}
