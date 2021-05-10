@@ -130,16 +130,29 @@ export bool on_mouse_event(button* b, ui_canvas*, any* data, rectangle* rect, mo
 
 export [@ui_element]
 struct label {
-  string? text;
+  string text;
   color color;
 };
 
-export void render(label* t, ui_canvas* canvas, any* any, rectangle* r) {
-  canvas->draw_text(r->v1, t->text ?? "something", &t->color);
+export void render(label* t, ui_canvas* canvas, any*, rectangle* r) {
+  canvas->draw_text(r->v1, t->text, &t->color);
 }
 
 export vec2 size(label* t, ui_canvas* canvas) {
-  return canvas->get_text_size(t->text ?? "something");
+  return canvas->get_text_size(t->text);
+}
+
+export [@ui_element]
+struct text_ui {
+  color color;
+};
+
+export void render(text_ui* t, ui_canvas* canvas, string* s, rectangle* r) {
+  canvas->draw_text(r->v1, *s, &t->color);
+}
+
+export vec2 size(text_ui* t, ui_canvas* canvas) {
+  return canvas->get_text_size("something");
 }
 
 export [@ui_element]

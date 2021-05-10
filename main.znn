@@ -13,6 +13,7 @@ import "std/enum_set.znn";
 import "std/enum.znn";
 import "std/time.znn";
 import "std/flags.znn";
+import "fps_meter.znn";
 
 struct Y {
   int u;
@@ -66,7 +67,10 @@ int main(string[] args) {
       [&game1, &diff_time] { game1.get_player()->advance(&game1, -2 * diff_time, 1.57); }.box_as<ui_callback>().box_as<any>());
   mutable last_update = current_time_milli();
   mutable events_state = sdl_events_state();
+  mutable fps = fps_meter();
   while (!exit) {
+    fps.add_tick();
+    ui_data.data.insert("fps", "{fps.get_fps()}".box_as<any>());
     const cur_time = current_time_milli();
     diff_time = 0.001 * (cur_time - last_update);
     last_update = cur_time;

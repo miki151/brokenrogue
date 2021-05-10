@@ -1,0 +1,29 @@
+
+import "std/time.znn";
+import "std/io.znn";
+
+export struct fps_meter {
+  int cur_sec;
+  int num_ticks;
+  int last_fps;
+};
+
+export fps_meter() {
+  return fps_meter::fps_meter(0, 0, 0);
+}
+
+export void add_tick(fps_meter mutable* meter) {
+  const cur_time = current_time_milli();
+  const cur_sec = cur_time / 1000;
+  if (cur_sec == meter->cur_sec)
+    ++meter->num_ticks;
+  else {
+    meter->last_fps = meter->num_ticks;
+    meter->cur_sec = cur_sec;
+    meter->num_ticks = 0;
+  }
+}
+
+export int get_fps(fps_meter* meter) {
+  return meter->last_fps;
+}

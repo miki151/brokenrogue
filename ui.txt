@@ -15,6 +15,7 @@ End
   using "player_left" key_handler(A HELD)
   using "player_right" key_handler(D HELD)
   fill(0 0 0)
-  using "game_level" game_level(300, 50, 0.8)
+  using "game_level" game_level(300, 40, 0.8)
+  using "fps" text(255 255 255)
 #      using "exit_callback" position(CENTER, margins(5, Button("exit")))
 }

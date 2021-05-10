@@ -5,7 +5,7 @@ import "pretty_input.znn";
 import "std/io.znn";
 
 template <T> requires (T == margins || T == fill || T == label || T == texture || T == position || T == button
-    || T == frame || T == game_level_ui || T == key_handler)
+    || T == frame || T == game_level_ui || T == key_handler || T == text_ui)
 bool round_brackets(pretty_dummy_struct<T>) {
   return true;
 }
@@ -19,6 +19,8 @@ box<ui_element>!string read_data(input_stream mutable* stream, pretty_dummy_stru
     return (try stream->read_data<fill>()).box_as<ui_element>();
   if (s == "label")
     return (try stream->read_data<label>()).box_as<ui_element>();
+  if (s == "text")
+    return (try stream->read_data<text_ui>()).box_as<ui_element>();
   if (s == "texture")
     return (try stream->read_data<texture>()).box_as<ui_element>();
   if (s == "position")

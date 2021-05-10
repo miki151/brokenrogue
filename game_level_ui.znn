@@ -49,9 +49,8 @@ export void render(game_level_ui* ui, ui_canvas* canvas, game** g1, rectangle* r
     if (const t = g->level.get_tile(*pos)) {
       const coord = origin + ui->project_on_screen(player, pos->as_double());
       const vpos = *pos - pos_int + visibility.size() / 2;
-      if (to_draw.contains(&coord) && visibility.bounds().contains(&vpos) && visibility[vpos] == 1) {
+      if (to_draw.contains(&coord) && visibility.bounds().contains(&vpos) && visibility[vpos] == 1)
         canvas->draw_text(coord, "{(*t)->symbol}", &color(80, 80, 80), ui_text_flag::CENTER_XY);
-      }
     }
   for (obj : g->objects) {
     const opos = get_obj_pos(&*obj);
