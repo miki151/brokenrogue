@@ -47,7 +47,7 @@ int main(string[] args) {
   mutable ui = read_ui_from("ui.txt");
   const window = *sdl_create_window(vec2(1280, 720), "Infinihack");
   *sdl_set_relative_mouse_mode(true);
-  const font = *window.load_sdl_font(flags.font_path ?? "font.ttf", 50);
+  const font = *window.load_sdl_font(flags.font_path ?? "font.ttf", 10, 100);
   const canvas = sdl_canvas(&window, &font, load_textures(&window));
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   mutable game1 = game();

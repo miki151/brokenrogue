@@ -60,7 +60,7 @@ void render(T* t, ui_canvas* canvas, any* any_data, rectangle* r) {
   if (const data = any_data->cast_to<D>())
     render(t, canvas, *data, r);
   else
-    canvas->draw_text(r->v1, "{any_data->get_type()}, expected: {to_string(D)}", &color(255, 0, 0));
+    canvas->draw_text(r->v1, "{any_data->get_type()}, expected: {to_string(D)}", 10, &color(255, 0, 0));
 }
 
 export template <T> requires container_ui<T>
@@ -69,7 +69,7 @@ void render(T* t, ui_canvas* canvas, any* any, rectangle* r) {
     for (elem : t->get_elems())
       elem->get()->render(canvas, *data, &t->get_bounds(elem.index, canvas, r));
   } else
-    canvas->draw_text(r->v1, data.get_error(), &color(255, 0, 0));
+    canvas->draw_text(r->v1, data.get_error(), 10, &color(255, 0, 0));
 }
 
 export template <T> requires container_ui<T>
@@ -131,28 +131,30 @@ export bool on_mouse_event(button* b, ui_canvas*, any* data, rectangle* rect, mo
 export [@ui_element]
 struct label {
   string text;
+  int size;
   color color;
 };
 
 export void render(label* t, ui_canvas* canvas, any*, rectangle* r) {
-  canvas->draw_text(r->v1, t->text, &t->color);
+  canvas->draw_text(r->v1, t->text, t->size, &t->color);
 }
 
 export vec2 size(label* t, ui_canvas* canvas) {
-  return canvas->get_text_size(t->text);
+  return canvas->get_text_size(t->text, t->size);
 }
 
 export [@ui_element]
 struct text_ui {
+  int size;
   color color;
 };
 
 export void render(text_ui* t, ui_canvas* canvas, string* s, rectangle* r) {
-  canvas->draw_text(r->v1, *s, &t->color);
+  canvas->draw_text(r->v1, *s, t->size, &t->color);
 }
 
 export vec2 size(text_ui* t, ui_canvas* canvas) {
-  return canvas->get_text_size("something");
+  return canvas->get_text_size("something", t->size);
 }
 
 export [@ui_element]

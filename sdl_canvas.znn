@@ -27,7 +27,7 @@ export void draw_texture(sdl_canvas* canvas, rectangle* r, string id, texture_fl
   if (const t = canvas->textures.get_maybe(&id))
     *canvas->window->blit_from(r->v1, *t, r->size());
   else
-    canvas->draw_text(r->v1, "bad texture id: {id}", &color(255, 0, 0));
+    canvas->draw_text(r->v1, "bad texture id: {id}", 10, &color(255, 0, 0));
 }
 
 export vec2 get_texture_size(sdl_canvas* canvas, string id) {
@@ -36,12 +36,12 @@ export vec2 get_texture_size(sdl_canvas* canvas, string id) {
   return vec2(100, 20);
 }
 
-export void draw_text(sdl_canvas* canvas, vec2 pos, string text, color* color) {
-  *canvas->window->draw_text(pos, canvas->font, *color, text);
+export void draw_text(sdl_canvas* canvas, vec2 pos, string text, int size, color* color) {
+  *canvas->window->draw_text(pos, canvas->font, size, *color, text);
 }
 
-export vec2 get_text_size(sdl_canvas* canvas, string text) {
-  return get_text_size(canvas->font, text);
+export vec2 get_text_size(sdl_canvas* canvas, string text, int size) {
+  return get_text_size(canvas->font, text, size);
 }
 
 

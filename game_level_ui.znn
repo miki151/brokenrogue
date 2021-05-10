@@ -13,6 +13,7 @@ export [@ui_element]
 struct game_level_ui {
   int los;
   int tile_size;
+  int font_size;
   double view_angle;
 };
 
@@ -50,14 +51,14 @@ export void render(game_level_ui* ui, ui_canvas* canvas, game** g1, rectangle* r
       const coord = origin + ui->project_on_screen(player, pos->as_double());
       const vpos = *pos - pos_int + visibility.size() / 2;
       if (to_draw.contains(&coord) && visibility.bounds().contains(&vpos) && visibility[vpos] == 1)
-        canvas->draw_text(coord, "{(*t)->symbol}", &color(80, 80, 80), ui_text_flag::CENTER_XY);
+        canvas->draw_text(coord, "{(*t)->symbol}", ui->font_size, &color(80, 80, 80), ui_text_flag::CENTER_XY);
     }
   for (obj : g->objects) {
     const opos = get_obj_pos(&*obj);
     if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
       const coord = origin + ui->project_on_screen(player, obj->pos);
       if (to_draw.contains(&coord))
-        canvas->draw_text(coord, "{obj->symbol}", &obj->color, ui_text_flag::CENTER_XY);
+        canvas->draw_text(coord, "{obj->symbol}", ui->font_size, &obj->color, ui_text_flag::CENTER_XY);
     }
   }
 }

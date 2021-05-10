@@ -1,9 +1,11 @@
 
 export import "std/expected.znn";
+export import "std/vector.znn";
 export import "color.znn";
 export import "vec2.znn";
 import "sdl_surface.znn";
 import "sdl_window.znn";
+import "std/io.znn";
 
 embed {
 //#include "SDL.h"
@@ -21,34 +23,41 @@ export embed {
 }
 
 export struct sdl_font {
-  FC_Font mutable* font;
+  int min_size;
+  vector<FC_Font mutable*> fonts;
 };
 
-export sdl_font!string load_sdl_font(sdl_window* window, string path, int size) {
+export sdl_font!string load_sdl_font(sdl_window* window, string path, int min_size, int max_size) {
   const gen_error = [] (string s) -> expected<sdl_font, string> {
     return s;
   };
-  const gen_value = [] (FC_Font mutable* f) -> expected<sdl_font, string> {
-    return sdl_font(f);
-  };
+  mutable fonts = vector<FC_Font mutable*>();
   embed_returns {
-    auto font = FC_CreateFont();
-    if (!FC_LoadFont(font, window->renderer, path.data(), size, FC_MakeColor(255, 255, 255, 255),
-        TTF_STYLE_NORMAL))
-      return invoke(&gen_error, zenon_string::reference(TTF_GetError()));
-    return invoke(&gen_value, font);
+    for (int size = min_size; size <= max_size; ++size) {
+      fonts.push_back(FC_CreateFont());
+      if (!FC_LoadFont(fonts.back(), window->renderer, path.data(), size, FC_MakeColor(255, 255, 255, 255),
+          TTF_STYLE_NORMAL))
+        return invoke(&gen_error, zenon_string::reference(TTF_GetError()));
+    }
   }
+  return sdl_font(min_size, move(fonts));
 }
 
-export void!string draw_text(sdl_window* window, vec2 pos, sdl_font* font, color color, string text) {
+export void!string draw_text(sdl_window* window, vec2 pos, sdl_font* font, int size, color color, string text) {
+  if (size < font->min_size || size >= font->min_size + font->fonts.size())
+    return "Bad font size: {size}";
   embed {
-    FC_DrawColor(font->font, window->renderer, pos.x, pos.y, FC_MakeColor(color.r, color.g, color.b, 255), "%s", text.data());
+    FC_DrawColor(font->fonts[size - font->min_size], window->renderer, pos.x, pos.y,
+        FC_MakeColor(color.r, color.g, color.b, 255), "%s", text.data());
   }
 }
 
-export vec2 get_text_size(sdl_font* font, string text) {
+export vec2 get_text_size(sdl_font* font, string text, int size) {
+  if (size < font->min_size || size >= font->min_size + font->fonts.size())
+    return vec2(0, 0);
   embed_returns {
-    return {FC_GetWidth(font->font, "%s", text.data()), FC_GetHeight(font->font, "%s", text.data())};
+    return {FC_GetWidth(font->fonts[size - font->min_size], "%s", text.data()),
+      FC_GetHeight(font->fonts[size - font->min_size], "%s", text.data())};
   }
 }
 
