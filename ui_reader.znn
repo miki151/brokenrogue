@@ -25,8 +25,8 @@ box<ui_element>!string read_data(input_stream mutable* stream, pretty_dummy_stru
     return (try stream->read_data<texture>()).box_as<ui_element>();
   if (s == "position")
     return (try stream->read_data<position>()).box_as<ui_element>();
-  if (s == "vertical")
-    return (try stream->read_data<vertical>()).box_as<ui_element>();
+  if (s == "list_ui")
+    return (try stream->read_data<list_ui>()).box_as<ui_element>();
   if (s == "button")
     return (try stream->read_data<button>()).box_as<ui_element>();
   if (s == "key_handler")

@@ -229,24 +229,39 @@ export rectangle get_bounds(position* p, int ind, ui_canvas* canvas, rectangle* 
   }
 }
 
+export enum list_ui_type {
+  HORIZONTAL,
+  VERTICAL,
+};
+
 export [@ui_element]
-struct vertical {
+struct list_ui {
+  list_ui_type type;
   vector<box<ui_element>> elems;
 };
 
-vector<rectangle> get_elem_positions(vertical* t, ui_canvas* canvas, rectangle* r) {
+vector<rectangle> get_elem_positions(list_ui* t, ui_canvas* canvas, rectangle* r) {
   mutable ret = vector<rectangle>();
   mutable start = 0;
-  for (it : t->elems) {
-    const height = it->get()->size(canvas).y;
-    ret.push_back(rectangle(vec2(r->left(), r->top() + start),
-        vec2(r->right(), r->top() + start + height)));
-    start += height;
-  }
+  for (it : t->elems)
+    switch (t->type) {
+      case (VERTICAL) {
+        const height = it->get()->size(canvas).y;
+        ret.push_back(rectangle(vec2(r->left(), r->top() + start),
+            vec2(r->right(), r->top() + start + height)));
+        start += height;
+      }
+      case (HORIZONTAL) {
+        const width = it->get()->size(canvas).x;
+        ret.push_back(rectangle(vec2(r->left() + start, r->top()),
+            vec2(r->right() + start + width, r->bottom())));
+        start += width;
+      }
+    }
   return move(ret);
 }
 
-export bool on_mouse_event(vertical* c, ui_canvas* canvas, any* data, rectangle* rect, mouse_event* event) {
+export bool on_mouse_event(list_ui* c, ui_canvas* canvas, any* data, rectangle* rect, mouse_event* event) {
   const positions = get_elem_positions(c, canvas, rect);
   for (it : c->elems)
     if (it->get()->on_mouse_event(canvas, data, &positions[it.index], event))
@@ -254,18 +269,26 @@ export bool on_mouse_event(vertical* c, ui_canvas* canvas, any* data, rectangle*
   return false;
 }
 
-export void render(vertical* t, ui_canvas* canvas, any* any, rectangle* r) {
+export void render(list_ui* t, ui_canvas* canvas, any* any, rectangle* r) {
   const positions = get_elem_positions(t, canvas, r);
   for (it : t->elems)
     it->get()->render(canvas, any, &positions[it.index]);
 }
 
-export vec2 size(vertical* t, ui_canvas* canvas) {
+export vec2 size(list_ui* t, ui_canvas* canvas) {
   mutable ret = vec2(0, 0);
   for (it : t->elems) {
     const sz = it->get()->size(canvas);
-    ret.y += sz.y;
-    ret.x = max(ret.x, sz.x);
+    switch (t->type) {
+      case (VERTICAL) {
+        ret.y += sz.y;
+        ret.x = max(ret.x, sz.x);
+      }
+      case (HORIZONTAL) {
+        ret.x += sz.x;
+        ret.y = max(ret.y, sz.y);
+      }
+    }
   }
   return ret;
 }
