@@ -7,6 +7,7 @@ export import "std/any.znn";
 import "std/io.znn";
 export import "ui.znn";
 import "rectangle.znn";
+import "field_of_view.znn";
 
 export [@ui_element]
 struct game_level_ui {
@@ -15,27 +16,51 @@ struct game_level_ui {
   double view_angle;
 };
 
-vec2 project_on_screen(creature* player, vec2 pos, int zoom, double view_angle) {
-  const diff_x = pos.x - player->pos_x;
-  const diff_y = pos.y - player->pos_y;
-  const dist = zoom.as_double() * sqrt(diff_x * diff_x + diff_y * diff_y);
-  const angle = player->dir - atan2(diff_x, diff_y);
-  return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * view_angle).as_int());
+vec2 project_on_screen(game_level_ui* ui, game_object* player, vec2d pos) {
+  const diff = pos - player->pos;
+  const dist = ui->tile_size.as_double() * diff.length_d();
+  const angle = player->dir - atan2(diff.x, diff.y);
+  return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * ui->view_angle).as_int());
 }
+
+struct screen_object_info {
+  game_object* obj;
+  vec2 coord;
+};
 
 export void render(game_level_ui* ui, ui_canvas* canvas, game** g1, rectangle* r) {
   const g = *g1;
   canvas->fill_rectangle(r, &color(0, 0, 0));
-  const pos_int = vec2(g->player.pos_x.as_int(), g->player.pos_y.as_int());
+  const player = &g->objects[0];
+  const pos_int = (player->pos + vec2d(0.5, 0.5)).as_int();
   const view_angle = 0.4;
   const origin = vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
+  const to_draw = r->plus_margin(ui->tile_size);
+  mutable visibility = table<int>(vec2(30, 30), 0);
+  const get_obj_pos = [&](game_object* obj) { return visibility.size() / 2 + obj->pos.as_int() - pos_int; };
+  for (obj : g->objects)
+    if (!obj->creature) {
+      const opos = get_obj_pos(&*obj);
+      if (visibility.bounds().contains(&opos))
+        visibility[opos] = 1;
+    }
+  visibility = calculate_fov(&visibility, visibility.size() / 2, visibility.size().x / 2 - 1);
   for (pos : centered_rect(pos_int, ui->los))
     if (const t = g->level.get_tile(*pos)) {
-      const coord = origin + project_on_screen(&g->player, *pos, ui->tile_size, ui->view_angle);
-      if (r->plus_margin(ui->tile_size).contains(&coord))
-        canvas->draw_text(coord, "{(*t)->symbol}", &color(0, 255, 0));
-      canvas->draw_text(origin, "{g->player.symbol}", &color(255, 255, 255));
+      const coord = origin + ui->project_on_screen(player, pos->as_double());
+      const vpos = *pos - pos_int + visibility.size() / 2;
+      if (to_draw.contains(&coord) && visibility.bounds().contains(&vpos) && visibility[vpos] == 1) {
+        canvas->draw_text(coord, "{(*t)->symbol}", &color(80, 80, 80), ui_text_flag::CENTER_XY);
+      }
     }
+  for (obj : g->objects) {
+    const opos = get_obj_pos(&*obj);
+    if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
+      const coord = origin + ui->project_on_screen(player, obj->pos);
+      if (to_draw.contains(&coord))
+        canvas->draw_text(coord, "{obj->symbol}", &obj->color, ui_text_flag::CENTER_XY);
+    }
+  }
 }
 
 

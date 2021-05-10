@@ -9,6 +9,11 @@ export struct vec2 {
   int y;
 };
 
+export struct vec2d {
+  double x;
+  double y;
+};
+
 export vec2 operator + (vec2* a, vec2* b) {
   return vec2(a->x + b->x, a->y + b->y);
 }
@@ -25,6 +30,10 @@ export vec2 operator - (vec2* a, vec2* b) {
   return vec2(a->x - b->x, a->y - b->y);
 }
 
+export vec2 operator - (vec2* a) {
+  return vec2(-a->x, -a->y);
+}
+
 export bool operator == (vec2* a, vec2* b) {
   return a->x == b->x && a->y == b->y;
 }
@@ -36,5 +45,47 @@ export string to_string(vec2* v) {
 }
 
 export double length_d(vec2* v) {
+  return sqrt(v->x * v->x + v->y * v->y);
+}
+
+export vec2d operator + (vec2d* a, vec2d* b) {
+  return vec2d(a->x + b->x, a->y + b->y);
+}
+
+export vec2d operator / (vec2d* a, double* b) {
+  return vec2d(a->x / *b, a->y / *b);
+}
+
+export vec2d operator * (vec2d* a, double* b) {
+  return vec2d(a->x * *b, a->y * *b);
+}
+
+export vec2 as_int(vec2d* v) {
+  return vec2(v->x.as_int(), v->y.as_int());
+}
+
+export vec2d as_double(vec2* v) {
+  return vec2d(v->x.as_double(), v->y.as_double());
+}
+
+export vec2d operator - (vec2d* a, vec2d* b) {
+  return vec2d(a->x - b->x, a->y - b->y);
+}
+
+export vec2d operator - (vec2d* a) {
+  return vec2d(-a->x, -a->y);
+}
+
+export bool operator == (vec2d* a, vec2d* b) {
+  return a->x == b->x && a->y == b->y;
+}
+
+export vec2d implicit_copy(vec2d*) = default;
+
+export string to_string(vec2d* v) {
+  return "(" + to_string(&v->x) + ", " + to_string(&v->y) + ")";
+}
+
+export double length_d(vec2d* v) {
   return sqrt(v->x * v->x + v->y * v->y);
 }

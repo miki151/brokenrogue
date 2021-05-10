@@ -6,11 +6,11 @@ import "std/io.znn";
 
 template <T> requires (T == margins || T == fill || T == label || T == texture || T == position || T == button
     || T == frame || T == game_level_ui || T == key_handler)
-bool round_brackets(dummy_struct<T>) {
+bool round_brackets(pretty_dummy_struct<T>) {
   return true;
 }
 
-box<ui_element>!string read_data(input_stream mutable* stream, dummy_struct<box<ui_element>>) {
+box<ui_element>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<ui_element>>) {
   const last_index = stream->index;
   const s = stream->read_string();
   if (s == "margins")

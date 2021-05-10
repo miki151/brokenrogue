@@ -9,6 +9,7 @@ import "std/io.znn";
 
 export import "sdl_surface.znn";
 export import "sdl_texture.znn";
+import "std/math.znn";
 
 extern struct SDL_Window;
 extern struct SDL_Renderer;
@@ -128,3 +129,67 @@ export sdl_window!string sdl_create_window(vec2? size, string title) {
   return *move(ret);
 }
 
+void filled_triangle_bottom(sdl_window* dst, vec2 v1, vec2 v2, vec2 v3) {
+  const invslope1 = (v2.x - v1.x).as_double() / (v2.y - v1.y);
+  const invslope2 = (v3.x - v1.x).as_double() / (v3.y - v1.y);
+
+  mutable curx1 = v1.x.as_double();
+  mutable curx2 = v1.x.as_double();
+  for (scanlineY = v1.y; scanlineY <= v2.y; ++scanlineY) {
+    embed {
+      SDL_RenderDrawLine(dst->renderer, (int)curx1, scanlineY, (int)curx2, scanlineY);
+    }
+    curx1 += invslope1;
+    curx2 += invslope2;
+  } 
+}
+
+export void filled_triangle_top(sdl_window* dst, vec2 v1, vec2 v2, vec2 v3) {
+  const invslope1 = (v3.x - v1.x).as_double() / (v3.y - v1.y);
+  const invslope2 = (v3.x - v2.x).as_double() / (v3.y - v2.y);
+
+  mutable curx1 = v3.x.as_double();
+  mutable curx2 = v3.x.as_double();
+  for (scanlineY = v3.y; scanlineY > v1.y; --scanlineY) {
+    embed {
+      SDL_RenderDrawLine(dst->renderer, (int)curx1, scanlineY, (int)curx2, scanlineY);
+    }
+    curx1 -= invslope1;
+    curx2 -= invslope2;
+  } 
+}
+
+void sort_points(vec2 mutable* p1, vec2 mutable* p2, vec2 mutable* p3) {
+  const swap = [](vec2 mutable* v, vec2 mutable* w) {
+    const x = *v;
+    *v = *w;
+    *w = x;
+  };
+  if (p2->y < p1->y)
+    swap(p1, p2);
+  if (p3->y < p2->y) {
+    swap(p3, p2);
+    if (p2->y < p1->y)
+      swap(p2, p1);
+  }
+}
+
+export void!string filled_triangle(sdl_window* dst, mutable vec2 p1, mutable vec2 p2, mutable vec2 p3, color color) {
+  const getError = [](string s) -> expected<void, string> {
+    return s;
+  };
+  embed {
+    if (SDL_SetRenderDrawColor(dst->renderer, color.r, color.g, color.b, 255) != 0)
+      return invoke(&getError, zenon_string::reference(SDL_GetError()));
+  }
+  sort_points(&p1, &p2, &p3);
+  if (p2.y == p3.y)
+    dst->filled_triangle_bottom(p1, p2, p3);
+  else if (p1.y == p2.y)
+    dst->filled_triangle_top(p1, p2, p3);
+  else {
+    const p4 = vec2(p1.x + ((p2.y - p1.y).as_double() / (p3.y - p1.y) * (p3.x - p1.x)).as_int(), p2.y);
+    dst->filled_triangle_bottom(p1, p2, p4);
+    dst->filled_triangle_top(p2, p4, p3);
+  }
+}

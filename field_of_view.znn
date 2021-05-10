@@ -1,0 +1,66 @@
+
+export import "table.znn";
+import "std/math.znn";
+
+export table<int> calculate_fov(table<int>* t, vec2 origin, int range) {
+  mutable ret = table<int>(t->size(), 0);
+  ret[origin] = 1;
+  calculate(2 * range, 2 * range, 2 * range, 2, -1, 1, 1, 1,
+      &[&](vec2 v) { return (*t)[v + origin] == 1; },
+      &[&](vec2 v) { ret[v + origin] = 1; });
+  calculate(2 * range, 2 * range, 2 * range, 2, -1, 1, 1, 1,
+      &[&](vec2 v) { return (*t)[vec2(v.y + origin.x, -v.x + origin.y)] == 1; },
+      &[&](vec2 v) { ret[vec2(v.y + origin.x, -v.x + origin.y)] = 1; });
+  calculate(2 * range, 2 * range, 2 * range, 2, -1, 1, 1, 1,
+      &[&](vec2 v) { return (*t)[origin - v] == 1; },
+      &[&](vec2 v) { ret[origin -v] = 1; });
+  calculate(2 * range, 2 * range, 2 * range, 2, -1, 1, 1, 1,
+      &[&](vec2 v) { return (*t)[vec2(-v.y + origin.x, v.x + origin.y)] == 1; },
+      &[&](vec2 v) { ret[vec2(-v.y + origin.x, v.x + origin.y)] = 1; });
+  return move(ret);
+}
+
+template <Fun1, Fun2> requires invoke<Fun1, bool, vec2>, invoke<Fun2, void, vec2>
+void calculate(int left, int right, int up, int h, int x1, int y1, int x2, int y2,
+    Fun1* isBlocking, Fun2* setVisible){
+  if (h > up || y2 * x1 >= y1 * x2) return;
+  mutable leftx = x1;
+  mutable lefty = y1;
+  const rightx = x2;
+  const righty = y2;
+  mutable left_v = floor(x1.as_double() / y1.as_double() * h.as_double()).as_int();
+  mutable right_v = ceil(x2.as_double() / y2.as_double() * h.as_double()).as_int();
+  mutable left_b = floor(x1.as_double() / y1.as_double() * (h - 1).as_double()).as_int();
+  mutable right_b = ceil(x2.as_double() / y2.as_double() * (h + 1).as_double()).as_int();
+  if (left_v % 2 != 0)
+    ++left_v;
+  if (right_v % 2 != 0)
+    --right_v;
+  if (left_b % 2 != 0)
+    ++left_b;
+  if (right_b % 2 != 0)
+    --right_b;
+  if (left_b >= -left && left_b <= right && isBlocking->invoke(vec2(left_b / 2, h / 2))) {
+    leftx = left_b + 1;
+    lefty = h + (left_b >= 0 ? -1 : 1);
+  }
+  if (left_v < -left)
+    left_v = -left;
+  if (right_v > right)
+    right_v = right;
+  mutable prevBlocking = false;
+  for (i = left_v / 2; i <= right_v / 2; ++i) {
+    setVisible->invoke(vec2(i, h / 2));
+    const blocking = isBlocking->invoke(vec2(i, h / 2));
+    if (i > left_v / 2 && blocking && !prevBlocking)
+      calculate(left, right, up, h + 2, leftx, lefty, i * 2 - 1, h + (i <= 0 ? -1 : 1), isBlocking, setVisible);
+    if (blocking) {
+      leftx = i * 2 + 1;
+      lefty = h + (i >= 0 ? -1 : 1);
+    }
+    prevBlocking = blocking;
+  }
+  calculate(left, right, up, h + 2, leftx, lefty, rightx, righty, isBlocking, setVisible);
+}
+
+

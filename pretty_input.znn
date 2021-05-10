@@ -26,7 +26,7 @@ export input_stream!string create_input_stream(string s) {
 }
 
 export template <T>
-struct dummy_struct {};
+struct pretty_dummy_struct {};
 
 export enum bracket_to_parse {
   OPEN,
@@ -35,13 +35,13 @@ export enum bracket_to_parse {
 };
 
 export template <T>
-bool round_brackets(dummy_struct<T>) {
+bool round_brackets(pretty_dummy_struct<T>) {
   return false;
 }
 
 export template <T>
 void!string parse_bracket(input_stream mutable* stream, bracket_to_parse b) {
-  if (round_brackets(dummy_struct<T>()))
+  if (round_brackets(pretty_dummy_struct<T>()))
     switch (b) {
       case (OPEN) { return stream->expect("("); }
       case (CLOSE) { return stream->expect(")"); }
@@ -50,7 +50,7 @@ void!string parse_bracket(input_stream mutable* stream, bracket_to_parse b) {
 }
 
 export template <T> requires is_struct<T>
-T!string read_data(input_stream mutable* stream, dummy_struct<T>) {
+T!string read_data(input_stream mutable* stream, pretty_dummy_struct<T>) {
   static mutable readStmt = "";
   static mutable returnStmt = "return " + to_string(T) + "(";
   try parse_bracket<T>(stream, bracket_to_parse::OPEN);
@@ -68,7 +68,7 @@ T!string read_data(input_stream mutable* stream, dummy_struct<T>) {
 }
 
 export template <T> requires is_enum<T>
-T!string read_data(input_stream mutable* stream, dummy_struct<T>) {
+T!string read_data(input_stream mutable* stream, pretty_dummy_struct<T>) {
   const s = stream->read_string();
   for (e : enum_range<T>()) {
     if (e->asString() == s)
@@ -113,7 +113,7 @@ export void!string expect(input_stream mutable* stream, string s) {
   }
 }
 
-export bool!string read_data(input_stream mutable* stream, dummy_struct<bool>) {
+export bool!string read_data(input_stream mutable* stream, pretty_dummy_struct<bool>) {
   const s = stream->read_string();
   if (s == "false")
     return false;
@@ -122,21 +122,21 @@ export bool!string read_data(input_stream mutable* stream, dummy_struct<bool>) {
   return stream->get_error("Not a bool value: \"{s}\"");
 }
 
-export int!string read_data(input_stream mutable* stream, dummy_struct<int>) {
+export int!string read_data(input_stream mutable* stream, pretty_dummy_struct<int>) {
   const s = stream->read_string();
   if (const i = s.to_int())
     return *i;
   return stream->get_error("Not an int value: \"{s}\"");
 }
 
-export double!string read_data(input_stream mutable* stream, dummy_struct<double>) {
+export double!string read_data(input_stream mutable* stream, pretty_dummy_struct<double>) {
   const s = stream->read_string();
   if (const i = s.to_double())
     return *i;
   return stream->get_error("Not a double value: \"{s}\"");
 }
 
-export string!string read_data(input_stream mutable* stream, dummy_struct<string>) {
+export string!string read_data(input_stream mutable* stream, pretty_dummy_struct<string>) {
   mutable ret = "";
   while (stream->get_char().isspace())
     ++stream->index;
@@ -155,18 +155,18 @@ export string!string read_data(input_stream mutable* stream, dummy_struct<string
 }
 
 export concept <T> read_data_overload {
-  T!string read_data(input_stream mutable*, dummy_struct<T>);
+  T!string read_data(input_stream mutable*, pretty_dummy_struct<T>);
 };
 
 export template <T> requires read_data_overload<T>
-T?!string read_data(input_stream mutable* stream, dummy_struct<T?>) {
+T?!string read_data(input_stream mutable* stream, pretty_dummy_struct<T?>) {
   if (stream->expect("null"))
     return expected<T?, string>::value(null);
   return expected<T?, string>::value(try stream->read_data<T>());
 }
 
 export template <T> requires read_data_overload<T>
-vector<T>!string read_data(input_stream mutable* stream, dummy_struct<vector<T>>) {
+vector<T>!string read_data(input_stream mutable* stream, pretty_dummy_struct<vector<T>>) {
   try stream->expect("\{");
   mutable ret = vector<T>();
   while (true) {
@@ -179,5 +179,5 @@ vector<T>!string read_data(input_stream mutable* stream, dummy_struct<vector<T>>
 
 export template <T> requires read_data_overload<T>
 T!string read_data(input_stream mutable* stream) {
-  return read_data(stream, dummy_struct<T>());
+  return read_data(stream, pretty_dummy_struct<T>());
 }

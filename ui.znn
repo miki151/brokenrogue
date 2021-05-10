@@ -85,7 +85,6 @@ vec2 size(T* t, ui_canvas* canvas) {
 
 export template <T> requires container_ui<T>
 bool on_key_event(T* t, ui_canvas* canvas, any* any, rectangle* r, key_event* key) {
-  printf("key event\n");
   if (const data = t->transform_data(any))
     for (elem : t->get_elems())
       if (elem->get()->on_key_event(canvas, *data, r, key))

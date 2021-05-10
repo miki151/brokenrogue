@@ -19,6 +19,10 @@ export void frame_rectangle(sdl_canvas* canvas, rectangle* r, color* color, int 
   *canvas->window->outlined_rectangle(r, *color, 1);
 }
 
+export void fill_triangle(sdl_canvas* canvas, vec2 p1, vec2 p2, vec2 p3, color* color) {
+  *canvas->window->filled_triangle(p1, p2, p3, *color);
+}
+
 export void draw_texture(sdl_canvas* canvas, rectangle* r, string id, texture_flip flip) {
   if (const t = canvas->textures.get_maybe(&id))
     *canvas->window->blit_from(r->v1, *t, r->size());
