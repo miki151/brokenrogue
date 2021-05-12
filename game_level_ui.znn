@@ -11,7 +11,7 @@ import "field_of_view.znn";
 import "ui_state.znn";
 
 export [@ui_element]
-struct game_level_ui {
+struct GameLevelUI {
   int los;
   int tile_size;
   int font_size;
@@ -23,75 +23,69 @@ struct game_level_ui {
   key_event wait_key;
 };
 
-export struct game_level_ui_data {
-  game mutable* game;
-  invoke<void, int>* time_spent_callback;
+export struct GameLevelUIData {
+  Game mutable* game;
+  invoke<void, int>* timeSpentCallback;
 };
 
-export bool on_key_event(game_level_ui* ui, ui_context context, rectangle*, key_event* event) {
-  const state = context.state->get_state<game_level_ui_state>();
-  const data = *context.data->cast_to<game_level_ui_data>();
+export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event* event) {
+  const state = context.state->get_state<GameLevelUIState>();
+  const data = *context.data->cast_to<GameLevelUIData>();
   if (*event == ui->forward_key)
-    discard data->game->get_player()->advance(data->game, 4 * context.time_diff, state->player_dir);
+    discard data->game->getPlayer()->advance(data->game, 4 * context.timeDiff, state->playerDir);
   else if (*event == ui->backward_key)
-    discard data->game->get_player()->advance(data->game, -4 * context.time_diff, state->player_dir);
+    discard data->game->getPlayer()->advance(data->game, -4 * context.timeDiff, state->playerDir);
   else if (*event == ui->left_key)
-    discard data->game->get_player()->advance(data->game, 2 * context.time_diff, state->player_dir + 1.57);
+    discard data->game->getPlayer()->advance(data->game, 2 * context.timeDiff, state->playerDir + 1.57);
   else if (*event == ui->right_key)
-    discard data->game->get_player()->advance(data->game, 2 * context.time_diff, state->player_dir - 1.57);
+    discard data->game->getPlayer()->advance(data->game, 2 * context.timeDiff, state->playerDir - 1.57);
   else if (*event != ui->wait_key)
     return false;
-  data->game->advance(context.time_diff);
+  data->game->advance(context.timeDiff);
   return true;
 }
 
-vec2 project_on_screen(game_level_ui* ui, game_object* player, vec2d pos, double player_dir) {
+vec2 projectOnScreen(GameLevelUI* ui, GameObject* player, vec2d pos, double playerDir) {
   const diff = pos - player->pos;
   const dist = ui->tile_size.as_double() * diff.length_d();
-  const angle = player_dir - atan2(diff.x, diff.y);
+  const angle = playerDir - atan2(diff.x, diff.y);
   return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * ui->view_angle).as_int());
 }
 
-struct screen_object_info {
-  game_object* obj;
-  vec2 coord;
+export struct GameLevelUIState {
+  double playerDir;
 };
 
-export struct game_level_ui_state {
-  double player_dir;
-};
-
-export game_level_ui_state() {
-  return game_level_ui_state::game_level_ui_state(0.0);
+export GameLevelUIState() {
+  return GameLevelUIState::GameLevelUIState(0.0);
 }
 
-export bool on_mouse_event(game_level_ui* ui, ui_context context, rectangle*, mouse_event* event) {
+export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
   if (event->type == mouse_event_type::RELATIVE_MOTION) {
-    context.state->get_state<game_level_ui_state>()->player_dir -= 0.0008 * event->pos.x;
+    context.state->get_state<GameLevelUIState>()->playerDir -= 0.0008 * event->pos.x;
     return true;
   }
   if (event->type == mouse_event_type::LEFT) {
-    const state = context.state->get_state<game_level_ui_state>();
-    const data = *context.data->cast_to<game_level_ui_data>();
-    data->game->spawn_projectile(data->game->get_player(), state->player_dir,
-        glyph(')', color(100, 100, 100), 0.7));
-    data->time_spent_callback->invoke(100);
+    const state = context.state->get_state<GameLevelUIState>();
+    const data = *context.data->cast_to<GameLevelUIData>();
+    data->game->spawnProjectile(data->game->getPlayer(), state->playerDir,
+        Glyph(')', color(100, 100, 100), 0.7));
+    data->timeSpentCallback->invoke(100);
     return true;
   }
   return false;
 }
 
-export void render(game_level_ui* ui, ui_context context, rectangle* r) {
-  const data = *context.data->cast_to<game_level_ui_data>();
-  context.canvas->fill_rectangle(r, &color(0, 0, 0));
+export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
+  const data = *context.data->cast_to<GameLevelUIData>();
   const player = &data->game->objects[0];
   const pos_int = (player->pos + vec2d(0.5, 0.5)).as_int();
   const view_angle = 0.4;
   const origin = vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
   const to_draw = r->plus_margin(ui->tile_size);
-  const state = context.state->get_state<game_level_ui_state>();
+  const state = context.state->get_state<GameLevelUIState>();
   mutable visibility = table<int>(vec2(ui->los, ui->los), 0);
-  const get_obj_pos = [&](game_object* obj) { return visibility.size() / 2 + obj->pos.as_int() - pos_int; };
+  const get_obj_pos = [&](GameObject* obj) { return visibility.size() / 2 + obj->pos.as_int() - pos_int; };
   for (obj : data->game->objects)
     if (obj->blocksVision) {
       const opos = get_obj_pos(&*obj);
@@ -100,8 +94,8 @@ export void render(game_level_ui* ui, ui_context context, rectangle* r) {
     }
   visibility = calculate_fov(&visibility, visibility.size() / 2, visibility.size().x / 2 - 1);
   for (pos : centered_rect(pos_int, ui->los))
-    if (const t = data->game->level.get_tile(*pos)) {
-      const coord = origin + ui->project_on_screen(player, pos->as_double(), state->player_dir);
+    if (const t = data->game->level.getTile(*pos)) {
+      const coord = origin + ui->projectOnScreen(player, pos->as_double(), state->playerDir);
       const vpos = *pos - pos_int + visibility.size() / 2;
       if (to_draw.contains(&coord) && visibility.bounds().contains(&vpos) && visibility[vpos] == 1)
         (*t)->glyph.render(context.canvas, ui->font_size, coord);
@@ -109,7 +103,7 @@ export void render(game_level_ui* ui, ui_context context, rectangle* r) {
   for (obj : data->game->objects) {
     const opos = get_obj_pos(&*obj);
     if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
-      const coord = origin + ui->project_on_screen(player, obj->pos, state->player_dir);
+      const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (to_draw.contains(&coord))
         obj->glyph.render(context.canvas, ui->font_size, coord);
     }

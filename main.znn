@@ -26,67 +26,67 @@ struct X {
   Y y;
 };
 
-hash_map<string, sdl_texture> load_textures(sdl_window* window) {
+hash_map<string, sdl_texture> loadTextures(sdl_window* window) {
   mutable ret = hash_map<string, sdl_texture>();
 //  ret.insert("tex1", *sdl_load_bmp("texture1.bmp")->to_texture(window));
   return move(ret);
 }
 
-box<ui_element> read_ui_from(string path) {
+box<UIElement> readUIFrom(string path) {
   const file = *open_file_r(path);
   const content = *file.read_content();
   return *read_ui(move(content));
 }
 
 struct Flags {
-  string? font_path;
+  string? font;
 };
 
 int main(string[] args) {
   const flags = *read_flags<Flags>(args);
   *sdl_init();
-  mutable ui = read_ui_from("ui.txt");
+  mutable ui = readUIFrom("ui.txt");
   const window = *sdl_create_window(vec2(1280, 720), "Infinihack");
   *sdl_set_relative_mouse_mode(true);
-  const font = *window.load_sdl_font(flags.font_path ?? "font.ttf", 10, 100);
-  const canvas = sdl_canvas(&window, &font, load_textures(&window));
+  const font = *window.load_sdl_font(flags.font ?? "font.ttf", 10, 100);
+  const canvas = SDLCanvas(&window, &font, loadTextures(&window));
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
-  mutable game1 = game();
-  mutable ui_data = ui_record(hash_map<string, box<any>>());
+  mutable game = Game();
+  mutable uiData = UIRecord(hash_map<string, box<any>>());
   mutable exit = false;
-  mutable diff_time = 0.0;
+  mutable timeDiff = 0.0;
   mutable last_update = current_time_milli();
-  mutable real_time_end = 0;
-  const time_spent_callback = [&] (int time) { real_time_end = last_update + time; };
-  const game_data = game_level_ui_data(
-      &game1,
-      &time_spent_callback
+  mutable realTimeEnd = 0;
+  const timeSpentCallback = [&] (int time) { realTimeEnd = last_update + time; };
+  const game_data = GameLevelUIData(
+      &game,
+      &timeSpentCallback
   );
-  ui_data.data.insert("game_level", box_as<any>(move(game_data)));
+  uiData.data.insert("game_level", box_as<any>(move(game_data)));
   mutable events_state = sdl_events_state();
-  mutable ui_state1 = ui_state();
-  ui_data.data.insert("exit_callback", [&exit] { exit = true; }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("reload_ui", [&ui] { ui = read_ui_from("ui.txt"); }.box_as<ui_callback>().box_as<any>());
+  mutable uiState = UIState();
+  uiData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
+  uiData.data.insert("reload_ui", [&ui] { ui = readUIFrom("ui.txt"); }.box_as<UICallback>().box_as<any>());
   mutable fps = fps_meter();
   while (!exit) {
     fps.add_tick();
-    ui_data.data.insert("fps", "{fps.get_fps()}".box_as<any>());
+    uiData.data.insert("fps", "{fps.get_fps()}".box_as<any>());
     const cur_time = current_time_milli();
-    diff_time = 0.001 * (cur_time - last_update);
-    if (cur_time <= real_time_end)
-      game1.advance(diff_time);
+    timeDiff = 0.001 * (cur_time - last_update);
+    if (cur_time <= realTimeEnd)
+      game.advance(timeDiff);
     last_update = cur_time;
-    const context = ui_context(&canvas, &ui_data, &ui_state1, diff_time);
+    const context = UIContext(&canvas, &uiData, &uiState, timeDiff);
     for (event : events_state.get_events()) {
       if (exit)
         break;
       switch (*event) {
         case (quit) { return 0; }
         case (key) {
-          discard ui->on_key_event(context, &ui_rectangle, &key);
+          discard ui->onKeyEvent(context, &ui_rectangle, &key);
         }
         case (mouse) {
-          discard ui->on_mouse_event(context, &ui_rectangle, &mouse);
+          discard ui->onMouseEvent(context, &ui_rectangle, &mouse);
         }
         default {}
       }

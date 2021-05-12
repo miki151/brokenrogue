@@ -5,14 +5,13 @@ export enum texture_flip {
   NONE, FLIP_X, FLIP_Y, FLIP_XY
 };
 
-export concept<T> ui_canvas {
-  void fill_rectangle(T*, rectangle*, color*);
-  void fill_triangle(T*, vec2, vec2, vec2, color*);
-  void frame_rectangle(T*, rectangle*, color*, int width);
-  void draw_texture(T*, rectangle*, string, texture_flip);
-  vec2 get_texture_size(T*, string);
-  void draw_text(T*, vec2, string, int, color*);
-  vec2 get_text_size(T*, string, int);
+export concept<T> UICanvas {
+  void fillRectangle(T*, rectangle*, color*);
+  void frameRectangle(T*, rectangle*, color*, int width);
+  void drawTexture(T*, rectangle*, string, texture_flip);
+  vec2 getTextureSize(T*, string);
+  void drawText(T*, vec2, string, int, color*);
+  vec2 getTextSize(T*, string, int);
 };
 
 export enum ui_text_flag {
@@ -21,18 +20,12 @@ export enum ui_text_flag {
   CENTER_XY,
 };
 
-export void draw_text(ui_canvas* c, mutable vec2 pos, string s, int size, color* col, ui_text_flag flag) {
-  const sz = c->get_text_size(s, size);
+export void drawText(UICanvas* c, mutable vec2 pos, string s, int size, color* col, ui_text_flag flag) {
+  const sz = c->getTextSize(s, size);
   if (flag != ui_text_flag::CENTER_Y)
     pos.x -= sz.x / 2;
   if (flag != ui_text_flag::CENTER_X)
     pos.y -= sz.y / 2;
-  c->draw_text(pos, s, size, col);
+  c->drawText(pos, s, size, col);
 }
 
-export void fill_quad(ui_canvas* c, vec2 v1, vec2 v2, vec2 v3, vec2 v4, color* color) {
-  c->fill_triangle(v1, v2, v3, color);
-  c->fill_triangle(v1, v3, v4, color);
-  c->fill_triangle(v1, v2, v4, color);
-  c->fill_triangle(v2, v3, v4, color);
-}

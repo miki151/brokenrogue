@@ -3,11 +3,11 @@ export import "std/hash_map.znn";
 export import "std/any.znn";
 export import "std/box.znn";
 
-export concept <Fun> ui_callback {
+export concept <Fun> UICallback {
   void invoke(Fun*);
   void destruct(Fun*);
 };
 
-export struct ui_record {
+export struct UIRecord {
   hash_map<string, box<any>> data;
 };

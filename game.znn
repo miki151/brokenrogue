@@ -8,34 +8,34 @@ export import "projectile.znn";
 export import "table.znn";
 export import "glyph.znn";
 
-export struct tile {
-  glyph glyph;
+export struct Tile {
+  Glyph glyph;
 };
 
-export tile copy(tile*) = default;
+export Tile copy(Tile*) = default;
 
-export struct level {
+export struct Level {
   string name;
-  table<tile> tiles;
+  table<Tile> tiles;
 };
 
-export level(string name, vec2 size) {
-  const tiles = table(size, tile(glyph('.', color(80, 80, 80))));
-  return level::level(name, move(tiles));
+export Level(string name, vec2 size) {
+  const tiles = table(size, Tile(Glyph('.', color(80, 80, 80))));
+  return Level::Level(name, move(tiles));
 }
 
-export tile*? get_tile(level* l, vec2 pos) {
+export Tile*? getTile(Level* l, vec2 pos) {
   if (pos.x >= 0 && pos.x < l->tiles.size().x && pos.y >= 0 && pos.y < l->tiles.size().y)
     return &l->tiles[pos];
   return null;
 }
 
 
-export struct bounding_box {
+export struct BoundingBox {
   double size;
 };
 
-vec2d? get_rebound(bounding_box* b, bounding_box* other, vec2d p) {
+vec2d? getRebound(BoundingBox* b, BoundingBox* other, vec2d p) {
   const l = p.length_d();
   const min_dist = (b->size + other->size) / 2;
   if (l < min_dist) {
@@ -46,101 +46,101 @@ vec2d? get_rebound(bounding_box* b, bounding_box* other, vec2d p) {
   return null;
 }
 
-export bounding_box implicit_copy(bounding_box*) = default;
+export BoundingBox implicit_copy(BoundingBox*) = default;
 
-export struct game_object {
+export struct GameObject {
   vec2d pos;
-  glyph glyph;
-  bounding_box? box;
-  creature? creature;
-  projectile? projectile;
+  Glyph glyph;
+  BoundingBox? box;
+  Creature? creature;
+  Projectile? projectile;
   bool blocksVision;
 };
 
-vec2d? get_rebound(game_object* o1, game_object* o2) {
+vec2d? getRebound(GameObject* o1, GameObject* o2) {
   if (!!o1->box && !!o2->box)
-    return get_rebound(&*o1->box, &*o2->box, o1->pos - o2->pos);
+    return getRebound(&*o1->box, &*o2->box, o1->pos - o2->pos);
   return null;
 }
 
-export bool advance(game_object mutable* c, game* g, double amount, double angle) {
+export bool advance(GameObject mutable* c, Game* g, double amount, double angle) {
   return c->advance(g, vec2d(sin(angle), cos(angle)) * amount);
 }
 
-export bool advance(game_object mutable* c, game* g, vec2d dir) {
+export bool advance(GameObject mutable* c, Game* g, vec2d dir) {
   c->pos += dir;
   mutable ret = false;
   for (it : g->objects)
     if (&*it != c)
-      if (const v = get_rebound(c, &*it)) {
+      if (const v = getRebound(c, &*it)) {
         c->pos -= *v;
         ret = true;
       }
   return ret;
 }
 
-export struct game {
-  level level;
-  vector<game_object> objects;
+export struct Game {
+  Level level;
+  vector<GameObject> objects;
 };
 
-export void advance(game mutable* g, double time) {
-  mutable to_remove = vector<int>();
+export void advance(Game mutable* g, double time) {
+  mutable toRemove = vector<int>();
   for (it : g->objects)
     if (it->projectile)
       if (it->advance(g, it->projectile->dir * time))
-        to_remove.push_back(it.index);
-  for (i = to_remove.size() - 1; i >= 0; --i)
-    g->objects.remove(to_remove[i]);
+        toRemove.push_back(it.index);
+  for (i = toRemove.size() - 1; i >= 0; --i)
+    g->objects.remove(toRemove[i]);
 }
 
-export void spawn_projectile(game mutable *g, game_object* o, double dir, glyph glyph) {
+export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph glyph) {
   const vdir = vec2d(sin(dir), cos(dir));
-  g->objects.push_back(game_object(
+  g->objects.push_back(GameObject(
       o->pos + vdir * 1.0,
       move(glyph),
-      bounding_box(0.4),
+      BoundingBox(0.4),
       null,
-      projectile(vdir * 10.0),
+      Projectile(vdir * 10.0),
       false
   ));
 }
 
-export game_object* get_player(game* g) {
+export GameObject* getPlayer(Game* g) {
   return &g->objects[0];
 }
 
-export game_object mutable* get_player(game mutable* g) {
+export GameObject mutable* getPlayer(Game mutable* g) {
   return &g->objects[0];
 }
 
-game_object get_creature(vec2d pos, glyph glyph) {
-  return game_object(pos, move(glyph), bounding_box(1.0), creature(), null, false);
+GameObject getCreature(vec2d pos, Glyph glyph) {
+  return GameObject(pos, move(glyph), BoundingBox(1.0), Creature(), null, false);
 }
 
-game_object get_furniture(vec2d pos, glyph glyph) {
-  return game_object(pos, move(glyph), bounding_box(1.0),  null, null, true);
+GameObject getFurniture(vec2d pos, Glyph glyph) {
+  return GameObject(pos, move(glyph), BoundingBox(1.0),  null, null, true);
 }
 
-vector<game_object> get_objects() {
-  mutable ret = vector<game_object>();
-  const player_pos = vec2d(150, 150);
-  ret.push_back(get_creature(player_pos, glyph('@', color(255, 255, 255))));
+vector<GameObject> getObjects() {
+  mutable ret = vector<GameObject>();
+  const playerPos = vec2d(150, 150);
+  ret.push_back(getCreature(playerPos, Glyph('@', color(255, 255, 255))));
   const roomSize = 3;
-  const room_center = player_pos - vec2d(roomSize + 3.0, 0.0);
-  ret.push_back(get_creature(room_center, glyph('&', color(255, 0, 0))));
+  const roomCenter = playerPos - vec2d(roomSize + 3.0, 0.0);
+  ret.push_back(getCreature(roomCenter, Glyph('&', color(255, 0, 0))));
   for (i : range(-roomSize, roomSize + 1)) {
-    const g = glyph('#', color(210, 105, 30));
+    const g = Glyph('#', color(210, 105, 30));
     if (i != 0)
-      ret.push_back(get_furniture(vec2d(room_center.x + i, room_center.y - roomSize), g.copy()));
-    ret.push_back(get_furniture(vec2d(room_center.x + i, room_center.y + roomSize), g.copy()));
-    ret.push_back(get_furniture(vec2d(room_center.x - roomSize, room_center.y + i), g.copy()));
-    ret.push_back(get_furniture(vec2d(room_center.x + roomSize, room_center.y + i), g.copy()));
+      ret.push_back(getFurniture(vec2d(roomCenter.x + i, roomCenter.y - roomSize), g.copy()));
+    ret.push_back(getFurniture(vec2d(roomCenter.x + i, roomCenter.y + roomSize), g.copy()));
+    ret.push_back(getFurniture(vec2d(roomCenter.x - roomSize, roomCenter.y + i), g.copy()));
+    ret.push_back(getFurniture(vec2d(roomCenter.x + roomSize, roomCenter.y + i), g.copy()));
   }
   return move(ret);
 }
 
-export game() {
-  return game::game(level("Level 1", vec2(300, 300)), get_objects());
+export Game() {
+  return Game::Game(Level("Level 1", vec2(300, 300)), getObjects());
 }
 

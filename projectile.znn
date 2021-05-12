@@ -1,6 +1,6 @@
 
 export import "vec2.znn";
 
-export struct projectile {
+export struct Projectile {
   vec2d dir;
 };

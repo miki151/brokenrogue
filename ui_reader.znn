@@ -5,51 +5,51 @@ import "pretty_input.znn";
 import "std/io.znn";
 
 template <T> requires (T == margins || T == fill || T == label || T == texture || T == position || T == button
-    || T == frame || T == game_level_ui || T == key_handler || T == text_ui)
+    || T == frame || T == GameLevelUI || T == key_handler || T == text_ui)
 bool round_brackets(pretty_dummy_struct<T>) {
   return true;
 }
 
-box<ui_element>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<ui_element>>) {
+box<UIElement>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<UIElement>>) {
   const last_index = stream->index;
   const s = stream->read_string();
   if (s == "margins")
-    return (try stream->read_data<margins>()).box_as<ui_element>();
+    return (try stream->read_data<margins>()).box_as<UIElement>();
   if (s == "fill")
-    return (try stream->read_data<fill>()).box_as<ui_element>();
+    return (try stream->read_data<fill>()).box_as<UIElement>();
   if (s == "label")
-    return (try stream->read_data<label>()).box_as<ui_element>();
+    return (try stream->read_data<label>()).box_as<UIElement>();
   if (s == "text")
-    return (try stream->read_data<text_ui>()).box_as<ui_element>();
+    return (try stream->read_data<text_ui>()).box_as<UIElement>();
   if (s == "texture")
-    return (try stream->read_data<texture>()).box_as<ui_element>();
+    return (try stream->read_data<texture>()).box_as<UIElement>();
   if (s == "position")
-    return (try stream->read_data<position>()).box_as<ui_element>();
+    return (try stream->read_data<position>()).box_as<UIElement>();
   if (s == "list_ui")
-    return (try stream->read_data<list_ui>()).box_as<ui_element>();
+    return (try stream->read_data<list_ui>()).box_as<UIElement>();
   if (s == "button")
-    return (try stream->read_data<button>()).box_as<ui_element>();
+    return (try stream->read_data<button>()).box_as<UIElement>();
   if (s == "key_handler")
-    return (try stream->read_data<key_handler>()).box_as<ui_element>();
+    return (try stream->read_data<key_handler>()).box_as<UIElement>();
   if (s == "frame")
-    return (try stream->read_data<frame>()).box_as<ui_element>();
+    return (try stream->read_data<frame>()).box_as<UIElement>();
   if (s == "using")
-    return (try stream->read_data<using_ui>()).box_as<ui_element>();
+    return (try stream->read_data<using_ui>()).box_as<UIElement>();
   if (s == "width")
-    return (try stream->read_data<width_ui>()).box_as<ui_element>();
+    return (try stream->read_data<width_ui>()).box_as<UIElement>();
   if (s == "height")
-    return (try stream->read_data<height_ui>()).box_as<ui_element>();
+    return (try stream->read_data<height_ui>()).box_as<UIElement>();
   if (s == "game_level")
-    return (try stream->read_data<game_level_ui>()).box_as<ui_element>();
+    return (try stream->read_data<GameLevelUI>()).box_as<UIElement>();
   if (s == "\{") {
     stream->index = last_index;
-    return (try stream->read_data<chain>()).box_as<ui_element>();
+    return (try stream->read_data<chain>()).box_as<UIElement>();
   }
   stream->index = last_index;
   return stream->get_error("Not an UI type: \"{s}\"");
 }
 
-export box<ui_element>!string read_ui(string content) {
+export box<UIElement>!string read_ui(string content) {
   mutable stream = try create_input_stream(content);
-  return stream.read_data<box<ui_element>>();
+  return stream.read_data<box<UIElement>>();
 }

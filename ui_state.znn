@@ -2,16 +2,16 @@
 export import "std/box.znn";
 export import "std/any.znn";
 
-export struct ui_state {
+export struct UIState {
   box<any>? state;
 };
 
-export ui_state() {
-  return ui_state::ui_state(null);
+export UIState() {
+  return UIState::UIState(null);
 }
 
 export template <T> requires construct<T>
-T mutable* get_state(ui_state mutable* s) {
+T mutable* get_state(UIState mutable* s) {
   if (!s->state)
     s->state = T().box_as<any>();
   return *(*s->state)->cast_to<T>();

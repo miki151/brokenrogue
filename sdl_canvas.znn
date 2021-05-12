@@ -5,42 +5,38 @@ import "std/io.znn";
 import "sdl_ttf.znn";
 export import "std/hash_map.znn";
 
-export struct sdl_canvas {
+export struct SDLCanvas {
   sdl_window* window;
   sdl_font* font;
   hash_map<string, sdl_texture> textures;
 };
 
-export void fill_rectangle(sdl_canvas* canvas, rectangle* r, color* color) {
+export void fillRectangle(SDLCanvas* canvas, rectangle* r, color* color) {
   *canvas->window->filled_rectangle(r, *color);
 }
 
-export void frame_rectangle(sdl_canvas* canvas, rectangle* r, color* color, int width) {
+export void frameRectangle(SDLCanvas* canvas, rectangle* r, color* color, int width) {
   *canvas->window->outlined_rectangle(r, *color, 1);
 }
 
-export void fill_triangle(sdl_canvas* canvas, vec2 p1, vec2 p2, vec2 p3, color* color) {
-  *canvas->window->filled_triangle(p1, p2, p3, *color);
-}
-
-export void draw_texture(sdl_canvas* canvas, rectangle* r, string id, texture_flip flip) {
+export void drawTexture(SDLCanvas* canvas, rectangle* r, string id, texture_flip flip) {
   if (const t = canvas->textures.get_maybe(&id))
     *canvas->window->blit_from(r->v1, *t, r->size());
   else
-    canvas->draw_text(r->v1, "bad texture id: {id}", 10, &color(255, 0, 0));
+    canvas->drawText(r->v1, "bad texture id: {id}", 10, &color(255, 0, 0));
 }
 
-export vec2 get_texture_size(sdl_canvas* canvas, string id) {
+export vec2 getTextureSize(SDLCanvas* canvas, string id) {
   if (const t = canvas->textures.get_maybe(&id))
     return *(*t)->size();
   return vec2(100, 20);
 }
 
-export void draw_text(sdl_canvas* canvas, vec2 pos, string text, int size, color* color) {
+export void drawText(SDLCanvas* canvas, vec2 pos, string text, int size, color* color) {
   *canvas->window->draw_text(pos, canvas->font, size, *color, text);
 }
 
-export vec2 get_text_size(sdl_canvas* canvas, string text, int size) {
+export vec2 getTextSize(SDLCanvas* canvas, string text, int size) {
   return get_text_size(canvas->font, text, size);
 }
 
