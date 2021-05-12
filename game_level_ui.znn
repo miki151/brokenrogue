@@ -9,12 +9,15 @@ export import "ui.znn";
 import "rectangle.znn";
 import "field_of_view.znn";
 import "ui_state.znn";
+import "std/time.znn";
 
 export [@ui_element]
 struct GameLevelUI {
   int los;
   int tile_size;
   int font_size;
+  int jumpDuration;
+  double jumpHeight;
   double view_angle;
   key_event forward_key;
   key_event backward_key;
@@ -76,6 +79,14 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_e
   return false;
 }
 
+double getJumpOffset(mutable double state) {
+  if (state > 0.5)
+    state -= 0.5;
+  state *= 2;
+  return 1.0 - (2.0 * state - 1) * (2.0 * state - 1);
+}
+
+
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = &data->game->objects[0];
@@ -104,8 +115,12 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     const opos = get_obj_pos(&*obj);
     if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
-      if (to_draw.contains(&coord))
-        obj->glyph.render(context.canvas, ui->font_size, coord);
+      if (to_draw.contains(&coord)) {
+        const cur_time = current_time_milli();
+        const offset = !obj->creature || obj->creature->lastMovement < cur_time - 10 ? 0
+            :(ui->font_size * ui->jumpHeight * getJumpOffset((cur_time % ui->jumpDuration).as_double() / ui->jumpDuration)).as_int();
+        obj->glyph.render(context.canvas, ui->font_size, coord - vec2(0, offset));
+      }
     }
   }
 }

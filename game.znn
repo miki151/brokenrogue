@@ -7,6 +7,7 @@ export import "creature.znn";
 export import "projectile.znn";
 export import "table.znn";
 export import "glyph.znn";
+import "std/time.znn";
 
 export struct Tile {
   Glyph glyph;
@@ -69,6 +70,8 @@ export bool advance(GameObject mutable* c, Game* g, double amount, double angle)
 
 export bool advance(GameObject mutable* c, Game* g, vec2d dir) {
   c->pos += dir;
+  if (c->creature)
+    c->creature->lastMovement = current_time_milli();
   mutable ret = false;
   for (it : g->objects)
     if (&*it != c)
