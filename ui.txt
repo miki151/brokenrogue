@@ -13,13 +13,14 @@ Def vertical list_ui VERTICAL End
 {
   using "reload_ui" key_handler(F1 DOWN)
   using "exit_callback" key_handler(ESCAPE DOWN)
-  using "player_forward" key_handler(W HELD)
-  using "player_back" key_handler(S HELD)
-  using "player_left" key_handler(A HELD)
-  using "player_right" key_handler(D HELD)
-  using "player_shoot" button()
   fill(0 0 0)
-  using "game_level" game_level(30, 40, 45, 0.9)
+  using "game_level" game_level(30, 40, 45, 0.9,
+    W HELD,
+    S HELD,
+    A HELD,
+    D HELD,
+    SPACE HELD
+  )
   using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)}
 #      using "exit_callback" position(CENTER, margins(5, Button("exit")))
 }
