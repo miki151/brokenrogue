@@ -1,5 +1,6 @@
 
+export import "vec2.znn";
 
 export struct projectile {
-  double velocity;
+  vec2d dir;
 };

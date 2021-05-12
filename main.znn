@@ -14,6 +14,7 @@ import "std/enum.znn";
 import "std/time.znn";
 import "std/flags.znn";
 import "fps_meter.znn";
+import "game_level_ui.znn";
 
 struct Y {
   int u;
@@ -52,34 +53,20 @@ int main(string[] args) {
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   mutable game1 = game();
   mutable ui_data = ui_record(hash_map<string, box<any>>());
-  ui_data.data.insert("game_level", box_as<any, game*>(&game1));
   mutable exit = false;
   mutable diff_time = 0.0;
   mutable last_update = current_time_milli();
   mutable real_time_end = 0;
+  const time_spent_callback = [&] (int time) { real_time_end = last_update + time; };
+  const game_data = game_level_ui_data(
+      &game1,
+      &time_spent_callback
+  );
+  ui_data.data.insert("game_level", box_as<any>(move(game_data)));
+  mutable events_state = sdl_events_state();
+  mutable ui_state1 = ui_state();
   ui_data.data.insert("exit_callback", [&exit] { exit = true; }.box_as<ui_callback>().box_as<any>());
   ui_data.data.insert("reload_ui", [&ui] { ui = read_ui_from("ui.txt"); }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_forward", [&game1, &diff_time] {
-      game1.advance(diff_time);
-      discard game1.get_player()->advance(&game1, 4 * diff_time, 0);
-  }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_back", [&game1, &diff_time] {
-      game1.advance(diff_time);
-      discard game1.get_player()->advance(&game1, -4 * diff_time, 0);
-  }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_left", [&game1, &diff_time] {
-      game1.advance(diff_time);
-      discard game1.get_player()->advance(&game1, 2 * diff_time, 1.57);
-  }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_right", [&game1, &diff_time] {
-      game1.advance(diff_time);
-      discard game1.get_player()->advance(&game1, -2 * diff_time, 1.57);
-  }.box_as<ui_callback>().box_as<any>());
-  ui_data.data.insert("player_shoot", [&] {
-      game1.spawn_projectile(game1.get_player(), glyph(')', color(100, 100, 100), 0.7));
-      real_time_end = last_update + 100;
-  }.box_as<ui_callback>().box_as<any>());
-  mutable events_state = sdl_events_state();
   mutable fps = fps_meter();
   while (!exit) {
     fps.add_tick();
@@ -89,24 +76,22 @@ int main(string[] args) {
     if (cur_time <= real_time_end)
       game1.advance(diff_time);
     last_update = cur_time;
+    const context = ui_context(&canvas, &ui_data, &ui_state1, diff_time);
     for (event : events_state.get_events()) {
       if (exit)
         break;
       switch (*event) {
         case (quit) { return 0; }
         case (key) {
-          discard ui->on_key_event(&canvas, &ui_data, &ui_rectangle, &key);
+          discard ui->on_key_event(context, &ui_rectangle, &key);
         }
         case (mouse) {
-          if (mouse.type == mouse_event_type::LEFT)
-            discard ui->on_mouse_event(&canvas, &ui_data, &ui_rectangle, &mouse);
-          if (mouse.type == mouse_event_type::RELATIVE_MOTION)
-            game1.get_player()->dir -= 0.0008 * mouse.pos.x;
+          discard ui->on_mouse_event(context, &ui_rectangle, &mouse);
         }
         default {}
       }
     }
-    ui->render(&canvas, &ui_data, &ui_rectangle);
+    ui->render(context, &ui_rectangle);
     window.update();
   }
   return 0;

@@ -50,7 +50,6 @@ export bounding_box implicit_copy(bounding_box*) = default;
 
 export struct game_object {
   vec2d pos;
-  double dir;
   glyph glyph;
   bounding_box? box;
   creature? creature;
@@ -65,8 +64,11 @@ vec2d? get_rebound(game_object* o1, game_object* o2) {
 }
 
 export bool advance(game_object mutable* c, game* g, double amount, double angle) {
-  const d = vec2d(sin(c->dir + angle), cos(c->dir + angle)) * amount;
-  c->pos += d;
+  return c->advance(g, vec2d(sin(angle), cos(angle)) * amount);
+}
+
+export bool advance(game_object mutable* c, game* g, vec2d dir) {
+  c->pos += dir;
   mutable ret = false;
   for (it : g->objects)
     if (&*it != c)
@@ -86,24 +88,22 @@ export void advance(game mutable* g, double time) {
   mutable to_remove = vector<int>();
   for (it : g->objects)
     if (it->projectile)
-      if (it->advance(g, 10 * time, 0.0))
+      if (it->advance(g, it->projectile->dir * time))
         to_remove.push_back(it.index);
   for (i = to_remove.size() - 1; i >= 0; --i)
     g->objects.remove(to_remove[i]);
 }
 
-export void spawn_projectile(game mutable *g, game_object* o, glyph glyph) {
+export void spawn_projectile(game mutable *g, game_object* o, double dir, glyph glyph) {
+  const vdir = vec2d(sin(dir), cos(dir));
   g->objects.push_back(game_object(
-      o->pos + vec2d(sin(o->dir), cos(o->dir)),
-      o->dir,
+      o->pos + vdir * 1.0,
       move(glyph),
       bounding_box(0.4),
       null,
-      projectile(10),
+      projectile(vdir * 10.0),
       false
   ));
-  if (g->objects.back()->advance(g, 0.01, 0.0))
-    discard g->objects.pop_back();
 }
 
 export game_object* get_player(game* g) {
@@ -115,11 +115,11 @@ export game_object mutable* get_player(game mutable* g) {
 }
 
 game_object get_creature(vec2d pos, glyph glyph) {
-  return game_object(pos, 0.0, move(glyph), bounding_box(1.0), creature(), null, false);
+  return game_object(pos, move(glyph), bounding_box(1.0), creature(), null, false);
 }
 
 game_object get_furniture(vec2d pos, glyph glyph) {
-  return game_object(pos, 0.0, move(glyph), bounding_box(1.0),  null, null, true);
+  return game_object(pos, move(glyph), bounding_box(1.0),  null, null, true);
 }
 
 vector<game_object> get_objects() {

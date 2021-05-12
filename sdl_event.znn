@@ -79,11 +79,12 @@ export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
             case SDLK_RIGHT: return get_event( key_type::RIGHT );
             case SDLK_DOWN:  return get_event( key_type::DOWN );
             case SDLK_ESCAPE:return get_event( key_type::ESCAPE );
+            case SDLK_SPACE: return get_event( key_type::SPACE );
             case SDLK_F1:    return get_event( key_type::F1 );
-            case SDLK_a:    return get_event( key_type::A );
-            case SDLK_w:    return get_event( key_type::W );
-            case SDLK_s:    return get_event( key_type::S );
-            case SDLK_d:    return get_event( key_type::D );
+            case SDLK_a:     return get_event( key_type::A );
+            case SDLK_w:     return get_event( key_type::W );
+            case SDLK_s:     return get_event( key_type::S );
+            case SDLK_d:     return get_event( key_type::D );
             default: break;
           }
         }

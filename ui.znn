@@ -11,38 +11,48 @@ export import "std/math.znn";
 export import "std/any.znn";
 export import "std/io.znn";
 export import "std/box.znn";
+export import "ui_state.znn";
+
+export struct ui_context {
+  ui_canvas* canvas;
+  any* data;
+  ui_state mutable* state;
+  double time_diff;
+};
+
+export ui_context implicit_copy(ui_context*) = default;
 
 export concept<T> ui_element {
-  void render(T*, ui_canvas*, any*, rectangle*);
-  vec2 size(T*, ui_canvas*);
-  bool on_key_event(T*, ui_canvas*, any*, rectangle*, key_event*);
-  bool on_mouse_event(T*, ui_canvas*, any*, rectangle*, mouse_event*);
+  void render(T*, ui_context, rectangle*);
+  vec2 size(T*, ui_context);
+  bool on_key_event(T*, ui_context, rectangle*, key_event*);
+  bool on_mouse_event(T*, ui_context, rectangle*, mouse_event*);
   void destruct(T*);
 };
 
 export concept<T> container_ui {
   box<ui_element>[] get_elems(T*);
-  rectangle get_bounds(T*, int index, ui_canvas*, rectangle* bounds);
+  rectangle get_bounds(T*, int index, ui_context, rectangle* bounds);
   any*!string transform_data(T*, any*);
 };
 
 export attribute @ui_element;
 
 export template <T> requires has_attribute<T, @ui_element>
-void render(T*, ui_canvas*, any*, rectangle*) {}
+void render(T*, ui_context, rectangle*) {}
 
 export template <T> requires has_attribute<T, @ui_element>
-vec2 size(T*, ui_canvas*) {
+vec2 size(T*, ui_context) {
   return vec2(0, 0);
 }
 
 export template <T> requires has_attribute<T, @ui_element>
-bool on_key_event(T*, ui_canvas*, any*, rectangle*, key_event*) {
+bool on_key_event(T*, ui_context, rectangle*, key_event*) {
   return false;
 }
 
 export template <T> requires has_attribute<T, @ui_element>
-bool on_mouse_event(T*, ui_canvas*, any*, rectangle*, mouse_event*) {
+bool on_mouse_event(T*, ui_context, rectangle*, mouse_event*) {
   return false;
 }
 
@@ -51,32 +61,21 @@ any*!string transform_data(T*, any* a) {
   return a;
 }
 
-export concept<T, D> render_with_data {
-  void render(T*, ui_canvas*, D*, rectangle*);
-};
-
-export template <T, D> requires render_with_data<T, D>, (!(D == any))
-void render(T* t, ui_canvas* canvas, any* any_data, rectangle* r) {
-  if (const data = any_data->cast_to<D>())
-    render(t, canvas, *data, r);
-  else
-    canvas->draw_text(r->v1, "{any_data->get_type()}, expected: {to_string(D)}", 10, &color(255, 0, 0));
-}
-
 export template <T> requires container_ui<T>
-void render(T* t, ui_canvas* canvas, any* any, rectangle* r) {
-  if (const data = t->transform_data(any)) {
+void render(T* t, mutable ui_context context, rectangle* r) {
+  if (const data = t->transform_data(context.data)) {
+    context.data = *data;
     for (elem : t->get_elems())
-      elem->get()->render(canvas, *data, &t->get_bounds(elem.index, canvas, r));
+      elem->get()->render(context, &t->get_bounds(elem.index, context, r));
   } else
-    canvas->draw_text(r->v1, data.get_error(), 10, &color(255, 0, 0));
+    context.canvas->draw_text(r->v1, data.get_error(), 10, &color(255, 0, 0));
 }
 
 export template <T> requires container_ui<T>
-vec2 size(T* t, ui_canvas* canvas) {
+vec2 size(T* t, ui_context context) {
   mutable ret = vec2(0, 0);
   for (elem : t->get_elems()) {
-    const sz = elem->get()->size(canvas);
+    const sz = elem->get()->size(context);
     ret.x = max(ret.x, sz.x);
     ret.y = max(ret.y, sz.y);
   }
@@ -84,20 +83,24 @@ vec2 size(T* t, ui_canvas* canvas) {
 }
 
 export template <T> requires container_ui<T>
-bool on_key_event(T* t, ui_canvas* canvas, any* any, rectangle* r, key_event* key) {
-  if (const data = t->transform_data(any))
+bool on_key_event(T* t, mutable ui_context context, rectangle* r, key_event* key) {
+  if (const data = t->transform_data(context.data)) {
+    context.data = *data;
     for (elem : t->get_elems())
-      if (elem->get()->on_key_event(canvas, *data, r, key))
+      if (elem->get()->on_key_event(context, r, key))
         return true;
+  }
   return false;
 }
 
 export template <T> requires container_ui<T>
-bool on_mouse_event(T* t, ui_canvas* canvas, any* any, rectangle* r, mouse_event* m) {
-  if (const data = t->transform_data(any))
+bool on_mouse_event(T* t, mutable ui_context context, rectangle* r, mouse_event* m) {
+  if (const data = t->transform_data(context.data)) {
+    context.data = *data;
     for (elem : t->get_elems())
-      if (elem->get()->on_mouse_event(canvas, *data, &t->get_bounds(elem.index, canvas, r), m))
+      if (elem->get()->on_mouse_event(context, &t->get_bounds(elem.index, context, r), m))
         return true;
+  }
   return false;
 }
 
@@ -107,21 +110,21 @@ struct texture {
   texture_flip flip;
 };
 
-export void render(texture* t, ui_canvas* canvas, any* any, rectangle* r) {
-  canvas->draw_texture(r, t->id, texture_flip::NONE);
+export void render(texture* t, ui_context context, rectangle* r) {
+  context.canvas->draw_texture(r, t->id, texture_flip::NONE);
 }
 
-export vec2 size(texture* t, ui_canvas* canvas) {
-  return canvas->get_texture_size(t->id);
+export vec2 size(texture* t, ui_context context) {
+  return context.canvas->get_texture_size(t->id);
 }
 
 export [@ui_element]
 struct button {
 };
 
-export bool on_mouse_event(button* b, ui_canvas*, any* data, rectangle* rect, mouse_event* event) {
-  if (rect->contains(&event->pos))
-    if (const callback = data->cast_to<box<ui_callback>>()) {
+export bool on_mouse_event(button* b, ui_context context, rectangle* r, mouse_event* event) {
+  if (event->type == mouse_event_type::LEFT && r->contains(&event->pos))
+    if (const callback = context.data->cast_to<box<ui_callback>>()) {
       (**callback)->invoke();
       return true;
     }
@@ -135,12 +138,12 @@ struct label {
   color color;
 };
 
-export void render(label* t, ui_canvas* canvas, any*, rectangle* r) {
-  canvas->draw_text(r->v1, t->text, t->size, &t->color);
+export void render(label* t, ui_context context, rectangle* r) {
+  context.canvas->draw_text(r->v1, t->text, t->size, &t->color);
 }
 
-export vec2 size(label* t, ui_canvas* canvas) {
-  return canvas->get_text_size(t->text, t->size);
+export vec2 size(label* t, ui_context context) {
+  return context.canvas->get_text_size(t->text, t->size);
 }
 
 export [@ui_element]
@@ -149,12 +152,13 @@ struct text_ui {
   color color;
 };
 
-export void render(text_ui* t, ui_canvas* canvas, string* s, rectangle* r) {
-  canvas->draw_text(r->v1, *s, t->size, &t->color);
+export void render(text_ui* t, ui_context context, rectangle* r) {
+  if (const s = context.data->cast_to<string>())
+    context.canvas->draw_text(r->v1, **s, t->size, &t->color);
 }
 
-export vec2 size(text_ui* t, ui_canvas* canvas) {
-  return canvas->get_text_size("something", t->size);
+export vec2 size(text_ui* t, ui_context context) {
+  return context.canvas->get_text_size("something", t->size);
 }
 
 export [@ui_element]
@@ -162,8 +166,8 @@ struct fill {
   color color;
 };
 
-export void render(fill* t, ui_canvas* canvas, any* any, rectangle* r) {
-  canvas->fill_rectangle(r, &t->color);
+export void render(fill* t, ui_context context, rectangle* r) {
+  context.canvas->fill_rectangle(r, &t->color);
 }
 
 export [@ui_element]
@@ -172,8 +176,8 @@ struct frame {
   color color;
 };
 
-export void render(frame* t, ui_canvas* canvas, any* any, rectangle* r) {
-  canvas->frame_rectangle(r, &t->color, t->width);
+export void render(frame* t, ui_context context, rectangle* r) {
+  context.canvas->frame_rectangle(r, &t->color, t->width);
 }
 
 export struct chain {
@@ -184,7 +188,7 @@ export box<ui_element>[] get_elems(chain* c) {
   return c->elems.slice();
 }
 
-export rectangle get_bounds(chain* c, int, ui_canvas*, rectangle* r) {
+export rectangle get_bounds(chain* c, int, ui_context, rectangle* r) {
   return r->copy();
 }
 
@@ -197,12 +201,12 @@ export box<ui_element>[] get_elems(margins* m) {
   return singleton_slice(&m->elem);
 }
 
-export rectangle get_bounds(margins* c, int, ui_canvas*, rectangle* r) {
+export rectangle get_bounds(margins* c, int, ui_context, rectangle* r) {
   return r->plus_margin(-c->width);
 }
 
-export vec2 size(margins* t, ui_canvas* canvas) {
-  return t->elem->size(canvas) + vec2(t->width, t->width) * 2;
+export vec2 size(margins* t, ui_context context) {
+  return t->elem->size(context) + vec2(t->width, t->width) * 2;
 }
 
 export enum position_enum {
@@ -219,8 +223,8 @@ export box<ui_element>[] get_elems(position* p) {
   return singleton_slice(&p->elem);
 }
 
-export rectangle get_bounds(position* p, int ind, ui_canvas* canvas, rectangle* r) {
-  const size = p->elem->size(canvas);
+export rectangle get_bounds(position* p, int ind, ui_context context, rectangle* r) {
+  const size = p->elem->size(context);
   switch (p->pos) {
     case (CENTER) { return rectangle(r->middle() - size / 2, r->middle() + size / 2); }
     case (TOP_CENTER) { return rectangle(
@@ -240,19 +244,19 @@ struct list_ui {
   vector<box<ui_element>> elems;
 };
 
-vector<rectangle> get_elem_positions(list_ui* t, ui_canvas* canvas, rectangle* r) {
+vector<rectangle> get_elem_positions(list_ui* t, ui_context context, rectangle* r) {
   mutable ret = vector<rectangle>();
   mutable start = 0;
   for (it : t->elems)
     switch (t->type) {
       case (VERTICAL) {
-        const height = it->get()->size(canvas).y;
+        const height = it->get()->size(context).y;
         ret.push_back(rectangle(vec2(r->left(), r->top() + start),
             vec2(r->right(), r->top() + start + height)));
         start += height;
       }
       case (HORIZONTAL) {
-        const width = it->get()->size(canvas).x;
+        const width = it->get()->size(context).x;
         ret.push_back(rectangle(vec2(r->left() + start, r->top()),
             vec2(r->right() + start + width, r->bottom())));
         start += width;
@@ -261,24 +265,25 @@ vector<rectangle> get_elem_positions(list_ui* t, ui_canvas* canvas, rectangle* r
   return move(ret);
 }
 
-export bool on_mouse_event(list_ui* c, ui_canvas* canvas, any* data, rectangle* rect, mouse_event* event) {
-  const positions = get_elem_positions(c, canvas, rect);
+export bool on_mouse_event(list_ui* c, ui_context context, rectangle* rect,
+    mouse_event* event) {
+  const positions = get_elem_positions(c, context, rect);
   for (it : c->elems)
-    if (it->get()->on_mouse_event(canvas, data, &positions[it.index], event))
+    if (it->get()->on_mouse_event(context, &positions[it.index], event))
       return true;
   return false;
 }
 
-export void render(list_ui* t, ui_canvas* canvas, any* any, rectangle* r) {
-  const positions = get_elem_positions(t, canvas, r);
+export void render(list_ui* t, ui_context context, rectangle* r) {
+  const positions = get_elem_positions(t, context, r);
   for (it : t->elems)
-    it->get()->render(canvas, any, &positions[it.index]);
+    it->get()->render(context, &positions[it.index]);
 }
 
-export vec2 size(list_ui* t, ui_canvas* canvas) {
+export vec2 size(list_ui* t, ui_context context) {
   mutable ret = vec2(0, 0);
   for (it : t->elems) {
-    const sz = it->get()->size(canvas);
+    const sz = it->get()->size(context);
     switch (t->type) {
       case (VERTICAL) {
         ret.y += sz.y;
@@ -302,7 +307,7 @@ export box<ui_element>[] get_elems(using_ui* c) {
   return singleton_slice(&c->elem);
 }
 
-export rectangle get_bounds(using_ui* c, int, ui_canvas*, rectangle* r) {
+export rectangle get_bounds(using_ui* c, int, ui_context, rectangle* r) {
   return r->copy();
 }
 
@@ -324,12 +329,12 @@ export box<ui_element>[] get_elems(width_ui* c) {
   return singleton_slice(&c->elem);
 }
 
-export rectangle get_bounds(width_ui* c, int, ui_canvas*, rectangle* r) {
+export rectangle get_bounds(width_ui* c, int, ui_context, rectangle* r) {
   return r->copy();
 }
 
-export vec2 size(width_ui* t, ui_canvas* canvas) {
-  return vec2(t->width, t->elem->size(canvas).y);
+export vec2 size(width_ui* t, ui_context context) {
+  return vec2(t->width, t->elem->size(context).y);
 }
 
 export struct height_ui {
@@ -341,12 +346,12 @@ export box<ui_element>[] get_elems(height_ui* c) {
   return singleton_slice(&c->elem);
 }
 
-export rectangle get_bounds(height_ui* c, int, ui_canvas*, rectangle* r) {
+export rectangle get_bounds(height_ui* c, int, ui_context, rectangle* r) {
   return r->copy();
 }
 
-export vec2 size(height_ui* t, ui_canvas* canvas) {
-  return vec2(t->elem->size(canvas).x, t->height);
+export vec2 size(height_ui* t, ui_context context) {
+  return vec2(t->elem->size(context).x, t->height);
 }
 
 export [@ui_element]
@@ -354,9 +359,9 @@ struct key_handler {
   key_event event;
 };
 
-export bool on_key_event(key_handler* k, ui_canvas*, any* data, rectangle* rect, key_event* event) {
+export bool on_key_event(key_handler* k, ui_context context, rectangle* rect, key_event* event) {
   if (*event == k->event)
-    if (const callback = data->cast_to<box<ui_callback>>()) {
+    if (const callback = context.data->cast_to<box<ui_callback>>()) {
       (**callback)->invoke();
       return true;
     }
