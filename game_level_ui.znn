@@ -90,7 +90,7 @@ export void render(game_level_ui* ui, ui_context context, rectangle* r) {
   const origin = vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
   const to_draw = r->plus_margin(ui->tile_size);
   const state = context.state->get_state<game_level_ui_state>();
-  mutable visibility = table<int>(vec2(30, 30), 0);
+  mutable visibility = table<int>(vec2(ui->los, ui->los), 0);
   const get_obj_pos = [&](game_object* obj) { return visibility.size() / 2 + obj->pos.as_int() - pos_int; };
   for (obj : data->game->objects)
     if (obj->blocksVision) {

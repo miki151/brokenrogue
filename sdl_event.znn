@@ -84,7 +84,7 @@ export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
             case SDLK_a:     return get_event( key_type::A );
             case SDLK_w:     return get_event( key_type::W );
             case SDLK_s:     return get_event( key_type::S );
-            case SDLK_d:     return get_event( key_type::D );
+            case SDLK_d:    return get_event( key_type::D );
             default: break;
           }
         }
