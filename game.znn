@@ -56,6 +56,7 @@ export struct GameObject {
   Creature? creature;
   Projectile? projectile;
   bool blocksVision;
+  int? timeout;
 };
 
 vec2d? getRebound(GameObject* o1, GameObject* o2) {
@@ -87,14 +88,25 @@ export struct Game {
   vector<GameObject> objects;
 };
 
-export void advance(Game mutable* g, double time) {
+export void advance(Game mutable* g, double timeDiff) {
   mutable toRemove = vector<int>();
-  for (it : g->objects)
-    if (it->projectile)
-      if (it->advance(g, it->projectile->dir * time))
+  mutable toAdd = vector<GameObject>();
+  const curTime = current_time_milli();
+  for (it : g->objects) {
+    if (!!it->timeout && *it->timeout < curTime)
+      toRemove.push_back(it.index);
+    else if (it->projectile) {
+      const prevPos = it->pos;
+      if (it->advance(g, it->projectile->dir * timeDiff)) {
         toRemove.push_back(it.index);
+        toAdd.push_back(getEffect(prevPos, curTime + 500, Glyph('*', color(255, 100, 0))));
+      }
+    }
+  }
   for (i = toRemove.size() - 1; i >= 0; --i)
     g->objects.remove(toRemove[i]);
+  while (!toAdd.empty())
+    g->objects.push_back(toAdd.pop_back());
 }
 
 export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph glyph) {
@@ -105,8 +117,21 @@ export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph gl
       BoundingBox(0.4),
       null,
       Projectile(vdir * 10.0),
-      false
+      false,
+      null
   ));
+}
+
+GameObject getEffect(vec2d pos, int timeout, Glyph glyph) {
+  return GameObject(
+      pos,
+      move(glyph),
+      null,
+      null,
+      null,
+      false,
+      timeout
+  );
 }
 
 export GameObject* getPlayer(Game* g) {
@@ -118,11 +143,11 @@ export GameObject mutable* getPlayer(Game mutable* g) {
 }
 
 GameObject getCreature(vec2d pos, Glyph glyph) {
-  return GameObject(pos, move(glyph), BoundingBox(1.0), Creature(), null, false);
+  return GameObject(pos, move(glyph), BoundingBox(1.0), Creature(), null, false, null);
 }
 
 GameObject getFurniture(vec2d pos, Glyph glyph) {
-  return GameObject(pos, move(glyph), BoundingBox(1.0),  null, null, true);
+  return GameObject(pos, move(glyph), BoundingBox(1.0),  null, null, true, null);
 }
 
 vector<GameObject> getObjects() {
