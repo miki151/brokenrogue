@@ -24,6 +24,7 @@ struct GameLevelUI {
   key_event left_key;
   key_event right_key;
   key_event wait_key;
+  key_event shoot_key;
 };
 
 export struct GameLevelUIData {
@@ -42,6 +43,8 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
     discard data->game->getPlayer()->advance(data->game, 2 * context.timeDiff, state->playerDir + 1.57);
   else if (*event == ui->right_key)
     discard data->game->getPlayer()->advance(data->game, 2 * context.timeDiff, state->playerDir - 1.57);
+  else if (*event == ui->shoot_key)
+    shoot(context);
   else if (*event != ui->wait_key)
     return false;
   data->game->advance(context.timeDiff);
@@ -63,17 +66,28 @@ export GameLevelUIState() {
   return GameLevelUIState::GameLevelUIState(0.0);
 }
 
+void shoot(UIContext context) {
+  const state = context.state->get_state<GameLevelUIState>();
+  const data = *context.data->cast_to<GameLevelUIData>();
+  data->game->spawnProjectile(data->game->getPlayer(), state->playerDir,
+      Glyph(')', color(100, 100, 100), 0.7));
+  data->timeSpentCallback->invoke(100);
+}
+
 export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
-  if (event->type == mouse_event_type::RELATIVE_MOTION) {
-    context.state->get_state<GameLevelUIState>()->playerDir -= 0.0008 * event->pos.x;
+  if (event->type == mouse_event_type::JOYSTICK_RIGHT) {
+    context.state->get_state<GameLevelUIState>()->playerDir -= context.timeDiff * 0.002 * event->pos.x;
+    const state = context.state->get_state<GameLevelUIState>();
+    const data = *context.data->cast_to<GameLevelUIData>();
+    if (event->pos.y != 0) {
+      discard data->game->getPlayer()->advance(data->game, -4 * context.timeDiff * event->pos.y / 1000,
+          state->playerDir);
+      data->game->advance(context.timeDiff * abs(event->pos.y) / 1000);
+    }
     return true;
   }
   if (event->type == mouse_event_type::LEFT) {
-    const state = context.state->get_state<GameLevelUIState>();
-    const data = *context.data->cast_to<GameLevelUIData>();
-    data->game->spawnProjectile(data->game->getPlayer(), state->playerDir,
-        Glyph(')', color(100, 100, 100), 0.7));
-    data->timeSpentCallback->invoke(100);
+    shoot(context);
     return true;
   }
   return false;
@@ -117,7 +131,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (to_draw.contains(&coord)) {
         const cur_time = current_time_milli();
-        const offset = !obj->creature || obj->creature->lastMovement < cur_time - 10 ? 0
+        const offset = !obj->creature || obj->creature->lastMovement < cur_time - (1000 * context.timeDiff).as_int() - 10 ? 0
             :(ui->font_size * ui->jumpHeight * getJumpOffset((cur_time % ui->jumpDuration).as_double() / ui->jumpDuration)).as_int();
         obj->glyph.render(context.canvas, ui->font_size, coord - vec2(0, offset));
       }

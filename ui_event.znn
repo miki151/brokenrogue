@@ -13,6 +13,7 @@ export enum key_type {
   W,
   S,
   D,
+  B,
 };
 
 export enum key_event_type {
@@ -31,7 +32,8 @@ export enum mouse_event_type {
   LEFT,
   MIDDLE,
   RIGHT,
-  RELATIVE_MOTION
+  JOYSTICK_LEFT,
+  JOYSTICK_RIGHT,
 };
 
 export struct mouse_event {

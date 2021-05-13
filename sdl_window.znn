@@ -24,22 +24,6 @@ export struct sdl_window {
   SDL_Renderer mutable* renderer;
 };
 
-/*export sdl_surface!string get_surface(sdl_window* window) {
-  mutable sdl_surface? ret = null;
-  mutable string? errorRet = null;
-  embed {
-    auto surface = SDL_GetWindowSurface(window->window);
-    if (!surface)
-      errorRet = zenon_string::reference(SDL_GetError());
-    else
-      ret = sdl_surface{surface};
-  }
-  if (ret)
-    return *move(ret);
-  else
-    return *errorRet;
-}*/
-
 export vec2 size(sdl_window* window) {
   mutable ret = vec2(0, 0);
   embed {
@@ -116,15 +100,15 @@ export sdl_window!string sdl_create_window(vec2? size, string title) {
     if (!renderer)
       return invoke(&gen_error, zenon_string::reference(SDL_GetError()));
     ret = sdl_window{window, renderer};
-/*    if (-1 == SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt"))
-      return invoke(&gen_error, zenon_string::reference(SDL_GetError()));
-    auto res = SDL_NumJoysticks();
-    if (res < 0)
-      return invoke(&gen_error, zenon_string::reference(SDL_GetError()));
-    if (res == 0)
-      return invoke(&gen_error, zenon_string::reference("No joysticks found"));
-    if (!SDL_JoystickOpen(0))
-      return invoke(&gen_error, zenon_string::reference(SDL_GetError()));*/
+    if (-1 != SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt")) {
+      auto res = SDL_NumJoysticks();
+      if (res < 0)
+        return invoke(&gen_error, zenon_string::reference(SDL_GetError()));
+      if (res == 0)
+        return invoke(&gen_error, zenon_string::reference("No joysticks found"));
+      if (!SDL_JoystickOpen(0))
+        return invoke(&gen_error, zenon_string::reference(SDL_GetError()));
+    }
   }
   return *move(ret);
 }
