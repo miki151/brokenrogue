@@ -1,0 +1,8 @@
+
+{
+  Reset()
+  Margin(1,
+      Reset("wall", "foo"),
+      {}
+  )
+}

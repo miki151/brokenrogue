@@ -1,0 +1,31 @@
+
+export import "creature.znn";
+export import "projectile.znn";
+export import "glyph.znn";
+
+export struct BoundingBox {
+  double size;
+};
+
+export vec2d? getRebound(BoundingBox* b, BoundingBox* other, vec2d p) {
+  const l = p.length_d();
+  const min_dist = (b->size + other->size) / 2;
+  if (l < min_dist) {
+    if (l < 0.001)
+      return vec2d(min_dist, 0);
+    return p-p / l * min_dist;
+  }
+  return null;
+}
+
+export BoundingBox implicit_copy(BoundingBox*) = default;
+
+export struct GameObjectAttributes {
+  Glyph glyph;
+  BoundingBox? box;
+  Creature? creature;
+  Projectile? projectile;
+  bool blocksVision;
+};
+
+export GameObjectAttributes copy(GameObjectAttributes*) = default;

@@ -1,8 +1,7 @@
 
 export struct Creature {
-  int lastMovement;
+  string name;
 };
 
-export Creature() {
-  return Creature::Creature(0);
-}
+export Creature copy(Creature*) = default;
+

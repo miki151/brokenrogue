@@ -19,6 +19,7 @@ struct GameLevelUI {
   int jumpDuration;
   double jumpHeight;
   double view_angle;
+  double cameraSensitivity;
   key_event forward_key;
   key_event backward_key;
   key_event left_key;
@@ -70,13 +71,14 @@ void shoot(UIContext context) {
   const state = context.state->get_state<GameLevelUIState>();
   const data = *context.data->cast_to<GameLevelUIData>();
   data->game->spawnProjectile(data->game->getPlayer(), state->playerDir,
-      Glyph(')', color(100, 100, 100), 0.7));
+      Glyph(")", color(100, 100, 100), 0.7));
   data->timeSpentCallback->invoke(100);
 }
 
 export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
   if (event->type == mouse_event_type::JOYSTICK_RIGHT) {
-    context.state->get_state<GameLevelUIState>()->playerDir -= context.timeDiff * 0.002 * event->pos.x;
+    context.state->get_state<GameLevelUIState>()->playerDir -=
+        context.timeDiff * ui->cameraSensitivity * event->pos.x;
     const state = context.state->get_state<GameLevelUIState>();
     const data = *context.data->cast_to<GameLevelUIData>();
     if (event->pos.y != 0) {
@@ -112,7 +114,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   mutable visibility = table<int>(vec2(ui->los, ui->los), 0);
   const get_obj_pos = [&](GameObject* obj) { return visibility.size() / 2 + obj->pos.as_int() - pos_int; };
   for (obj : data->game->objects)
-    if (obj->blocksVision) {
+    if (obj->attributes.blocksVision) {
       const opos = get_obj_pos(&*obj);
       if (visibility.bounds().contains(&opos))
         visibility[opos] = 1;
@@ -131,9 +133,11 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (to_draw.contains(&coord)) {
         const cur_time = current_time_milli();
-        const offset = !obj->creature || obj->creature->lastMovement < cur_time - (1000 * context.timeDiff).as_int() - 10 ? 0
-            :(ui->font_size * ui->jumpHeight * getJumpOffset((cur_time % ui->jumpDuration).as_double() / ui->jumpDuration)).as_int();
-        obj->glyph.render(context.canvas, ui->font_size, coord - vec2(0, offset));
+        const offset = obj->lastMovement < cur_time - (1000 * context.timeDiff).as_int() - 10
+            ? 0
+            : (ui->font_size * ui->jumpHeight
+                  * getJumpOffset((cur_time % ui->jumpDuration).as_double() / ui->jumpDuration)).as_int();
+        obj->attributes.glyph.render(context.canvas, ui->font_size, coord - vec2(0, offset));
       }
     }
   }

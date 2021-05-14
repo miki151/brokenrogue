@@ -1,0 +1,14 @@
+
+export import "std/vector.znn";
+export import "table.znn";
+export import "vec2.znn";
+export import "rectangle.znn";
+
+export struct LevelCanvas {
+  table<vector<string>> mutable* tokens;
+  rectangle area;
+};
+
+export LevelCanvas withArea(LevelCanvas* c, rectangle area) {
+  return LevelCanvas(c->tokens, move(area));
+}

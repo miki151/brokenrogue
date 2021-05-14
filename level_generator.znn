@@ -1,0 +1,66 @@
+
+export import "std/expected.znn";
+export import "std/box.znn";
+export import "level_canvas.znn";
+
+export concept<T> LevelGenerator {
+  bool make(T*, LevelCanvas*);
+  void destruct(T*);
+};
+
+export table<vector<string>>!string generate(LevelGenerator* generator, vec2 size) {
+  mutable tokens = table(size, vector<string>());
+  if (!generator->make(&LevelCanvas(&tokens, tokens.bounds())))
+    return "Failed to generate level";
+  return move(tokens);
+}
+
+export struct LevelGeneratorSet {
+  vector<string> tokens;
+};
+
+export bool make(LevelGeneratorSet* s, LevelCanvas* c) {
+  for (v : c->area)
+    for (t : s->tokens)
+      (*c->tokens)[*v].push_back(*t);
+  return true;
+}
+
+export struct LevelGeneratorReset {
+  vector<string> tokens;
+};
+
+export bool make(LevelGeneratorReset* s, LevelCanvas* c) {
+  for (v : c->area)
+    (*c->tokens)[*v] = s->tokens.copy();
+  return true;
+}
+
+export struct LevelGeneratorMargin {
+  int width;
+  box<LevelGenerator> border;
+  box<LevelGenerator> inside;
+};
+
+export bool make(LevelGeneratorMargin* m, LevelCanvas* c) {
+  mutable ret = m->inside->make(&c->withArea(c->area.plus_margin(-m->width)));
+  ret = ret && m->border->make(&c->withArea(rectangle(c->area.v1, vec2(c->area.v1.x + m->width, c->area.v2.y))));
+  ret = ret && m->border->make(&c->withArea(rectangle(vec2(c->area.v1.x + m->width, c->area.v1.y),
+    vec2(c->area.v2.x - m->width, c->area.v1.y + m->width))));
+  ret = ret && m->border->make(&c->withArea(rectangle(vec2(c->area.v2.x - m->width, c->area.v1.y), c->area.v2)));
+  return ret && m->border->make(&c->withArea(rectangle(vec2(c->area.v1.x + m->width, c->area.v2.y - m->width),
+    vec2(c->area.v2.x - m->width, c->area.v2.y))));
+}
+
+export struct LevelGeneratorChain {
+  vector<box<LevelGenerator>> elems;
+};
+
+export bool make(LevelGeneratorChain* m, LevelCanvas* c) {
+  for (it : m->elems)
+    if (!(*it)->make(c))
+      return false;
+  return true;
+}
+
+

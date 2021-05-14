@@ -4,3 +4,6 @@ export import "vec2.znn";
 export struct Projectile {
   vec2d dir;
 };
+
+
+export Projectile copy(Projectile*) = default;

@@ -3,6 +3,7 @@ export import "std/expected.znn";
 import "std/io.znn";
 import "std/char.znn";
 export import "std/vector.znn";
+export import "std/hash_map.znn";
 export import "std/enum.znn";
 import "pretty_preprocess.znn";
 
@@ -136,6 +137,16 @@ export double!string read_data(input_stream mutable* stream, pretty_dummy_struct
   return stream->get_error("Not a double value: \"{s}\"");
 }
 
+/* Doesn't work due to preprocessor
+export char!string read_data(input_stream mutable* stream, pretty_dummy_struct<char>) {
+  while (stream->get_char().isspace())
+    ++stream->index;
+  try stream->expect("'");
+  const c = stream->get_char();
+  try stream->expect("'");
+  return c;
+}*/
+
 export string!string read_data(input_stream mutable* stream, pretty_dummy_struct<string>) {
   mutable ret = "";
   while (stream->get_char().isspace())
@@ -173,6 +184,18 @@ vector<T>!string read_data(input_stream mutable* stream, pretty_dummy_struct<vec
     if (stream->expect("\}"))
       break;
     ret.push_back(try stream->read_data<T>());
+  }
+  return move(ret);
+}
+
+export template <T, U> requires read_data_overload<T>, read_data_overload<U>, hash_key<T>
+hash_map<T, U>!string read_data(input_stream mutable* stream, pretty_dummy_struct<hash_map<T, U>>) {
+  try stream->expect("\{");
+  mutable ret = hash_map<T, U>();
+  while (true) {
+    if (stream->expect("\}"))
+      break;
+    ret.insert(try stream->read_data<T>(), try stream->read_data<U>());
   }
   return move(ret);
 }

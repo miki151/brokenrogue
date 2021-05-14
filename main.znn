@@ -1,5 +1,4 @@
 
-
 import "sdl.znn";
 import "sdl_surface.znn";
 import "sdl_canvas.znn";
@@ -15,6 +14,7 @@ import "std/time.znn";
 import "std/flags.znn";
 import "fps_meter.znn";
 import "game_level_ui.znn";
+import "level_generator_reader.znn";
 
 struct Y {
   int u;
@@ -33,9 +33,7 @@ hash_map<string, sdl_texture> loadTextures(sdl_window* window) {
 }
 
 box<UIElement> readUIFrom(string path) {
-  const file = *open_file_r(path);
-  const content = *file.read_content();
-  return *read_ui(move(content));
+  return *read_ui(*open_file_r(path)->read_content());
 }
 
 struct Flags {
@@ -51,7 +49,9 @@ int main(string[] args) {
   const font = *window.load_sdl_font(flags.font ?? "font.ttf", 10, 100);
   const canvas = SDLCanvas(&window, &font, loadTextures(&window));
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
-  mutable game = Game();
+  const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
+  const levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
+  mutable game = Game(levelGen.get(), &levelMapping);
   mutable uiData = UIRecord(hash_map<string, box<any>>());
   mutable exit = false;
   mutable timeDiff = 0.0;

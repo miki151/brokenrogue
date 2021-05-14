@@ -1,0 +1,58 @@
+
+export import "level_generator.znn";
+import "pretty_input.znn";
+import "std/io.znn";
+import "game_object_attributes.znn";
+
+template <T> requires (T == LevelGeneratorMargin)
+bool round_brackets(pretty_dummy_struct<T>) {
+  return true;
+}
+
+vector<string>!string read_vector_strings(input_stream mutable* stream) {
+  try stream->expect("(");
+  mutable ret = vector<string>();
+  while (true) {
+    if (stream->expect(")"))
+      break;
+    if (!ret.empty())
+      try stream->expect(",");
+    ret.push_back(try stream->read_data<string>());
+  }
+  return move(ret);
+}
+
+LevelGeneratorSet!string read_data(input_stream mutable* stream, pretty_dummy_struct<LevelGeneratorSet>) {
+  return LevelGeneratorSet(try read_vector_strings(stream));
+}
+
+LevelGeneratorReset!string read_data(input_stream mutable* stream, pretty_dummy_struct<LevelGeneratorReset>) {
+  return LevelGeneratorReset(try read_vector_strings(stream));
+}
+
+box<LevelGenerator>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<LevelGenerator>>) {
+  const last_index = stream->index;
+  const s = stream->read_string();
+  if (s == "Set")
+    return (try stream->read_data<LevelGeneratorSet>()).box_as<LevelGenerator>();
+  if (s == "Reset")
+    return (try stream->read_data<LevelGeneratorReset>()).box_as<LevelGenerator>();
+  if (s == "Margin")
+    return (try stream->read_data<LevelGeneratorMargin>()).box_as<LevelGenerator>();
+  if (s == "\{") {
+    stream->index = last_index;
+    return (try stream->read_data<LevelGeneratorChain>()).box_as<LevelGenerator>();
+  }
+  stream->index = last_index;
+  return stream->get_error("Not an level generator type: \"{s}\"");
+}
+
+export box<LevelGenerator>!string readLevelGenerator(string content) {
+  mutable stream = try create_input_stream(content);
+  return stream.read_data<box<LevelGenerator>>();
+}
+
+export hash_map<string, GameObjectAttributes>!string readLevelMapping(string content) {
+  mutable stream = try create_input_stream(content);
+  return stream.read_data<hash_map<string, GameObjectAttributes>>();
+}

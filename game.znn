@@ -7,7 +7,10 @@ export import "creature.znn";
 export import "projectile.znn";
 export import "table.znn";
 export import "glyph.znn";
+export import "game_object_attributes.znn";
 import "std/time.znn";
+export import "level_generator.znn";
+import "std/hash_map.znn";
 
 export struct Tile {
   Glyph glyph;
@@ -21,7 +24,7 @@ export struct Level {
 };
 
 export Level(string name, vec2 size) {
-  const tiles = table(size, Tile(Glyph('.', color(80, 80, 80))));
+  const tiles = table(size, Tile(Glyph(".", color(80, 80, 80))));
   return Level::Level(name, move(tiles));
 }
 
@@ -31,37 +34,16 @@ export Tile*? getTile(Level* l, vec2 pos) {
   return null;
 }
 
-
-export struct BoundingBox {
-  double size;
-};
-
-vec2d? getRebound(BoundingBox* b, BoundingBox* other, vec2d p) {
-  const l = p.length_d();
-  const min_dist = (b->size + other->size) / 2;
-  if (l < min_dist) {
-    if (l < 0.001)
-      return vec2d(min_dist, 0);
-    return p-p / l * min_dist;
-  }
-  return null;
-}
-
-export BoundingBox implicit_copy(BoundingBox*) = default;
-
 export struct GameObject {
   vec2d pos;
-  Glyph glyph;
-  BoundingBox? box;
-  Creature? creature;
-  Projectile? projectile;
-  bool blocksVision;
   int? timeout;
+  int lastMovement;
+  GameObjectAttributes attributes;
 };
 
 vec2d? getRebound(GameObject* o1, GameObject* o2) {
-  if (!!o1->box && !!o2->box)
-    return getRebound(&*o1->box, &*o2->box, o1->pos - o2->pos);
+  if (!!o1->attributes.box && !!o2->attributes.box)
+    return getRebound(&*o1->attributes.box, &*o2->attributes.box, o1->pos - o2->pos);
   return null;
 }
 
@@ -71,8 +53,8 @@ export bool advance(GameObject mutable* c, Game* g, double amount, double angle)
 
 export bool advance(GameObject mutable* c, Game* g, vec2d dir) {
   c->pos += dir;
-  if (c->creature)
-    c->creature->lastMovement = current_time_milli();
+  if (c->attributes.creature)
+    c->lastMovement = current_time_milli();
   mutable ret = false;
   for (it : g->objects)
     if (&*it != c)
@@ -95,11 +77,11 @@ export void advance(Game mutable* g, double timeDiff) {
   for (it : g->objects) {
     if (!!it->timeout && *it->timeout < curTime)
       toRemove.push_back(it.index);
-    else if (it->projectile) {
+    else if (it->attributes.projectile) {
       const prevPos = it->pos;
-      if (it->advance(g, it->projectile->dir * timeDiff)) {
+      if (it->advance(g, it->attributes.projectile->dir * timeDiff)) {
         toRemove.push_back(it.index);
-        toAdd.push_back(getEffect(prevPos, curTime + 500, Glyph('*', color(255, 100, 0))));
+        toAdd.push_back(getEffect(prevPos, curTime + 500, Glyph("*", color(255, 100, 0))));
       }
     }
   }
@@ -113,24 +95,30 @@ export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph gl
   const vdir = vec2d(sin(dir), cos(dir));
   g->objects.push_back(GameObject(
       o->pos + vdir * 1.0,
-      move(glyph),
-      BoundingBox(0.4),
       null,
-      Projectile(vdir * 10.0),
-      false,
-      null
+      0,
+      GameObjectAttributes(
+        move(glyph),
+        BoundingBox(0.4),
+        null,
+        Projectile(vdir * 10.0),
+        false
+      )
   ));
 }
 
 GameObject getEffect(vec2d pos, int timeout, Glyph glyph) {
   return GameObject(
       pos,
-      move(glyph),
-      null,
-      null,
-      null,
-      false,
-      timeout
+      timeout,
+      0,
+      GameObjectAttributes(
+        move(glyph),
+        null,
+        null,
+        null,
+        false
+      )
   );
 }
 
@@ -142,33 +130,25 @@ export GameObject mutable* getPlayer(Game mutable* g) {
   return &g->objects[0];
 }
 
-GameObject getCreature(vec2d pos, Glyph glyph) {
-  return GameObject(pos, move(glyph), BoundingBox(1.0), Creature(), null, false, null);
-}
-
-GameObject getFurniture(vec2d pos, Glyph glyph) {
-  return GameObject(pos, move(glyph), BoundingBox(1.0),  null, null, true, null);
-}
-
-vector<GameObject> getObjects() {
+vector<GameObject> getObjects(vec2 levelSize, LevelGenerator* generator,
+    hash_map<string, GameObjectAttributes>* mapping) {
   mutable ret = vector<GameObject>();
-  const playerPos = vec2d(150, 150);
-  ret.push_back(getCreature(playerPos, Glyph('@', color(255, 255, 255))));
+  const playerPos = levelSize.as_double() / 2.0;
+  ret.push_back(GameObject(playerPos, null, 0, mapping->get(&"player")->copy()));
   const roomSize = 3;
   const roomCenter = playerPos - vec2d(roomSize + 3.0, 0.0);
-  ret.push_back(getCreature(roomCenter, Glyph('&', color(255, 0, 0))));
-  for (i : range(-roomSize, roomSize + 1)) {
-    const g = Glyph('#', color(210, 105, 30));
-    if (i != 0)
-      ret.push_back(getFurniture(vec2d(roomCenter.x + i, roomCenter.y - roomSize), g.copy()));
-    ret.push_back(getFurniture(vec2d(roomCenter.x + i, roomCenter.y + roomSize), g.copy()));
-    ret.push_back(getFurniture(vec2d(roomCenter.x - roomSize, roomCenter.y + i), g.copy()));
-    ret.push_back(getFurniture(vec2d(roomCenter.x + roomSize, roomCenter.y + i), g.copy()));
-  }
+  ret.push_back(GameObject(roomCenter, null, 0, mapping->get(&"enemy")->copy()));
+  const levelTable = *generator->generate(levelSize);
+  for (v : levelTable.bounds())
+    for (token : levelTable[*v])
+      if (const attr = mapping->get_maybe(&*token)) {
+        ret.push_back(GameObject(v->as_double(), null, 0, (*attr)->copy()));
+    }
   return move(ret);
 }
 
-export Game() {
-  return Game::Game(Level("Level 1", vec2(300, 300)), getObjects());
+export Game(LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
+  const size = vec2(30, 30);
+  return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping));
 }
 
