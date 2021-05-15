@@ -37,6 +37,10 @@ LevelGeneratorRemove!string read_data(input_stream mutable* stream, pretty_dummy
   return LevelGeneratorRemove(try read_vector_parens<string>(stream));
 }
 
+LevelGeneratorChoose!string read_data(input_stream mutable* stream, pretty_dummy_struct<LevelGeneratorChoose>) {
+  return LevelGeneratorChoose(try read_vector_parens<box<LevelGenerator>>(stream));
+}
+
 LevelGeneratorPlace!string read_data(input_stream mutable* stream, pretty_dummy_struct<LevelGeneratorPlace>) {
   const lastIndex = stream->index;
   try stream->expect("(");
@@ -68,6 +72,8 @@ box<LevelGenerator>!string read_data(input_stream mutable* stream, pretty_dummy_
     return (try stream->read_data<LevelGeneratorFilter>()).box_as<LevelGenerator>();
   if (s == "Place")
     return (try stream->read_data<LevelGeneratorPlace>()).box_as<LevelGenerator>();
+  if (s == "Choose")
+    return (try stream->read_data<LevelGeneratorChoose>()).box_as<LevelGenerator>();
   if (s == "\{") {
     stream->index = last_index;
     return (try stream->read_data<LevelGeneratorChain>()).box_as<LevelGenerator>();

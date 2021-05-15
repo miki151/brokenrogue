@@ -199,3 +199,11 @@ export bool make(LevelGeneratorFilter* m, LevelCanvas* c) {
   return true;
 }
 
+export struct LevelGeneratorChoose {
+  vector<box<LevelGenerator>> elems;
+};
+
+export bool make(LevelGeneratorChoose* g, LevelCanvas* c) {
+  return g->elems[get_random(g->elems.size())]->make(c);
+}
+
