@@ -76,7 +76,7 @@ void shoot(UIContext context) {
 }
 
 export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
-  if (event->type == mouse_event_type::JOYSTICK_RIGHT) {
+  if (event->type == mouse_event_type::JOYSTICK_LEFT) {
     context.state->get_state<GameLevelUIState>()->playerDir -=
         context.timeDiff * ui->cameraSensitivity * event->pos.x;
     const state = context.state->get_state<GameLevelUIState>();
