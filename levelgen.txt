@@ -1,8 +1,9 @@
 
 {
   Reset()
-  Margin(1,
+  Margins(1,
       Reset("wall", "foo"),
       {}
   )
+  Place(4 4, Set("water"), {3 5}, Not On("wall"), 2)
 }

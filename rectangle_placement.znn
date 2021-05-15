@@ -1,0 +1,18 @@
+
+import "vec2.znn";
+export import "rectangle.znn";
+
+export enum RectanglePlacement {
+  CENTER,
+  TOP_CENTER,
+};
+
+export rectangle get(RectanglePlacement placement, vec2 size, rectangle* bounds) {
+  switch (placement) {
+    case (CENTER) { return rectangle(bounds->middle() - size / 2, bounds->middle() + size - size / 2); }
+    case (TOP_CENTER) { return rectangle(
+        vec2(bounds->middle().x - size.x / 2, bounds->top()),
+        vec2(bounds->middle().x + size.x / 2, bounds->top() + size.y)); }
+  }
+}
+

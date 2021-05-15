@@ -4,30 +4,51 @@ import "pretty_input.znn";
 import "std/io.znn";
 import "game_object_attributes.znn";
 
-template <T> requires (T == LevelGeneratorMargin)
+template <T> requires (T == LevelGeneratorMargins || T == LevelGenPredicateOn || T == LevelGenPredicateChance
+    || T == LevelGeneratorMargin || T == LevelGeneratorPosition || T == LevelGeneratorFilter
+    || T == LevelGeneratorPlaceElem)
 bool round_brackets(pretty_dummy_struct<T>) {
   return true;
 }
 
-vector<string>!string read_vector_strings(input_stream mutable* stream) {
+template <T> requires read_data_overload<T>
+vector<T>!string read_vector_parens(input_stream mutable* stream) {
   try stream->expect("(");
-  mutable ret = vector<string>();
+  mutable ret = vector<T>();
   while (true) {
     if (stream->expect(")"))
       break;
     if (!ret.empty())
       try stream->expect(",");
-    ret.push_back(try stream->read_data<string>());
+    ret.push_back(try stream->read_data<T>());
   }
   return move(ret);
 }
 
 LevelGeneratorSet!string read_data(input_stream mutable* stream, pretty_dummy_struct<LevelGeneratorSet>) {
-  return LevelGeneratorSet(try read_vector_strings(stream));
+  return LevelGeneratorSet(try read_vector_parens<string>(stream));
 }
 
 LevelGeneratorReset!string read_data(input_stream mutable* stream, pretty_dummy_struct<LevelGeneratorReset>) {
-  return LevelGeneratorReset(try read_vector_strings(stream));
+  return LevelGeneratorReset(try read_vector_parens<string>(stream));
+}
+
+LevelGeneratorRemove!string read_data(input_stream mutable* stream, pretty_dummy_struct<LevelGeneratorRemove>) {
+  return LevelGeneratorRemove(try read_vector_parens<string>(stream));
+}
+
+LevelGeneratorPlace!string read_data(input_stream mutable* stream, pretty_dummy_struct<LevelGeneratorPlace>) {
+  const lastIndex = stream->index;
+  try stream->expect("(");
+  if (stream->peek_string() == "(")
+    return LevelGeneratorPlace(try read_vector_parens<LevelGeneratorPlaceElem>(stream));
+  else {
+    mutable ret = LevelGeneratorPlace(vector<LevelGeneratorPlaceElem>());
+    stream->index = lastIndex;
+    ret.elems.push_back(try stream->read_data<LevelGeneratorPlaceElem>());
+    return move(ret);
+  }
+  try stream->expect(")");
 }
 
 box<LevelGenerator>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<LevelGenerator>>) {
@@ -37,14 +58,39 @@ box<LevelGenerator>!string read_data(input_stream mutable* stream, pretty_dummy_
     return (try stream->read_data<LevelGeneratorSet>()).box_as<LevelGenerator>();
   if (s == "Reset")
     return (try stream->read_data<LevelGeneratorReset>()).box_as<LevelGenerator>();
-  if (s == "Margin")
-    return (try stream->read_data<LevelGeneratorMargin>()).box_as<LevelGenerator>();
+  if (s == "Remove")
+    return (try stream->read_data<LevelGeneratorRemove>()).box_as<LevelGenerator>();
+  if (s == "Margins")
+    return (try stream->read_data<LevelGeneratorMargins>()).box_as<LevelGenerator>();
+  if (s == "Position")
+    return (try stream->read_data<LevelGeneratorPosition>()).box_as<LevelGenerator>();
+  if (s == "Filter")
+    return (try stream->read_data<LevelGeneratorFilter>()).box_as<LevelGenerator>();
+  if (s == "Place")
+    return (try stream->read_data<LevelGeneratorPlace>()).box_as<LevelGenerator>();
   if (s == "\{") {
     stream->index = last_index;
     return (try stream->read_data<LevelGeneratorChain>()).box_as<LevelGenerator>();
   }
   stream->index = last_index;
   return stream->get_error("Not an level generator type: \"{s}\"");
+}
+
+box<LevelGenPredicate>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<LevelGenPredicate>>) {
+  const last_index = stream->index;
+  const s = stream->read_string();
+  if (s == "On")
+    return (try stream->read_data<LevelGenPredicateOn>()).box_as<LevelGenPredicate>();
+  if (s == "Not")
+    return (try stream->read_data<LevelGenPredicateNot>()).box_as<LevelGenPredicate>();
+  if (s == "And")
+    return (try stream->read_data<LevelGenPredicateAnd>()).box_as<LevelGenPredicate>();
+  if (s == "Or")
+    return (try stream->read_data<LevelGenPredicateOr>()).box_as<LevelGenPredicate>();
+  if (s == "Chance")
+    return (try stream->read_data<LevelGenPredicateChance>()).box_as<LevelGenPredicate>();
+  stream->index = last_index;
+  return stream->get_error("Not an level generator predicate type: \"{s}\"");
 }
 
 export box<LevelGenerator>!string readLevelGenerator(string content) {

@@ -15,6 +15,7 @@ import "std/flags.znn";
 import "fps_meter.znn";
 import "game_level_ui.znn";
 import "level_generator_reader.znn";
+import "std/random.znn";
 
 struct Y {
   int u;
@@ -43,6 +44,7 @@ struct Flags {
 int main(string[] args) {
   const flags = *read_flags<Flags>(args);
   *sdl_init();
+  init_random();
   mutable ui = readUIFrom("ui.txt");
   const window = *sdl_create_window(vec2(1280, 720), "Infinihack");
   *sdl_set_relative_mouse_mode(true);

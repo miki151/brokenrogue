@@ -12,6 +12,7 @@ export import "std/any.znn";
 export import "std/io.znn";
 export import "std/box.znn";
 export import "ui_state.znn";
+import "rectangle_placement.znn";
 
 export struct UIContext {
   UICanvas* canvas;
@@ -209,13 +210,8 @@ export vec2 size(margins* t, UIContext context) {
   return t->elem->size(context) + vec2(t->width, t->width) * 2;
 }
 
-export enum position_enum {
-  CENTER,
-  TOP_CENTER,
-};
-
 export struct position {
-  position_enum pos;
+  RectanglePlacement placement;
   box<UIElement> elem;
 };
 
@@ -224,13 +220,7 @@ export box<UIElement>[] get_elems(position* p) {
 }
 
 export rectangle get_bounds(position* p, int ind, UIContext context, rectangle* r) {
-  const size = p->elem->size(context);
-  switch (p->pos) {
-    case (CENTER) { return rectangle(r->middle() - size / 2, r->middle() + size / 2); }
-    case (TOP_CENTER) { return rectangle(
-        vec2(r->middle().x - size.x / 2, r->top()),
-        vec2(r->middle().x + size.x / 2, r->top() + size.y)); }
-  }
+  return p->placement.get(p->elem->size(context), r);
 }
 
 export enum list_ui_type {

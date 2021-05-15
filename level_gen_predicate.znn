@@ -1,0 +1,56 @@
+
+export import "vec2.znn";
+export import "std/box.znn";
+export import "std/vector.znn";
+export import "level_canvas.znn";
+
+export concept <T> LevelGenPredicate {
+  bool apply(T*, LevelCanvas*, vec2);
+  void destruct(T*);
+};
+
+export struct LevelGenPredicateOn {
+  string token;
+};
+
+export bool apply(LevelGenPredicateOn* on, LevelCanvas* canvas, vec2 v) {
+  return !!(*canvas->tokens)[v].find(&on->token);
+}
+
+export struct LevelGenPredicateNot {
+  box<LevelGenPredicate> pred;
+};
+
+export bool apply(LevelGenPredicateNot* n, LevelCanvas* canvas, vec2 v) {
+  return !n->pred->apply(canvas, v);
+}
+
+export struct LevelGenPredicateAnd {
+  vector<box<LevelGenPredicate>> pred;
+};
+
+export bool apply(LevelGenPredicateAnd* a, LevelCanvas* canvas, vec2 v) {
+  for (p : a->pred)
+    if (!p->get()->apply(canvas, v))
+      return false;
+  return true;
+}
+
+export struct LevelGenPredicateOr {
+  vector<box<LevelGenPredicate>> pred;
+};
+
+export bool apply(LevelGenPredicateOr* o, LevelCanvas* canvas, vec2 v) {
+  for (p : o->pred)
+    if (p->get()->apply(canvas, v))
+      return true;
+  return false;
+}
+
+export struct LevelGenPredicateChance {
+  double value;
+};
+
+export bool apply(LevelGenPredicateChance* c, LevelCanvas* canvas, vec2 v) {
+  return true;
+}

@@ -7,6 +7,11 @@ export struct rectangle {
   vec2 v2;
 };
 
+export rectangle(vec2, vec2) = default;
+export rectangle(range xRange, range yRange) {
+  return rectangle(vec2(xRange.begin(), yRange.begin()), vec2(xRange.end(), yRange.end()),);
+}
+
 export rectangle centered_rect(vec2 pos, int radius) {
   return rectangle(pos - vec2(radius, radius), pos + vec2(radius + 1, radius + 1));
 }
@@ -39,16 +44,24 @@ export int right(rectangle* r) {
   return r->v2.x;
 }
 
+export int width(rectangle* r) {
+  return r->v2.x - r->v1.x;
+}
+
+export int height(rectangle* r) {
+  return r->v2.y - r->v1.y;
+}
+
 export rectangle plus_margin(rectangle* r, int width) {
   return rectangle(r->v1 - vec2(width, width), r->v2 + vec2(width, width));
 }
 
-export bool overlaps(rectangle* r1, rectangle* r2) {
-  const x1 = r1->x_range();
-  const x2 = r2->x_range();
-  const y1 = r1->y_range();
-  const y2 = r2->y_range();
-  return x1.overlaps(&x2) && y1.overlaps(&y2);
+export bool empty(rectangle* r) {
+  return r->x_range().empty() || r->y_range().empty();
+}
+
+export rectangle intersection(rectangle* r1, rectangle* r2) {
+  return rectangle(r1->x_range().intersection(&r2->x_range()), r1->y_range().intersection(&r2->y_range()));
 }
 
 export range x_range(rectangle* r) {

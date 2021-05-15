@@ -5,7 +5,9 @@ import "std/char.znn";
 export import "std/vector.znn";
 export import "std/hash_map.znn";
 export import "std/enum.znn";
+export import "std/range.znn";
 import "pretty_preprocess.znn";
+export import "rectangle_placement.znn";
 
 export struct input_stream_position {
   int line;
@@ -135,6 +137,18 @@ export double!string read_data(input_stream mutable* stream, pretty_dummy_struct
   if (const i = s.to_double())
     return *i;
   return stream->get_error("Not a double value: \"{s}\"");
+}
+
+export range!string read_data(input_stream mutable* stream, pretty_dummy_struct<range>) {
+  if (stream->expect("\{")) {
+    // calling read_data<int> triggers a bug in the compiler
+    const ret = range(try stream->read_data(pretty_dummy_struct<int>()),
+        try stream->read_data(pretty_dummy_struct<int>()));
+    try stream->expect("\}");
+    return move(ret);
+  }
+  const i = try stream->read_data(pretty_dummy_struct<int>());
+  return range(i, i + 1);
 }
 
 /* Doesn't work due to preprocessor
