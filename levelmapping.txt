@@ -4,6 +4,6 @@
   "water" "_" 50 105 255 1.0 null null null false
   "lava" "_" 255 105 50 1.0 null null null false
   "bridge" "_" 210 105 50 1.0 null null null false
-  "enemy" "&" 0 200 200 2.0 2.0 "enemy" null false
-  "player" "@" 200 200 200 1.0 1.0 "player" null false
+  "enemy" "&" 0 200 200 2.0 2.0 6 null false
+  "player" "@" 200 200 200 1.0 1.0 5 null false
 }

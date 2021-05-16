@@ -113,7 +113,7 @@ struct GlyphRenderElem {
 
 void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
   const h = ui->fontSize * 2 / 3;
-  const w = ((start % 100) / 50.0 - 1) * ui->fontSize / 3;
+  const w = (((start % 100 * 67) % 100) / 50.0 - 1) * ui->fontSize / 3;
   const t = curTime - start;
   const dur = ui->woundedAnimDuration;
   const offset = vec2((w * t / dur).as_int(), (h * t * t / (dur * dur) - h / 2).as_int());

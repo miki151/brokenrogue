@@ -1,6 +1,6 @@
 
 export struct Creature {
-  string name;
+  int health;
 };
 
 export Creature copy(Creature*) = default;

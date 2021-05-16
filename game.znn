@@ -81,9 +81,16 @@ export void advance(Game mutable* g, double timeDiff) {
       const prevPos = it->pos;
       if (const hitIndex = it->advance(g, it->attributes.projectile->dir * timeDiff)) {
         toRemove.push_back(it.index);
-        if (g->objects[*hitIndex].attributes.creature)
-          g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, g->objects[*hitIndex].pos, curTime));
-        else
+        const hitObject = &g->objects[*hitIndex];
+        if (hitObject->attributes.creature) {
+          g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime));
+          --hitObject->attributes.creature->health;
+          if (hitObject->attributes.creature->health <= 0) {
+            toRemove.push_back(*hitIndex);
+            for (i : range(0, 10))
+            g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime + i));
+          }
+        } else
           g->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
       }
     }
@@ -102,7 +109,7 @@ export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph gl
         move(glyph),
         BoundingBox(0.4),
         null,
-        Projectile(vdir * 10.0),
+        Projectile(vdir * 20.0),
         false
       )
   ));
