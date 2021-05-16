@@ -6,6 +6,7 @@ export import "level_canvas.znn";
 export import "level_gen_predicate.znn";
 export import "rectangle_placement.znn";
 import "std/random.znn";
+import "shortest_path.znn";
 
 export concept<T> LevelGenerator {
   bool make(T*, LevelCanvas*);
@@ -207,3 +208,57 @@ export bool make(LevelGeneratorChoose* g, LevelCanvas* c) {
   return g->elems[get_random(g->elems.size())]->make(c);
 }
 
+export struct LevelGeneratorConnectElem {
+  double? cost;
+  box<LevelGenPredicate> predicate;
+  box<LevelGenerator> generator;
+};
+
+export struct LevelGeneratorConnect {
+  box<LevelGenPredicate> toConnect;
+  vector<LevelGeneratorConnectElem> elems;
+};
+
+int getConnectorElem(LevelGeneratorConnect* g, LevelCanvas* c, vec2 pos) {
+  mutable ret = -1;
+  for (elem : g->elems)
+    if (elem->predicate->apply(c, pos)
+        && (ret == -1 || !g->elems[ret].cost || (!!elem->cost && *elem->cost < *g->elems[ret].cost)))
+      ret = elem.index;
+  return ret;
+}
+
+bool connect(LevelGeneratorConnect* g, LevelCanvas* c, vec2 p1, vec2 p2) {
+  const path = get_shortest_path(&c->area, p1, p2, &[&](vec2 v) -> double? {
+    const index = g->getConnectorElem(c, v);
+    if (index == -1)
+      return 1.0;
+    return g->elems[index].cost;
+  });
+  if (path.empty())
+    return false;
+  for (v : path) {
+    const index = g->getConnectorElem(c, *v);
+    if (index > -1) {
+      assert(!!g->elems[index].cost);
+      if (!g->elems[index].generator->make(&c->withArea(rectangle(*v, *v + vec2(1, 1)))))
+        return false;
+    }
+  }
+  return true;
+}
+
+export bool make(LevelGeneratorConnect* g, LevelCanvas* c) {
+  mutable points = vector<vec2>();
+  for (v : c->area)
+    if (g->toConnect->apply(c, *v))
+      points.push_back(*v);
+  if (!points.empty())
+    for (i : range(0, 300)) {
+      const p1 = points[get_random(points.size())];
+      const p2 = points[get_random(points.size())];
+      if (p1 != p2 && !g->connect(c, p1, p2))
+        return false;
+    }
+  return true;
+}

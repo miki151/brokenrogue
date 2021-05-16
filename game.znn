@@ -133,17 +133,19 @@ export GameObject mutable* getPlayer(Game mutable* g) {
 vector<GameObject> getObjects(vec2 levelSize, LevelGenerator* generator,
     hash_map<string, GameObjectAttributes>* mapping) {
   mutable ret = vector<GameObject>();
-  const playerPos = levelSize.as_double() / 2.0;
-  ret.push_back(GameObject(playerPos, null, 0, mapping->get(&"player")->copy()));
-  const roomSize = 3;
-  const roomCenter = playerPos - vec2d(roomSize + 3.0, 0.0);
-  ret.push_back(GameObject(roomCenter, null, 0, mapping->get(&"enemy")->copy()));
   const levelTable = *generator->generate(levelSize);
+  mutable playerIndex = -1;
   for (v : levelTable.bounds())
     for (token : levelTable[*v])
       if (const attr = mapping->get_maybe(&*token)) {
+        if (*token == "player") {
+          assert(playerIndex == -1);
+          playerIndex = ret.size();
+        }
         ret.push_back(GameObject(v->as_double(), null, 0, (*attr)->copy()));
-    }
+      }
+  if (playerIndex > 0)
+    swap(&ret[playerIndex], &ret[0]);
   return move(ret);
 }
 

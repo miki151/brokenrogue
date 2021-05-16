@@ -1,0 +1,51 @@
+
+export import "std/vector.znn";
+export import "std/priority_queue.znn";
+export import "vec2.znn";
+export import "rectangle.znn";
+export import "table.znn";
+
+export template <EntryFun> requires invoke<EntryFun, double?, vec2>
+vector<vec2> get_shortest_path(rectangle* area, mutable vec2 from, mutable vec2 to, EntryFun* entryFun) {
+  from -= area->v1;
+  to -= area->v1;
+  const double? tmp = null;
+  mutable cost = table<double?>(area->size(), tmp);
+  cost[from] = 0.0;
+  mutable queue = priority_queue<vec2>([&](vec2* v1, vec2* v2) {
+      const c1 = cost[*v1];
+      const c2 = cost[*v2];
+      return !!c1 && (!c2 || *c1 < *c2);
+  });
+  queue.push(from);
+  while (!queue.empty()) {
+    const pos = queue.pop();
+    if (!cost[pos])
+      break;
+    const curCost = *cost[pos];
+    for (v : pos.neighbors4())
+      if (rectangle(vec2(0, 0), area->size()).contains(&*v)) {
+        const entryCost = entryFun->invoke(*v - area->v1);
+        if (!!entryCost && (!cost[*v] || curCost + *entryCost < *cost[*v])) {
+          cost[*v] = curCost + *entryCost;
+          queue.push(*v);
+        }
+      }
+  }
+  mutable ret = vector<vec2>();
+  if (!!cost[to]) {
+    while (to != from) {
+      mutable vec2? next = null;
+      for (v : to.neighbors4())
+        if (rectangle(vec2(0, 0), area->size()).contains(&*v) && !!cost[*v] && (!next || *cost[*v] < *cost[*next]))
+          next = *v;
+      ret.push_back(to);
+      to = *next;
+    }
+    ret.push_back(from + area->v1);
+    ret.reverse();
+  }
+  return move(ret);
+}
+
+

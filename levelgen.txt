@@ -1,9 +1,10 @@
 
 {
-  Reset()
-  Margins(1,
-      Reset("wall", "foo"),
-      {}
+  Set("wall")
+  Margins(1, {}, Place(4 4, Reset("floor"), {3 5}, On("wall"), 2))
+  Connect(On("floor"), 10, On("wall"), Reset("floor"))
+  Place(
+      (1 1, Set("player"), 1, On("floor"), 5),
+      (1 1, Set("enemy"), 1, On("floor"), 5)
   )
-  Place(4 4, Choose(Set("water"), Set("lava")), {3 5}, Not On("wall"), 2)
 }

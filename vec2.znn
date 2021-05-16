@@ -48,6 +48,10 @@ export double length_d(vec2* v) {
   return sqrt(v->x * v->x + v->y * v->y);
 }
 
+export vec2[4] neighbors4(vec2* v) {
+  return { vec2(v->x + 1, v->y), vec2(v->x, v->y + 1), vec2(v->x - 1, v->y), vec2(v->x, v->y - 1) };
+}
+
 export vec2d operator + (vec2d* a, vec2d* b) {
   return vec2d(a->x + b->x, a->y + b->y);
 }
