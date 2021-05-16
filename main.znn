@@ -16,6 +16,7 @@ import "fps_meter.znn";
 import "game_level_ui.znn";
 import "level_generator_reader.znn";
 import "std/random.znn";
+import "std/panic.znn";
 
 struct Y {
   int u;
@@ -42,6 +43,8 @@ struct Flags {
 };
 
 int main(string[] args) {
+  const panic_handler = [](string s) { printf("{s}\n"); exit(0); };
+  set_panic_handler(&panic_handler);
   const flags = *read_flags<Flags>(args);
   *sdl_init();
   init_random();
