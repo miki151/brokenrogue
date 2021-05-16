@@ -127,6 +127,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       if (to_draw.contains(&coord) && visibility.bounds().contains(&vpos) && visibility[vpos] == 1)
         (*t)->glyph.render(context.canvas, ui->font_size, coord);
     }
+  mutable toRender = vector<pair<Glyph*, vec2>>();
   for (obj : data->game->objects) {
     const opos = get_obj_pos(&*obj);
     if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
@@ -137,10 +138,13 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
             ? 0
             : (ui->font_size * ui->jumpHeight
                   * getJumpOffset((cur_time % ui->jumpDuration).as_double() / ui->jumpDuration)).as_int();
-        obj->attributes.glyph.render(context.canvas, ui->font_size, coord - vec2(0, offset));
+        toRender.push_back(pair<Glyph*>(&obj->attributes.glyph, coord - vec2(0, offset)));
       }
     }
   }
+  toRender.sort(&[](pair<Glyph*, vec2>* p1, pair<Glyph*, vec2>* p2) { return p1->second.y < p2->second.y; });
+  for (elem : toRender)
+    elem->first->render(context.canvas, ui->font_size, elem->second);
 }
 
 
