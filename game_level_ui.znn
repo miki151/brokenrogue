@@ -15,8 +15,10 @@ export [@ui_element]
 struct GameLevelUI {
   int los;
   int tile_size;
-  int font_size;
+  int fontSize;
   int jumpDuration;
+  int woundedAnimDuration;
+  int explosionDuration;
   double jumpHeight;
   double view_angle;
   double cameraSensitivity;
@@ -71,20 +73,22 @@ void shoot(UIContext context) {
   const state = context.state->get_state<GameLevelUIState>();
   const data = *context.data->cast_to<GameLevelUIData>();
   data->game->spawnProjectile(data->game->getPlayer(), state->playerDir,
-      Glyph(")", color(100, 100, 100), 0.7));
+      Glyph(".", color(255, 30, 100), 0.7));
   data->timeSpentCallback->invoke(100);
 }
 
 export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
+  const state = context.state->get_state<GameLevelUIState>();
+  if (event->type == mouse_event_type::JOYSTICK_RIGHT)
+    state->playerDir -= context.timeDiff * ui->cameraSensitivity * event->pos.x;
   if (event->type == mouse_event_type::JOYSTICK_LEFT) {
-    context.state->get_state<GameLevelUIState>()->playerDir -=
-        context.timeDiff * ui->cameraSensitivity * event->pos.x;
-    const state = context.state->get_state<GameLevelUIState>();
     const data = *context.data->cast_to<GameLevelUIData>();
-    if (event->pos.y != 0) {
-      discard data->game->getPlayer()->advance(data->game, -4 * context.timeDiff * event->pos.y / 1000,
-          state->playerDir);
-      data->game->advance(context.timeDiff * abs(event->pos.y) / 1000);
+    const angle = state->playerDir + atan2(event->pos.x, event->pos.y);
+    const length = event->pos.length_d();
+    if (length > 0.001) {
+      discard data->game->getPlayer()->advance(data->game, -4 * context.timeDiff * length / 1000,
+          angle);
+      data->game->advance(context.timeDiff * length / 1000);
     }
     return true;
   }
@@ -102,6 +106,20 @@ double getJumpOffset(mutable double state) {
   return 1.0 - (2.0 * state - 1) * (2.0 * state - 1);
 }
 
+struct GlyphRenderElem {
+  Glyph glyph;
+  vec2 pos;
+};
+
+void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
+  const h = ui->fontSize * 2 / 3;
+  const w = ((start % 100) / 50.0 - 1) * ui->fontSize / 3;
+  const t = curTime - start;
+  const dur = ui->woundedAnimDuration;
+  const offset = vec2((w * t / dur).as_int(), (h * t * t / (dur * dur) - h / 2).as_int());
+  const pos = origin + offset;
+  Glyph("*", color(255, 0, 0), 0.5).render(context.canvas, ui->fontSize, pos);
+}
 
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const data = *context.data->cast_to<GameLevelUIData>();
@@ -125,26 +143,42 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       const coord = origin + ui->projectOnScreen(player, pos->as_double(), state->playerDir);
       const vpos = *pos - pos_int + visibility.size() / 2;
       if (to_draw.contains(&coord) && visibility.bounds().contains(&vpos) && visibility[vpos] == 1)
-        (*t)->glyph.render(context.canvas, ui->font_size, coord);
+        (*t)->glyph.render(context.canvas, ui->fontSize, coord);
     }
-  mutable toRender = vector<pair<Glyph*, vec2>>();
+  mutable toRender = vector<GlyphRenderElem>();
+  const curTime = current_time_milli();
   for (obj : data->game->objects) {
     const opos = get_obj_pos(&*obj);
     if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (to_draw.contains(&coord)) {
-        const cur_time = current_time_milli();
-        const offset = obj->lastMovement < cur_time - (1000 * context.timeDiff).as_int() - 10
+        const offset = (obj->animation.lastMovement ?? 0) < curTime - (1000 * context.timeDiff).as_int() - 10
             ? 0
-            : (ui->font_size * ui->jumpHeight
-                  * getJumpOffset((cur_time % ui->jumpDuration).as_double() / ui->jumpDuration)).as_int();
-        toRender.push_back(pair<Glyph*>(&obj->attributes.glyph, coord - vec2(0, offset)));
+            : (ui->fontSize * ui->jumpHeight
+                  * getJumpOffset((curTime % ui->jumpDuration).as_double() / ui->jumpDuration)).as_int();
+        toRender.push_back(GlyphRenderElem(obj->attributes.glyph.copy(), coord - vec2(0, offset)));
       }
     }
   }
-  toRender.sort(&[](pair<Glyph*, vec2>* p1, pair<Glyph*, vec2>* p2) { return p1->second.y < p2->second.y; });
+  toRender.sort(&[](GlyphRenderElem* p1, GlyphRenderElem* p2) {
+      return p1->pos.y < p2->pos.y;
+  });
   for (elem : toRender)
-    elem->first->render(context.canvas, ui->font_size, elem->second);
+    elem->glyph.render(context.canvas, ui->fontSize, elem->pos);
+  for (anim : data->game->animations) {
+    const coord = origin + ui->projectOnScreen(player, anim->position, state->playerDir);
+    if (to_draw.contains(&coord))
+      switch (anim->type) {
+        case (EXPLOSION) {
+          if (anim->time + ui->explosionDuration > curTime)
+            Glyph("*", color(255, 100, 0), 1.0).render(context.canvas, ui->fontSize, coord);
+        }
+        case (BLOOD) {
+          if (anim->time + ui->woundedAnimDuration > curTime)
+            drawBloodParticle(ui, context, coord, anim->time, curTime);
+        }
+      }
+  }
 }
 
 

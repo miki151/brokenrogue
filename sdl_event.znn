@@ -93,7 +93,7 @@ export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
           }
         }
         if (event.type == SDL_MOUSEMOTION) {
-          return SDLEvent::mouse({mouse_event_type::JOYSTICK_LEFT, {event.motion.xrel * 200, 0}});
+          return SDLEvent::mouse({mouse_event_type::JOYSTICK_RIGHT, {event.motion.xrel * 40, 0}});
         }
         if (event.type == SDL_JOYAXISMOTION) {
           auto value = event.jaxis.value / 33;

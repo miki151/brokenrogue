@@ -38,3 +38,9 @@ export void sdl_delay(int time) {
     SDL_Delay(time);
   }
 }
+
+export void sdl_error_box(string title, string message) {
+  embed {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.data(), message.data(), nullptr);
+  }
+}

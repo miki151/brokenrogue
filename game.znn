@@ -11,6 +11,8 @@ export import "game_object_attributes.znn";
 import "std/time.znn";
 export import "level_generator.znn";
 import "std/hash_map.znn";
+export import "game_object_animation.znn";
+export import "level_animation.znn";
 
 export struct Tile {
   Glyph glyph;
@@ -36,8 +38,7 @@ export Tile*? getTile(Level* l, vec2 pos) {
 
 export struct GameObject {
   vec2d pos;
-  int? timeout;
-  int lastMovement;
+  GameObjectAnimation animation;
   GameObjectAttributes attributes;
 };
 
@@ -47,20 +48,20 @@ vec2d? getRebound(GameObject* o1, GameObject* o2) {
   return null;
 }
 
-export bool advance(GameObject mutable* c, Game* g, double amount, double angle) {
+export int? advance(GameObject mutable* c, Game* g, double amount, double angle) {
   return c->advance(g, vec2d(sin(angle), cos(angle)) * amount);
 }
 
-export bool advance(GameObject mutable* c, Game* g, vec2d dir) {
+export int? advance(GameObject mutable* c, Game* g, vec2d dir) {
   c->pos += dir;
   if (c->attributes.creature)
-    c->lastMovement = current_time_milli();
-  mutable ret = false;
+    c->animation.lastMovement = current_time_milli();
+  mutable int? ret = null;
   for (it : g->objects)
     if (&*it != c)
       if (const v = getRebound(c, &*it)) {
         c->pos -= *v;
-        ret = true;
+        ret = it.index;
       }
   return ret;
 }
@@ -68,23 +69,24 @@ export bool advance(GameObject mutable* c, Game* g, vec2d dir) {
 export struct Game {
   Level level;
   vector<GameObject> objects;
+  vector<LevelAnimation> animations;
 };
 
 export void advance(Game mutable* g, double timeDiff) {
   mutable toRemove = vector<int>();
   mutable toAdd = vector<GameObject>();
   const curTime = current_time_milli();
-  for (it : g->objects) {
-    if (!!it->timeout && *it->timeout < curTime)
-      toRemove.push_back(it.index);
-    else if (it->attributes.projectile) {
+  for (it : g->objects)
+    if (it->attributes.projectile) {
       const prevPos = it->pos;
-      if (it->advance(g, it->attributes.projectile->dir * timeDiff)) {
+      if (const hitIndex = it->advance(g, it->attributes.projectile->dir * timeDiff)) {
         toRemove.push_back(it.index);
-        toAdd.push_back(getEffect(prevPos, curTime + 500, Glyph("*", color(255, 100, 0))));
+        if (g->objects[*hitIndex].attributes.creature)
+          g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, g->objects[*hitIndex].pos, curTime));
+        else
+          g->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
       }
     }
-  }
   for (i = toRemove.size() - 1; i >= 0; --i)
     g->objects.remove(toRemove[i]);
   while (!toAdd.empty())
@@ -95,8 +97,7 @@ export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph gl
   const vdir = vec2d(sin(dir), cos(dir));
   g->objects.push_back(GameObject(
       o->pos + vdir * 1.0,
-      null,
-      0,
+      GameObjectAnimation(),
       GameObjectAttributes(
         move(glyph),
         BoundingBox(0.4),
@@ -105,21 +106,6 @@ export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph gl
         false
       )
   ));
-}
-
-GameObject getEffect(vec2d pos, int timeout, Glyph glyph) {
-  return GameObject(
-      pos,
-      timeout,
-      0,
-      GameObjectAttributes(
-        move(glyph),
-        null,
-        null,
-        null,
-        false
-      )
-  );
 }
 
 export GameObject* getPlayer(Game* g) {
@@ -142,7 +128,7 @@ vector<GameObject> getObjects(vec2 levelSize, LevelGenerator* generator,
           assert(playerIndex == -1);
           playerIndex = ret.size();
         }
-        ret.push_back(GameObject(v->as_double(), null, 0, (*attr)->copy()));
+        ret.push_back(GameObject(v->as_double(), GameObjectAnimation(), (*attr)->copy()));
       }
   if (playerIndex > 0)
     swap(&ret[playerIndex], &ret[0]);
@@ -151,6 +137,6 @@ vector<GameObject> getObjects(vec2 levelSize, LevelGenerator* generator,
 
 export Game(LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
   const size = vec2(30, 30);
-  return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping));
+  return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping), vector<LevelAnimation>());
 }
 
