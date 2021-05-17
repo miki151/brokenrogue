@@ -1,6 +1,7 @@
 
 export import "std/expected.znn";
 export import "std/vector.znn";
+export import "std/hash_map.znn";
 export import "color.znn";
 export import "vec2.znn";
 import "sdl_surface.znn";
@@ -23,42 +24,51 @@ export embed {
 }
 
 export struct sdl_font {
-  int min_size;
-  vector<FC_Font mutable*> fonts;
+  sdl_window* window;
+  string path;
+  hash_map<int, FC_Font mutable*> fonts;
 };
 
-export sdl_font!string load_sdl_font(sdl_window* window, string path, int min_size, int max_size) {
-  const gen_error = [] (string s) -> expected<sdl_font, string> {
+FC_Font mutable*!string get_font_impl(sdl_font mutable* font, int size) {
+  const gen_error = [] (string s) -> expected<FC_Font mutable*, string> {
     return s;
   };
-  mutable fonts = vector<FC_Font mutable*>();
+  const gen_value = [] (FC_Font mutable* f) -> expected<FC_Font mutable*, string> {
+    return f;
+  };
   embed_returns {
-    for (int size = min_size; size <= max_size; ++size) {
-      fonts.push_back(FC_CreateFont());
-      if (!FC_LoadFont(fonts.back(), window->renderer, path.data(), size, FC_MakeColor(255, 255, 255, 255),
-          TTF_STYLE_NORMAL))
+    if (!font->fonts.count(size)) {
+      auto f = FC_CreateFont();
+      if (!FC_LoadFont(f, font->window->renderer, font->path.data(), size, FC_MakeColor(255, 255, 255, 255),
+            TTF_STYLE_NORMAL))
         return invoke(&gen_error, zenon_string::reference(TTF_GetError()));
+      font->fonts[size] = f;
+      return invoke(&gen_value, f);
     }
   }
-  return sdl_font(min_size, move(fonts));
+  return *font->fonts.get(&size);
 }
 
-export void!string draw_text(sdl_window* window, vec2 pos, sdl_font* font, int size, color color, string text) {
-  if (size < font->min_size || size >= font->min_size + font->fonts.size())
-    return "Bad font size: {size}";
+export sdl_font!string load_sdl_font(sdl_window* window, string path, int min_size, int max_size) {
+  return sdl_font(window, path, hash_map<int, FC_Font mutable*>());
+}
+
+export void!string draw_text(sdl_font mutable* font, vec2 pos, int size, color color, string text) {
+  const fc_font = try font->get_font_impl(size);
   embed {
-    FC_DrawColor(font->fonts[size - font->min_size], window->renderer, pos.x, pos.y,
+    FC_DrawColor(fc_font, font->window->renderer, pos.x, pos.y,
         FC_MakeColor(color.r, color.g, color.b, 255), "%s", text.data());
   }
 }
 
-export vec2 get_text_size(sdl_font* font, string text, int size) {
-  if (size < font->min_size || size >= font->min_size + font->fonts.size())
-    return vec2(0, 0);
-  embed_returns {
-    return {FC_GetWidth(font->fonts[size - font->min_size], "%s", text.data()),
-      FC_GetHeight(font->fonts[size - font->min_size], "%s", text.data())};
+export vec2!string get_text_size(sdl_font mutable* font, string text, int size) {
+  const fc_font = try font->get_font_impl(size);
+  mutable ret = vec2(0, 0);
+  embed {
+    ret = {FC_GetWidth(fc_font, "%s", text.data()),
+      FC_GetHeight(fc_font, "%s", text.data())};
   }
+  return ret;
 }
 
 embed {
