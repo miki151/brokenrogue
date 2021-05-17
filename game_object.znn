@@ -1,0 +1,17 @@
+
+export import "game_object_attributes.znn";
+export import "game_object_animation.znn";
+export import "vec2.znn";
+
+export struct GameObject {
+  vec2d pos;
+  GameObjectAnimation animation;
+  GameObjectAttributes attributes;
+};
+
+export vec2d? getRebound(GameObject* o1, GameObject* o2) {
+  if (!!o1->attributes.box && !!o2->attributes.box)
+    return getRebound(&*o1->attributes.box, &*o2->attributes.box, o1->pos - o2->pos);
+  return null;
+}
+

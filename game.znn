@@ -7,12 +7,11 @@ export import "creature.znn";
 export import "projectile.znn";
 export import "table.znn";
 export import "glyph.znn";
-export import "game_object_attributes.znn";
 import "std/time.znn";
 export import "level_generator.znn";
 import "std/hash_map.znn";
-export import "game_object_animation.znn";
 export import "level_animation.znn";
+export import "game_object.znn";
 
 export struct Tile {
   Glyph glyph;
@@ -33,18 +32,6 @@ export Level(string name, vec2 size) {
 export Tile*? getTile(Level* l, vec2 pos) {
   if (pos.x >= 0 && pos.x < l->tiles.size().x && pos.y >= 0 && pos.y < l->tiles.size().y)
     return &l->tiles[pos];
-  return null;
-}
-
-export struct GameObject {
-  vec2d pos;
-  GameObjectAnimation animation;
-  GameObjectAttributes attributes;
-};
-
-vec2d? getRebound(GameObject* o1, GameObject* o2) {
-  if (!!o1->attributes.box && !!o2->attributes.box)
-    return getRebound(&*o1->attributes.box, &*o2->attributes.box, o1->pos - o2->pos);
   return null;
 }
 
