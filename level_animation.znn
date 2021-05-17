@@ -1,0 +1,13 @@
+
+export import "vec2.znn";
+
+export enum LevelAnimationType {
+  BLOOD,
+  EXPLOSION
+};
+
+export struct LevelAnimation {
+  LevelAnimationType type;
+  vec2d position;
+  int time;
+};
