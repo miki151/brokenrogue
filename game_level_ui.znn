@@ -22,6 +22,8 @@ struct GameLevelUI {
   double jumpHeight;
   double view_angle;
   double cameraSensitivity;
+  double joystickMovementDeadRange;
+  double minJoystickMovement;
   key_event forward_key;
   key_event backward_key;
   key_event left_key;
@@ -83,9 +85,14 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_e
     state->playerDir -= context.timeDiff * ui->cameraSensitivity * event->pos.x;
   if (event->type == mouse_event_type::JOYSTICK_LEFT) {
     const data = *context.data->cast_to<GameLevelUIData>();
-    const angle = state->playerDir + atan2(event->pos.x, event->pos.y);
-    const length = event->pos.length_d();
-    if (length > 0.001) {
+    mutable pos = event->pos;
+    if (abs(pos.x).as_double() < abs(pos.y) * ui->joystickMovementDeadRange)
+      pos.x = 0;
+    if (abs(pos.y).as_double() < abs(pos.x) * ui->joystickMovementDeadRange)
+      pos.y = 0;
+    const angle = state->playerDir + atan2(pos.x, pos.y);
+    const length = pos.length_d();
+    if (length > 1000 * ui->minJoystickMovement) {
       discard data->game->getPlayer()->advance(data->game, -4 * context.timeDiff * length / 1000,
           angle);
       data->game->advance(context.timeDiff * length / 1000);

@@ -96,14 +96,7 @@ export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
           return SDLEvent::mouse({mouse_event_type::JOYSTICK_RIGHT, {event.motion.xrel * 40, 0}});
         }
         if (event.type == SDL_JOYAXISMOTION) {
-          auto value = event.jaxis.value / 33;
-          auto deadRange = 300;
-          if (abs(value) < deadRange)
-            value = 0;
-          else {
-            value -= (value > 0 ? deadRange : -deadRange);
-            value = value * 1000 / (1000 - deadRange);
-          }
+          int value = event.jaxis.value / 33;
           switch (event.jaxis.axis) {
             case 0: state->leftJostickState.x = value; break;
             case 1: state->leftJostickState.y = value; break;
