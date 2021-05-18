@@ -29,6 +29,7 @@ struct GameLevelUI {
   key_event left_key;
   key_event right_key;
   key_event wait_key;
+  key_event melee_key;
   key_event shoot_key;
 };
 
@@ -40,19 +41,23 @@ export struct GameLevelUIData {
 export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event* event) {
   const state = context.state->get_state<GameLevelUIState>();
   const data = *context.data->cast_to<GameLevelUIData>();
+  const player = data->game->getPlayer();
   if (*event == ui->forward_key)
-    discard data->game->getPlayer()->advance(data->game, 4 * context.timeDiff, state->playerDir);
+    discard player->advance(data->game, 4 * context.timeDiff, state->playerDir);
   else if (*event == ui->backward_key)
-    discard data->game->getPlayer()->advance(data->game, -4 * context.timeDiff, state->playerDir);
+    discard player->advance(data->game, -4 * context.timeDiff, state->playerDir);
   else if (*event == ui->left_key)
-    discard data->game->getPlayer()->advance(data->game, 2 * context.timeDiff, state->playerDir + 1.57);
+    discard player->advance(data->game, 2 * context.timeDiff, state->playerDir + 1.57);
   else if (*event == ui->right_key)
-    discard data->game->getPlayer()->advance(data->game, 2 * context.timeDiff, state->playerDir - 1.57);
+    discard player->advance(data->game, 2 * context.timeDiff, state->playerDir - 1.57);
   else if (*event == ui->shoot_key)
     shoot(context);
-  else if (*event != ui->wait_key)
+  else if (*event == ui->melee_key) {
+    if (player->addMeleeAttack(state->playerDir))
+      data->timeSpentCallback->invoke((1100 * player->ongoingAttack->attack.duration).as_int());
+  } else if (*event != ui->wait_key)
     return false;
-  data->game->advance(context.timeDiff);
+  data->timeSpentCallback->invoke((context.timeDiff * 1010).as_int());
   return true;
 }
 
@@ -81,29 +86,38 @@ void shoot(UIContext context) {
 
 export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
   const state = context.state->get_state<GameLevelUIState>();
-  if (event->type == mouse_event_type::JOYSTICK_RIGHT)
-    state->playerDir -= context.timeDiff * ui->cameraSensitivity * event->pos.x;
-  if (event->type == mouse_event_type::JOYSTICK_LEFT) {
-    const data = *context.data->cast_to<GameLevelUIData>();
-    mutable pos = event->pos;
-    if (abs(pos.x).as_double() < abs(pos.y) * ui->joystickMovementDeadRange)
-      pos.x = 0;
-    if (abs(pos.y).as_double() < abs(pos.x) * ui->joystickMovementDeadRange)
-      pos.y = 0;
-    const angle = state->playerDir + atan2(pos.x, pos.y);
-    const length = pos.length_d();
-    if (length > 1000 * ui->minJoystickMovement) {
-      discard data->game->getPlayer()->advance(data->game, -4 * context.timeDiff * length / 1000,
-          angle);
-      data->game->advance(context.timeDiff * length / 1000);
+  const data = *context.data->cast_to<GameLevelUIData>();
+  const player = data->game->getPlayer();
+  switch (event->type) {
+    case (JOYSTICK_RIGHT) {
+      state->playerDir -= context.timeDiff * ui->cameraSensitivity * event->pos.x;
     }
-    return true;
+    case (JOYSTICK_LEFT) {
+      mutable pos = event->pos;
+      if (abs(pos.x).as_double() < abs(pos.y) * ui->joystickMovementDeadRange)
+        pos.x = 0;
+      if (abs(pos.y).as_double() < abs(pos.x) * ui->joystickMovementDeadRange)
+        pos.y = 0;
+      const angle = state->playerDir + atan2(pos.x, pos.y);
+      const length = pos.length_d();
+      if (length > 1000 * ui->minJoystickMovement) {
+        discard player->advance(data->game, -4 * context.timeDiff * length / 1000,
+            angle);
+        data->timeSpentCallback->invoke((1100 * context.timeDiff).as_int());
+      }
+    }
+    case (RIGHT) {
+      shoot(context);
+    }
+    case (LEFT) {
+      if (player->addMeleeAttack(state->playerDir))
+        data->timeSpentCallback->invoke((1100 * player->ongoingAttack->attack.duration).as_int());
+    }
+    default {
+      return false;
+    }
   }
-  if (event->type == mouse_event_type::LEFT) {
-    shoot(context);
-    return true;
-  }
-  return false;
+  return true;
 }
 
 double getJumpOffset(mutable double state) {
@@ -172,6 +186,16 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   });
   for (elem : toRender)
     elem->glyph.render(context.canvas, ui->fontSize, elem->pos);
+  for (obj : data->game->objects)
+    if (obj->ongoingAttack) {
+      const opos = get_obj_pos(&*obj);
+      if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
+        const coord = origin + ui->projectOnScreen(player, obj->pos + obj->ongoingAttack->getPosition(),
+            state->playerDir);
+        if (to_draw.contains(&coord))
+          obj->ongoingAttack->attack.glyph.render(context.canvas, ui->fontSize, coord);
+      }
+    }
   for (anim : data->game->animations) {
     const coord = origin + ui->projectOnScreen(player, anim->position, state->playerDir);
     if (to_draw.contains(&coord))

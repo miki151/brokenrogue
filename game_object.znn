@@ -2,12 +2,41 @@
 export import "game_object_attributes.znn";
 export import "game_object_animation.znn";
 export import "vec2.znn";
+export import "std/range.znn";
+export import "melee_attack.znn";
+import "std/math.znn";
+
+export vec2d getPosition(MeleeAttackInfo* info) {
+  const state = info->remainingTime / info->attack.duration;
+  return vec2d(sin(info->dir), cos(info->dir)) * (info->attack.reach * (1 - 2 * fabs(state - 0.5)));
+}
+
+export struct MeleeAttackInfo {
+  MeleeAttack attack;
+  double remainingTime;
+  double dir;
+  bool nullified;
+};
 
 export struct GameObject {
   vec2d pos;
   GameObjectAnimation animation;
   GameObjectAttributes attributes;
+  MeleeAttackInfo? ongoingAttack;
 };
+
+export GameObject(vec2d pos, GameObjectAnimation anim, GameObjectAttributes attr) {
+  return GameObject::GameObject(pos, move(anim), move(attr), null);
+}
+
+export bool addMeleeAttack(GameObject mutable* o, double direction) {
+  if (!o->ongoingAttack && !!o->attributes.creature && !!o->attributes.creature->meleeAttack) {
+    const duration = o->attributes.creature->meleeAttack->duration;
+    o->ongoingAttack = MeleeAttackInfo(o->attributes.creature->meleeAttack->copy(), duration, direction, false);
+    return true;
+  }
+  return false;
+}
 
 export vec2d? getRebound(GameObject* o1, GameObject* o2) {
   if (!!o1->attributes.box && !!o2->attributes.box)

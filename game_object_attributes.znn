@@ -7,6 +7,10 @@ export struct BoundingBox {
   double size;
 };
 
+export bool isPenetrated(BoundingBox* b, vec2d p) {
+  return p.length_d() < b->size / 2;
+}
+
 export vec2d? getRebound(BoundingBox* b, BoundingBox* other, vec2d p) {
   const l = p.length_d();
   const min_dist = (b->size + other->size) / 2;

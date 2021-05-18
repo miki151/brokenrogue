@@ -1,6 +1,9 @@
 
+export import "melee_attack.znn";
+
 export struct Creature {
   int health;
+  MeleeAttack? meleeAttack;
 };
 
 export Creature copy(Creature*) = default;

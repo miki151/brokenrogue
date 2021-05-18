@@ -62,7 +62,7 @@ int main(string[] args) {
   mutable timeDiff = 0.0;
   mutable last_update = current_time_milli();
   mutable realTimeEnd = 0;
-  const timeSpentCallback = [&] (int time) { realTimeEnd = last_update + time; };
+  const timeSpentCallback = [&] (int time) { realTimeEnd = max(realTimeEnd, last_update + time); };
   const game_data = GameLevelUIData(
       &game,
       &timeSpentCallback

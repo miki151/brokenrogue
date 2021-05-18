@@ -1,0 +1,11 @@
+
+export import "glyph.znn";
+
+export struct MeleeAttack {
+  Glyph glyph;
+  double reach;
+  double duration;
+};
+
+export MeleeAttack copy(MeleeAttack*) = default;
+

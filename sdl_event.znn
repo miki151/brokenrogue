@@ -63,12 +63,13 @@ export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
           switch (event.jbutton.button) {
             case 8:  return get_event(key_type::W, down);
             case 4:
-            case 10: return get_event(key_type::A, down);
+            case 10: return get_event(key_type::Y, down);
             case 5:
-            case 11: return get_event(key_type::D, down);
+            case 11: return get_event(key_type::B, down);
             case 9:  return get_event(key_type::S, down);
             case 2:  return get_event(key_type::ESCAPE, down);
             case 0:  return get_event(key_type::B, down);
+            case 3:  return get_event(key_type::Y, down);
             case 1:  return get_event(key_type::F1, down);
           }
         }
@@ -89,6 +90,7 @@ export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
             case SDLK_s:     return get_event(key_type::S, down);
             case SDLK_d:     return get_event(key_type::D, down);
             case SDLK_b:     return get_event(key_type::B, down);
+            case SDLK_y:     return get_event(key_type::Y, down);
             default: break;
           }
         }

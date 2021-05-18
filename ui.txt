@@ -20,7 +20,8 @@ Def vertical list_ui VERTICAL End
     A HELD,
     D HELD,
     SPACE HELD,
-    B DOWN
+    B DOWN,
+    Y DOWN
   )
   using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)}
 #      using "exit_callback" position(CENTER, margins(5, Button("exit")))

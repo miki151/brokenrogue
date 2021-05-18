@@ -8,4 +8,3 @@ export GameObjectAnimation() {
   return GameObjectAnimation::GameObjectAnimation(null);
 }
 
-export GameObjectAnimation(int?) = default;
