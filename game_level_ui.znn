@@ -134,7 +134,7 @@ struct GlyphRenderElem {
 
 void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
   const h = ui->fontSize * 2 / 3;
-  const w = (((start % 100 * 67) % 100) / 50.0 - 1) * ui->fontSize / 3;
+  const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui->fontSize / 3;
   const t = curTime - start;
   const dur = ui->woundedAnimDuration;
   const offset = vec2((w * t / dur).as_int(), (h * t * t / (dur * dur) - h / 2).as_int());
@@ -173,10 +173,12 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (to_draw.contains(&coord)) {
-        const offset = (obj->animation.lastMovement ?? 0) < curTime - (1000 * context.timeDiff).as_int() - 10
+        const jumpState = ((curTime % ui->jumpDuration + ui->jumpDuration) % ui->jumpDuration).as_double() 
+            / ui->jumpDuration;
+        const offset = !obj->animation.lastMovement
+            || *obj->animation.lastMovement < curTime - (1000 * context.timeDiff).as_int() - 10
             ? 0
-            : (ui->fontSize * ui->jumpHeight
-                  * getJumpOffset((curTime % ui->jumpDuration).as_double() / ui->jumpDuration)).as_int();
+            : (ui->fontSize * ui->jumpHeight * getJumpOffset(jumpState)).as_int();
         toRender.push_back(GlyphRenderElem(obj->attributes.glyph.copy(), coord - vec2(0, offset)));
       }
     }
