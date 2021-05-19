@@ -52,7 +52,8 @@ int main(string[] args) {
   const window = *sdl_create_window(vec2(1280, 720), "Infinihack");
   *sdl_set_relative_mouse_mode(true);
   mutable font = *window.load_sdl_font(flags.font ?? "font.ttf", 10, 100);
-  const canvas = SDLCanvas(&window, &font, loadTextures(&window));
+  const textTexture = *window.make_target_texture(vec2(100, 100));
+  const canvas = SDLCanvas(&window, &font, loadTextures(&window), move(textTexture));
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
   const levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());

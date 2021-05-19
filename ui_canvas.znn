@@ -11,6 +11,7 @@ export concept<T> UICanvas {
   void drawTexture(T*, rectangle*, string, texture_flip);
   vec2 getTextureSize(T*, string);
   void drawText(T*, vec2, string, int, color*);
+  void drawRotatedText(T*, vec2, string, int, color*, double angle);
   vec2 getTextSize(T*, string, int);
 };
 

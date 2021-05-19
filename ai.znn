@@ -1,0 +1,15 @@
+
+import "game.znn";
+import "std/math.znn";
+
+export struct AI {
+};
+
+export void makeMove(AI*, Game mutable* game, GameObject mutable* object) {
+  for (obj : game->objects)
+    if (&*obj != object && !!obj->attributes.creature /*&&
+        (obj->pos - object->pos).length_d() < object->attributes.creature.meleeAttack->reach*/) {
+      const v = obj->pos - object->pos;
+      discard object->addMeleeAttack(atan2(v.x, v.y));
+    }
+}

@@ -19,5 +19,8 @@ export Glyph copy(Glyph*) = default;
 
 export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos) {
   canvas->drawText(pos, g->sym, (g->size * font_size).as_int(), &g->col, ui_text_flag::CENTER_XY);
+}
 
+export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos, double angle) {
+  canvas->drawRotatedText(pos, g->sym, (g->size * font_size).as_int(), &g->col, angle);
 }

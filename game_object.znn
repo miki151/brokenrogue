@@ -25,8 +25,8 @@ export struct GameObject {
   MeleeAttackInfo? ongoingAttack;
 };
 
-export GameObject(vec2d pos, GameObjectAnimation anim, GameObjectAttributes attr) {
-  return GameObject::GameObject(pos, move(anim), move(attr), null);
+export GameObject(vec2d pos, GameObjectAttributes attr) {
+  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null);
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction) {

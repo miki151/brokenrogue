@@ -195,7 +195,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         const coord = origin + ui->projectOnScreen(player, obj->pos + obj->ongoingAttack->getPosition(),
             state->playerDir);
         if (to_draw.contains(&coord))
-          obj->ongoingAttack->attack.glyph.render(context.canvas, ui->fontSize, coord);
+          obj->ongoingAttack->attack.glyph.render(context.canvas, ui->fontSize, coord,
+              state->playerDir - obj->ongoingAttack->dir);
       }
     }
   for (anim : data->game->animations) {

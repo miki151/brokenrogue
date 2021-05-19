@@ -9,9 +9,10 @@ export import "table.znn";
 export import "glyph.znn";
 import "std/time.znn";
 export import "level_generator.znn";
-import "std/hash_map.znn";
+export import "std/hash_map.znn";
 export import "level_animation.znn";
 export import "game_object.znn";
+import "ai.znn";
 
 export struct Tile {
   Glyph glyph;
@@ -39,6 +40,7 @@ export struct Game {
   Level level;
   vector<GameObject> objects;
   vector<LevelAnimation> animations;
+  hash_map<string, GameObjectAttributes>* objectFactory;
 };
 
 export int? advance(GameObject mutable* c, Game* g, double amount, double angle) {
@@ -72,9 +74,12 @@ bool woundCreature(Game mutable* g, int objIndex, int curTime) {
 }
 
 export void advance(Game mutable* g, double timeDiff) {
-  mutable toRemove = vector<int>();
+  mutable deadCreatures = vector<int>();
   mutable toAdd = vector<GameObject>();
   const curTime = current_time_milli();
+  for (it : g->objects)
+    if (it.index > 0)
+      AI().makeMove(g, &*it);
   for (it : g->objects) {
     if (it->ongoingAttack) {
       it->ongoingAttack->remainingTime -= timeDiff;
@@ -84,7 +89,7 @@ export void advance(Game mutable* g, double timeDiff) {
               it2->attributes.box->isPenetrated(it->pos + it->ongoingAttack->getPosition() - it2->pos)) {
             it->ongoingAttack->nullified = true;
             if (g->woundCreature(it2.index, curTime))
-              toRemove.push_back(it2.index);
+              deadCreatures.push_back(it2.index);
             break;
           }
       if (it->ongoingAttack->remainingTime <= 0.0)
@@ -92,18 +97,21 @@ export void advance(Game mutable* g, double timeDiff) {
     }
     if (it->attributes.projectile) {
       const prevPos = it->pos;
-      if (const hitIndex = it->advance(g, it->attributes.projectile->dir * timeDiff)) {
-        toRemove.push_back(it.index);
-        if (g->objects[*hitIndex].attributes.creature) {
-          if (g->woundCreature(*hitIndex, curTime))
-            toRemove.push_back(*hitIndex);
+      if (const targetIndex = it->advance(g, it->attributes.projectile->dir * timeDiff)) {
+        deadCreatures.push_back(it.index);
+        const target = &g->objects[*targetIndex];
+        if (target->attributes.creature) {
+          if (g->woundCreature(*targetIndex, curTime))
+            deadCreatures.push_back(*targetIndex);
         } else
           g->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
       }
     }
   }
-  for (i = toRemove.size() - 1; i >= 0; --i)
-    g->objects.remove(toRemove[i]);
+  for (i = deadCreatures.size() - 1; i >= 0; --i) {
+    toAdd.push_back(GameObject(g->objects[deadCreatures[i]].pos, g->objectFactory->get(&"corpse")->copy()));
+    g->objects.remove(deadCreatures[i]);
+  }
   while (!toAdd.empty())
     g->objects.push_back(toAdd.pop_back());
 }
@@ -112,7 +120,6 @@ export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph gl
   const vdir = vec2d(sin(dir), cos(dir));
   g->objects.push_back(GameObject(
       o->pos + vdir * 1.0,
-      GameObjectAnimation(),
       GameObjectAttributes(
         move(glyph),
         BoundingBox(0.4),
@@ -143,7 +150,7 @@ vector<GameObject> getObjects(vec2 levelSize, LevelGenerator* generator,
           assert(playerIndex == -1);
           playerIndex = ret.size();
         }
-        ret.push_back(GameObject(v->as_double(), GameObjectAnimation(), (*attr)->copy()));
+        ret.push_back(GameObject(v->as_double(), (*attr)->copy()));
       }
   if (playerIndex > 0)
     swap(&ret[playerIndex], &ret[0]);
@@ -152,6 +159,7 @@ vector<GameObject> getObjects(vec2 levelSize, LevelGenerator* generator,
 
 export Game(LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
   const size = vec2(30, 30);
-  return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping), vector<LevelAnimation>());
+  return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping), vector<LevelAnimation>(),
+      mapping);
 }
 

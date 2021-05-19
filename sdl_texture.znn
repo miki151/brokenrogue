@@ -22,6 +22,23 @@ export void destruct(sdl_texture* s) {
   }
 }
 
+export sdl_texture!string make_target_texture(sdl_window* window, vec2 size) {
+  const getResult = [](SDL_Texture mutable* s) -> sdl_texture!string {
+    return sdl_texture(s);
+  };
+  const getError = [](string s) -> sdl_texture!string {
+    return s;
+  };
+  embed_returns {
+    if (auto t = SDL_CreateTexture(window->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 
+        size.x, size.y)) {
+      SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND);
+      return invoke(&getResult, t);
+    } else
+      return invoke(&getError, zenon_string::reference(SDL_GetError()));
+  }
+}
+
 export sdl_texture!string to_texture(sdl_surface* s, sdl_window* window) {
   const getResult = [](SDL_Texture mutable* s) -> sdl_texture!string {
     return sdl_texture(s);

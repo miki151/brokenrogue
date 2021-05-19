@@ -9,6 +9,7 @@ export struct SDLCanvas {
   sdl_window* window;
   sdl_font mutable* font;
   hash_map<string, sdl_texture> textures;
+  sdl_texture textTexture;
 };
 
 export void fillRectangle(SDLCanvas* canvas, rectangle* r, color* color) {
@@ -34,6 +35,10 @@ export vec2 getTextureSize(SDLCanvas* canvas, string id) {
 
 export void drawText(SDLCanvas* canvas, vec2 pos, string text, int size, color* color) {
   *canvas->font->draw_text(pos, size, *color, text);
+}
+
+export void drawRotatedText(SDLCanvas* canvas, vec2 pos, string text, int size, color* color, double angle) {
+  *canvas->font->draw_rotated_text(pos, size, *color, text, &canvas->textTexture, angle);
 }
 
 export vec2 getTextSize(SDLCanvas* canvas, string text, int size) {

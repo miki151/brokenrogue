@@ -61,6 +61,29 @@ export void!string draw_text(sdl_font mutable* font, vec2 pos, int size, color c
   }
 }
 
+export void!string draw_rotated_text(sdl_font mutable* font, vec2 pos, int size, color color, string text,
+    sdl_texture* texture, double angle) {
+  const fc_font = try font->get_font_impl(size);
+  const texSize = *texture->size();
+  embed {
+    auto renderer = font->window->renderer;
+    SDL_SetRenderTarget(renderer, texture->texture);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
+    int textH = FC_GetHeight(fc_font, "%s", text.data());
+    FC_DrawEffect(fc_font,
+        renderer,
+        texSize.x / 2,
+        texSize.y / 2 - textH / 2,
+        FC_Effect{FC_ALIGN_CENTER, FC_Scale{1.0, 1.0}, FC_MakeColor(color.r, color.g, color.b, 255)},
+        "%s",
+        text.data());
+    SDL_SetRenderTarget(renderer, NULL);
+    SDL_Rect dest = {pos.x - texSize.x / 2, pos.y - texSize.y / 2, texSize.x, texSize.y};
+    SDL_RenderCopyEx(renderer, texture->texture, NULL, &dest, angle * 180.0 / 3.14, NULL, SDL_FLIP_NONE);
+  }
+}
+
 export vec2!string get_text_size(sdl_font mutable* font, string text, int size) {
   const fc_font = try font->get_font_impl(size);
   mutable ret = vec2(0, 0);
