@@ -47,9 +47,9 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   else if (*event == ui->backward_key)
     discard player->advance(data->game, -4 * context.timeDiff, state->playerDir);
   else if (*event == ui->left_key)
-    discard player->advance(data->game, 2 * context.timeDiff, state->playerDir + 1.57);
+    discard player->advance(data->game, 4 * context.timeDiff, state->playerDir + 1.57);
   else if (*event == ui->right_key)
-    discard player->advance(data->game, 2 * context.timeDiff, state->playerDir - 1.57);
+    discard player->advance(data->game, 4 * context.timeDiff, state->playerDir - 1.57);
   else if (*event == ui->shoot_key)
     shoot(context);
   else if (*event == ui->melee_key) {
