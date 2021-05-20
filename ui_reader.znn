@@ -41,6 +41,8 @@ box<UIElement>!string read_data(input_stream mutable* stream, pretty_dummy_struc
     return (try stream->read_data<height_ui>()).box_as<UIElement>();
   if (s == "game_level")
     return (try stream->read_data<GameLevelUI>()).box_as<UIElement>();
+  if (s == "consume_events")
+    return (try stream->read_data<consume_events>()).box_as<UIElement>();
   if (s == "\{") {
     stream->index = last_index;
     return (try stream->read_data<chain>()).box_as<UIElement>();

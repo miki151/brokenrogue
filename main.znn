@@ -34,8 +34,8 @@ hash_map<string, sdl_texture> loadTextures(sdl_window* window) {
   return move(ret);
 }
 
-box<UIElement> readUIFrom(string path) {
-  return *read_ui(*open_file_r(path)->read_content());
+box<UIElement>!string readUIFrom(string path) {
+  return read_ui(*open_file_r(path)->read_content());
 }
 
 struct Flags {
@@ -48,7 +48,7 @@ int main(string[] args) {
   const flags = *read_flags<Flags>(args);
   *sdl_init();
   init_random();
-  mutable ui = readUIFrom("ui.txt");
+  mutable ui = *readUIFrom("ui.txt");
   const window = *sdl_create_window(vec2(1280, 720), "Infinihack");
   *sdl_set_relative_mouse_mode(true);
   mutable font = *window.load_sdl_font(flags.font ?? "font.ttf", 10, 100);
@@ -58,7 +58,7 @@ int main(string[] args) {
   const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
   const levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
   mutable game = Game(levelGen.get(), &levelMapping);
-  mutable uiData = UIRecord(hash_map<string, box<any>>());
+  mutable uiData = UIRecord();
   mutable exit = false;
   mutable timeDiff = 0.0;
   mutable last_update = current_time_milli();
@@ -72,11 +72,22 @@ int main(string[] args) {
   mutable events_state = sdl_events_state();
   mutable uiState = UIState();
   uiData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
-  uiData.data.insert("reload_ui", [&ui] { ui = readUIFrom("ui.txt"); }.box_as<UICallback>().box_as<any>());
   mutable fps = fps_meter();
   while (!exit) {
     fps.add_tick();
     uiData.data.insert("fps", "{fps.get_fps()}".box_as<any>());
+    if (game.isOver && !uiData.data.contains(&"game_over")) {
+      mutable boxData = UIRecord();
+      boxData.data.insert("text", "Game over".box_as<any>());
+      boxData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
+      boxData.data.insert("restart_callback", [&] {
+          game = Game(levelGen.get(), &levelMapping);
+          last_update = current_time_milli();
+          realTimeEnd = last_update;
+          uiData.data.erase(&"game_over");
+      }.box_as<UICallback>().box_as<any>());
+      uiData.data.insert("game_over", move(boxData).box_as<any>());
+    }
     const cur_time = current_time_milli();
     timeDiff = 0.001 * (cur_time - last_update);
     if (cur_time <= realTimeEnd)
@@ -89,7 +100,13 @@ int main(string[] args) {
       switch (*event) {
         case (quit) { return 0; }
         case (key) {
-          discard ui->onKeyEvent(context, &ui_rectangle, &key);
+          if (key == key_event(key_type::F1, key_event_type::DOWN)) {
+            if (const res = readUIFrom("ui.txt"))
+              ui = *move(res);
+            else
+              printf(res.get_error());
+          } else
+            discard ui->onKeyEvent(context, &ui_rectangle, &key);
         }
         case (mouse) {
           discard ui->onMouseEvent(context, &ui_rectangle, &mouse);

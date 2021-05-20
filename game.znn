@@ -41,7 +41,14 @@ export struct Game {
   vector<GameObject> objects;
   vector<LevelAnimation> animations;
   hash_map<string, GameObjectAttributes>* objectFactory;
+  bool isOver;
 };
+
+export Game(LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
+  const size = vec2(30, 30);
+  return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping), vector<LevelAnimation>(),
+      mapping, false);
+}
 
 export int? advance(GameObject mutable* c, Game* g, double amount, double angle) {
   return c->advance(g, vec2d(sin(angle), cos(angle)) * amount);
@@ -109,8 +116,13 @@ export void advance(Game mutable* g, double timeDiff) {
     }
   }
   for (i = deadCreatures.size() - 1; i >= 0; --i) {
-    toAdd.push_back(GameObject(g->objects[deadCreatures[i]].pos, g->objectFactory->get(&"corpse")->copy()));
-    g->objects.remove(deadCreatures[i]);
+    if (deadCreatures[i] == 0)
+      g->isOver = true;
+    else {
+      if (!!g->objects[deadCreatures[i]].attributes.creature)
+        toAdd.push_back(GameObject(g->objects[deadCreatures[i]].pos, g->objectFactory->get(&"corpse")->copy()));
+      g->objects.remove(deadCreatures[i]);
+    }
   }
   while (!toAdd.empty())
     g->objects.push_back(toAdd.pop_back());
@@ -155,11 +167,5 @@ vector<GameObject> getObjects(vec2 levelSize, LevelGenerator* generator,
   if (playerIndex > 0)
     swap(&ret[playerIndex], &ret[0]);
   return move(ret);
-}
-
-export Game(LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
-  const size = vec2(30, 30);
-  return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping), vector<LevelAnimation>(),
-      mapping);
 }
 

@@ -8,6 +8,7 @@ export enum key_type {
   RIGHT,
   ESCAPE,
   SPACE,
+  ENTER,
   F1,
   A,
   W,

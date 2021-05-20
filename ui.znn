@@ -87,8 +87,9 @@ export template <T> requires container_ui<T>
 bool onKeyEvent(T* t, mutable UIContext context, rectangle* r, key_event* key) {
   if (const data = t->transform_data(context.data)) {
     context.data = *data;
-    for (elem : t->get_elems())
-      if (elem->get()->onKeyEvent(context, r, key))
+    const elems = t->get_elems();
+    for (index = elems.size() - 1; index >= 0; --index)
+      if (elems[index]->onKeyEvent(context, r, key))
         return true;
   }
   return false;
@@ -98,8 +99,9 @@ export template <T> requires container_ui<T>
 bool onMouseEvent(T* t, mutable UIContext context, rectangle* r, mouse_event* m) {
   if (const data = t->transform_data(context.data)) {
     context.data = *data;
-    for (elem : t->get_elems())
-      if (elem->get()->onMouseEvent(context, &t->get_bounds(elem.index, context, r), m))
+    const elems = t->get_elems();
+    for (index = elems.size() - 1; index >= 0; --index)
+      if (elems[index]->onMouseEvent(context, &t->get_bounds(index, context, r), m))
         return true;
   }
   return false;
@@ -305,7 +307,7 @@ export any*!string transform_data(using_ui* u, any* a) {
   if (const r = a->cast_to<UIRecord>()) {
     if (const res = (*r)->data.get_maybe(&u->key))
       return (*res)->get();
-    return "{u->key}: record key not found in data.";
+    return "";
   } else
     return "Bad UI data: not a record: {a->get_type()}";
 }
@@ -346,15 +348,27 @@ export vec2 size(height_ui* t, UIContext context) {
 
 export [@ui_element]
 struct key_handler {
-  key_event event;
+  key_event? event;
 };
 
 export bool onKeyEvent(key_handler* k, UIContext context, rectangle* rect, key_event* event) {
-  if (*event == k->event)
+  if (!k->event || *event == *k->event)
     if (const callback = context.data->cast_to<box<UICallback>>()) {
       (**callback)->invoke();
       return true;
     }
   return false;
+}
+
+export [@ui_element]
+struct consume_events {
+};
+
+export bool onKeyEvent(consume_events*, UIContext, rectangle*, key_event*) {
+  return true;
+}
+
+export bool onMouseEvent(consume_events*, UIContext, rectangle*, mouse_event*) {
+  return true;
 }
 

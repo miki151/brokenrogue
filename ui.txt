@@ -24,5 +24,27 @@ Def vertical list_ui VERTICAL End
     Y DOWN
   )
   using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)}
-#      using "exit_callback" position(CENTER, margins(5, Button("exit")))
+  using "game_over" {
+    consume_events
+    position(CENTER, {
+      fill(0 0 0)
+      frame(1, 255 255 255)
+      margins(20, vertical {
+        position(CENTER, label("Game over!", 30, 255 255 255))
+        height 10 {}
+        position(CENTER, label("____", 15, 255 255 255))
+        position(CENTER, label(",'   Y`.", 15, 255 255 255))
+        position(CENTER, label("/        )", 15, 255 255 255))
+        position(CENTER, label("\ ()  () /", 15, 255 255 255))
+        position(CENTER, label("`. /) ,'", 15, 255 255 255))
+        position(CENTER, label("8====| '' |====8", 15, 255 255 255))
+        position(CENTER, label("`LLLU'", 15, 255 255 255))
+        position(CENTER, label("/    )", 15, 255 255 255))
+        height 10 {}
+        label("Press [ENTER] to restart or [ESC] to quit.", 15, 255 255 255) 
+      })
+    })
+    using "restart_callback" key_handler(ENTER DOWN)
+    using "exit_callback" key_handler(ESCAPE DOWN)
+  }
 }

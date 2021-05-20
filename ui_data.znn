@@ -11,3 +11,7 @@ export concept <Fun> UICallback {
 export struct UIRecord {
   hash_map<string, box<any>> data;
 };
+
+export UIRecord() {
+  return UIRecord::UIRecord(hash_map<string, box<any>>());
+}
