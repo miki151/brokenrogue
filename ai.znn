@@ -1,20 +1,34 @@
 
 import "game.znn";
 import "std/math.znn";
+import "std/io.znn";
 export import "std/vector.znn";
 export import "std/box.znn";
 
-export struct AIMelee {};
 
-bool canReachMelee(GameObject* obj, vec2d pos) {
-  return (obj->pos - pos).length_d() < obj->attributes.creature->meleeAttack->reach;
+bool canReachMelee(GameObject* obj, GameObject* target) {
+  return (obj->pos - target->pos).length_d() - target->attributes.box->size < obj->attributes.creature->meleeAttack->reach;
 }
+
+export struct AIAvoidMelee {};
+
+export bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
+  const obj = game->getPlayer();
+  if (canReachMelee(obj, object) && !!obj->ongoingAttack) {
+    const v = object->pos - obj->pos;
+    discard object->advance(game, 4 * timeDiff, atan2(v.x, v.y));
+    return true;
+  }
+  return false;
+}
+
+export struct AIMelee {};
 
 export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, double) {
   if (!object->attributes.creature->meleeAttack)
     return false;
   for (obj : game->objects)
-    if (&*obj != object && canReachMelee(object, obj->pos)) {
+    if (&*obj != object && canReachMelee(object, &*obj)) {
       const v = obj->pos - object->pos;
       discard object->addMeleeAttack(atan2(v.x, v.y));
       return true;
@@ -25,9 +39,9 @@ export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, d
 export struct AIPathfind {};
 
 export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object, double timeDiff) {
-  const targetPos = game->getPlayer()->pos;
-  if (!canReachMelee(object, targetPos)) {
-    const targetDir = targetPos - object->pos;
+  const obj = game->getPlayer();
+  if (!canReachMelee(object, obj)) {
+    const targetDir = obj->pos- object->pos;
     discard object->advance(game, 4 * timeDiff, atan2(targetDir.x, targetDir.y));
     return true;
   }
@@ -47,6 +61,7 @@ export bool makeMove(AIFirst* first, Game mutable* game, GameObject mutable* obj
 
 export union AI {
   AIMelee melee;
+  AIAvoidMelee avoidMelee;
   AIPathfind pathfind;
   AIFirst first;
 };
@@ -54,5 +69,5 @@ export union AI {
 export bool makeMove(virtual AI*, Game mutable* game, GameObject mutable* object, double timeDiff);
 
 export AI getAI() {
-  return AI::first(AIFirst({AI::pathfind(AIPathfind()), AI::melee(AIMelee())}.as_vector()));
+  return AI::first(AIFirst({AI::avoidMelee(AIAvoidMelee()), AI::pathfind(AIPathfind()), AI::melee(AIMelee())}.as_vector()));
 }
