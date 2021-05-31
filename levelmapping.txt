@@ -17,7 +17,7 @@
       "@" 200 200 200 1.0
       1.0
           3
-          "(" 100 100 100 0.6 1.0 0.3
+          "(" 255 255 100 0.6 1.0 0.3
           first { avoidMelee pathfind melee }
       null
       false

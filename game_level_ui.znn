@@ -53,8 +53,9 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   else if (*event == ui->shoot_key)
     shoot(context);
   else if (*event == ui->melee_key) {
-    if (player->addMeleeAttack(state->playerDir))
-      data->timeSpentCallback->invoke((1100 * player->ongoingAttack->attack.duration).as_int());
+    if (player->addMeleeAttack(state->playerDir)) {
+     // data->timeSpentCallback->invoke((1100 * player->ongoingAttack->attack.duration).as_int());
+    }
   } else if (*event != ui->wait_key)
     return false;
   data->timeSpentCallback->invoke((context.timeDiff * 1010).as_int());
@@ -110,8 +111,9 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_e
       shoot(context);
     }
     case (LEFT) {
-      if (player->addMeleeAttack(state->playerDir))
-        data->timeSpentCallback->invoke((1100 * player->ongoingAttack->attack.duration).as_int());
+      if (player->addMeleeAttack(state->playerDir)) {
+       // data->timeSpentCallback->invoke((1100 * player->ongoingAttack->attack.duration).as_int());
+      }
     }
     default {
       return false;
