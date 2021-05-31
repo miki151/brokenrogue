@@ -1,11 +1,13 @@
 
 {
-  Margins(1, Set("wall"), Set("floor"))
-#  Set("wall")
-#  Margins(1, {}, Place(4 4, Reset("floor"), {3 5}, On("wall"), 2))
-#  Connect(On("floor"), 10, On("wall"), Reset("floor"))
+#  Margins(1, Set("wall"), Set("floor"))
+  Set("wall")
+  Margins(1, {}, Place(4 4, Reset("floor", "room"), {6 10}, On("wall"), 2))
+  Connect(On("floor"), 10, On("wall"), Reset("floor"))
   Place(
-      (1 1, Set("player"), 1, On("floor"), 5),
-      (1 1, Set("enemy"), 5, On("floor"), 5)
+      (1 1, Set("player"), 1, On("floor"), 1),
+      (1 1, Set("rat"), 4, On("floor"), 1),
+      (1 1, Set("enemy1"), 4, On("floor"), 1),
+      (1 1, Set("enemy2"), 1, On("room"), 5)
   )
 }
