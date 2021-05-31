@@ -5,6 +5,20 @@
   "lava" "_" 255 105 50 1.0 null null null false
   "corpse" "%" 255 10 10 1.0 null null null false
   "bridge" "_" 210 105 50 1.0 null null null false
-  "enemy" "&" 0 200 200 2.0 2.0 6 "(" 255 100 100 1 2.0 0.6 null false
-  "player" "@" 200 200 200 1.0 1.0 3 "(" 100 100 100 0.6 1.0 0.3 null false
+  "enemy"
+      "&" 0 200 200 2.0
+      2.0
+          6
+          "(" 255 100 100 1 2.0 0.6
+          first { avoidMelee pathfind melee }
+      null
+      false
+  "player"
+      "@" 200 200 200 1.0
+      1.0
+          3
+          "(" 100 100 100 0.6 1.0 0.3
+          first { avoidMelee pathfind melee }
+      null
+      false
 }

@@ -70,6 +70,21 @@ T!string read_data(input_stream mutable* stream, pretty_dummy_struct<T>) {
   mixin "\{" + readStmt + returnStmt + ");\}";
 }
 
+export template <T> requires is_union<T>
+T!string read_data(input_stream mutable* stream, pretty_dummy_struct<T>) {
+  static mutable readStmt = "";
+  static mutable returnStmt = "return " + to_string(T) + "::";
+  const discriminant = stream->read_string();
+  static for (i = 0; i < union_count(T); ++i) {
+    static const altName = get_alternative_name(T, i);
+    unchecked if (altName == discriminant) {
+      const value = try stream->read_data<$get_alternative_type(T, i)>();
+      mixin "return " + to_string(T) + "::" + altName + "(move(value));";
+    }
+  }
+  panic("Expected an {to_string(T)} type discriminant, got: \"{discriminant}\"");
+}
+
 export template <T> requires is_enum<T>
 T!string read_data(input_stream mutable* stream, pretty_dummy_struct<T>) {
   const s = stream->read_string();

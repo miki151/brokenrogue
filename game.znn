@@ -86,7 +86,7 @@ export void advance(Game mutable* g, double timeDiff) {
   const curTime = current_time_milli();
   for (it : g->objects)
     if (it.index > 0 && !!it->attributes.creature)
-      discard getAI().makeMove(g, &*it, timeDiff);
+      discard it->attributes.creature->ai.makeMove(g, &*it, timeDiff);
   for (it : g->objects) {
     if (it->ongoingAttack) {
       it->ongoingAttack->remainingTime -= timeDiff;

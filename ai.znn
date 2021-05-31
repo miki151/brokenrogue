@@ -12,6 +12,8 @@ bool canReachMelee(GameObject* obj, GameObject* target) {
 
 export struct AIAvoidMelee {};
 
+export AIAvoidMelee copy(AIAvoidMelee*) = default;
+
 export bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game->getPlayer();
   if (canReachMelee(obj, object) && !!obj->ongoingAttack) {
@@ -23,6 +25,8 @@ export bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* obje
 }
 
 export struct AIMelee {};
+
+export AIMelee copy(AIMelee*) = default;
 
 export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, double) {
   if (!object->attributes.creature->meleeAttack)
@@ -37,6 +41,7 @@ export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, d
 }
 
 export struct AIPathfind {};
+export AIPathfind copy(AIPathfind*) = default;
 
 export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game->getPlayer();
@@ -51,6 +56,7 @@ export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object
 export struct AIFirst {
   vector<AI> elems;
 };
+export AIFirst copy(AIFirst*) = default;
 
 export bool makeMove(AIFirst* first, Game mutable* game, GameObject mutable* object, double timeDiff) {
   for (elem : first->elems)
@@ -66,8 +72,7 @@ export union AI {
   AIFirst first;
 };
 
+export AI copy(AI*) = default;
+
 export bool makeMove(virtual AI*, Game mutable* game, GameObject mutable* object, double timeDiff);
 
-export AI getAI() {
-  return AI::first(AIFirst({AI::avoidMelee(AIAvoidMelee()), AI::pathfind(AIPathfind()), AI::melee(AIMelee())}.as_vector()));
-}
