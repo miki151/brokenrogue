@@ -89,6 +89,7 @@ int main(string[] args) {
       }.box_as<UICallback>().box_as<any>());
       uiData.data.insert("game_over", move(boxData).box_as<any>());
     }
+    uiData.data.insert("player_hp", "{game.getPlayer()->attributes.creature->health}".box_as<any>());
     const cur_time = current_time_milli();
     timeDiff = 0.001 * (cur_time - last_update);
     if (cur_time <= realTimeEnd)

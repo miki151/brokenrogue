@@ -5,6 +5,7 @@ export import "rectangle.znn";
 export enum RectanglePlacement {
   CENTER,
   TOP_CENTER,
+  BOTTOM_CENTER,
 };
 
 export rectangle get(RectanglePlacement placement, vec2 size, rectangle* bounds) {
@@ -13,6 +14,9 @@ export rectangle get(RectanglePlacement placement, vec2 size, rectangle* bounds)
     case (TOP_CENTER) { return rectangle(
         vec2(bounds->middle().x - size.x / 2, bounds->top()),
         vec2(bounds->middle().x + size.x / 2, bounds->top() + size.y)); }
+    case (BOTTOM_CENTER) { return rectangle(
+        vec2(bounds->middle().x - size.x / 2, bounds->bottom() - size.y),
+        vec2(bounds->middle().x + size.x / 2, bounds->bottom())); }
   }
 }
 
