@@ -48,6 +48,10 @@ export double length_d(vec2* v) {
   return sqrt(v->x * v->x + v->y * v->y);
 }
 
+export double angle(vec2* v) {
+  return atan2(v->x, v->y);
+}
+
 export vec2[4] neighbors4(vec2* v) {
   return { vec2(v->x + 1, v->y), vec2(v->x, v->y + 1), vec2(v->x - 1, v->y), vec2(v->x, v->y - 1) };
 }
@@ -93,3 +97,8 @@ export string to_string(vec2d* v) {
 export double length_d(vec2d* v) {
   return sqrt(v->x * v->x + v->y * v->y);
 }
+
+export double angle(vec2d* v) {
+  return atan2(v->x, v->y);
+}
+

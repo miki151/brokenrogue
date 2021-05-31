@@ -7,7 +7,9 @@ export import "std/box.znn";
 
 
 bool canReachMelee(GameObject* obj, GameObject* target) {
-  return (obj->pos - target->pos).length_d() - target->attributes.box->size < obj->attributes.creature->meleeAttack->reach;
+  const dir = (target->pos - obj->pos).angle();
+  return !!target->attributes.box &&
+      target->attributes.box->isPenetrated(obj->getMaxMeleeAttackPosition(dir) + obj->pos - target->pos);
 }
 
 export struct AIAvoidMelee {};

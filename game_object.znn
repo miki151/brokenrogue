@@ -11,6 +11,10 @@ export vec2d getPosition(MeleeAttackInfo* info) {
   return vec2d(sin(info->dir), cos(info->dir)) * (info->attack.reach * (1 - 2 * fabs(state - 0.5)));
 }
 
+export vec2d getMaxMeleeAttackPosition(GameObject* object, double dir) {
+  return vec2d(sin(dir), cos(dir)) * object->attributes.creature->meleeAttack->reach;
+}
+
 export struct MeleeAttackInfo {
   MeleeAttack attack;
   double remainingTime;
