@@ -1,11 +1,16 @@
 
 export import "glyph.znn";
+import "pretty_input.znn";
 
 export struct MeleeAttack {
-  Glyph glyph;
+  Glyph? glyph;
   double reach;
   double duration;
 };
+
+export bool round_brackets(pretty_dummy_struct<MeleeAttack>) {
+  return true;
+}
 
 export MeleeAttack copy(MeleeAttack*) = default;
 

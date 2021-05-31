@@ -170,7 +170,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     }
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
-  for (obj : data->game->objects) {
+  for (obj : data->game->objects)
+    if (!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) {
     const opos = get_obj_pos(&*obj);
     if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
@@ -197,8 +198,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         const coord = origin + ui->projectOnScreen(player, obj->pos + obj->ongoingAttack->getPosition(),
             state->playerDir);
         if (to_draw.contains(&coord))
-          obj->ongoingAttack->attack.glyph.render(context.canvas, ui->fontSize, coord,
-              state->playerDir - obj->ongoingAttack->dir);
+          (obj->ongoingAttack->attack.glyph ?? obj->attributes.glyph).render(context.canvas, ui->fontSize, coord,
+              !!obj->ongoingAttack->attack.glyph ? state->playerDir - obj->ongoingAttack->dir : 0);
       }
     }
   for (anim : data->game->animations) {
