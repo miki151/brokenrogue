@@ -88,6 +88,8 @@ export void advance(Game mutable* g, double timeDiff) {
     if (it.index > 0 && !!it->attributes.creature)
       discard it->attributes.creature->ai.makeMove(g, &*it, timeDiff);
   for (it : g->objects) {
+    if (it->rangedAttackTimeout > 0.0)
+      it->rangedAttackTimeout -= timeDiff;
     if (it->ongoingAttack) {
       it->ongoingAttack->remainingTime -= timeDiff;
       if (!it->ongoingAttack->nullified)
@@ -115,7 +117,8 @@ export void advance(Game mutable* g, double timeDiff) {
       }
     }
   }
-  for (i = deadCreatures.size() - 1; i >= 0; --i) {
+  deadCreatures.sort(&[](int* a, int* b) { return *a > *b; });
+  for (i = 0; i < deadCreatures.size(); ++i) {
     if (deadCreatures[i] == 0)
       g->isOver = true;
     else {
@@ -126,6 +129,15 @@ export void advance(Game mutable* g, double timeDiff) {
   }
   while (!toAdd.empty())
     g->objects.push_back(toAdd.pop_back());
+}
+
+export bool addRangedAttack(Game mutable* game, GameObject mutable* o, double direction) {
+  if (o->rangedAttackTimeout <= 0.0 && !!o->attributes.creature && !!o->attributes.creature->rangedAttack) {
+    game->spawnProjectile(o, direction, o->attributes.creature->rangedAttack->glyph.copy());
+    o->rangedAttackTimeout = o->attributes.creature->rangedAttack->timeout;
+    return true;
+  }
+  return false;
 }
 
 export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph glyph) {

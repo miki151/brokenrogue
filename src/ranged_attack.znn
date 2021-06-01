@@ -1,0 +1,15 @@
+
+export import "glyph.znn";
+import "pretty_input.znn";
+
+export struct RangedAttack {
+  Glyph glyph;
+  double timeout;
+};
+
+export bool round_brackets(pretty_dummy_struct<RangedAttack>) {
+  return true;
+}
+
+export RangedAttack copy(RangedAttack*) = default;
+

@@ -27,10 +27,11 @@ export struct GameObject {
   GameObjectAnimation animation;
   GameObjectAttributes attributes;
   MeleeAttackInfo? ongoingAttack;
+  double rangedAttackTimeout;
 };
 
 export GameObject(vec2d pos, GameObjectAttributes attr) {
-  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null);
+  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0);
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction) {

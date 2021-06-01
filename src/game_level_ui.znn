@@ -80,9 +80,8 @@ export GameLevelUIState() {
 void shoot(UIContext context) {
   const state = context.state->get_state<GameLevelUIState>();
   const data = *context.data->cast_to<GameLevelUIData>();
-  data->game->spawnProjectile(data->game->getPlayer(), state->playerDir,
-      Glyph(".", color(255, 30, 100), 0.7));
-  data->timeSpentCallback->invoke(100);
+  discard data->game->addRangedAttack(data->game->getPlayer(), state->playerDir);
+  data->timeSpentCallback->invoke(30);
 }
 
 export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {

@@ -1,10 +1,12 @@
 
 export import "melee_attack.znn";
+export import "ranged_attack.znn";
 export import "ai.znn";
 
 export struct Creature {
   int health;
   MeleeAttack? meleeAttack;
+  RangedAttack? rangedAttack;
   AI ai;
 };
 
