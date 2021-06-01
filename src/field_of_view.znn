@@ -2,19 +2,21 @@
 export import "table.znn";
 import "std/math.znn";
 
-export table<int> calculate_fov(table<int>* t, vec2 origin, int range) {
+export table<int> calculateFOV(table<int>* t) {
+  const origin = t->size() / 2;
+  const viewRange = t->size().x / 2 - 1;
   mutable ret = table<int>(t->size(), 0);
   ret[origin] = 1;
-  calculate(2 * range, 2 * range, 2 * range, 2, -1, 1, 1, 1,
+  calculate(2 * viewRange, 2 * viewRange, 2 * viewRange, 2, -1, 1, 1, 1,
       &[&](vec2 v) { return (*t)[v + origin] == 1; },
       &[&](vec2 v) { ret[v + origin] = 1; });
-  calculate(2 * range, 2 * range, 2 * range, 2, -1, 1, 1, 1,
+  calculate(2 * viewRange, 2 * viewRange, 2 * viewRange, 2, -1, 1, 1, 1,
       &[&](vec2 v) { return (*t)[vec2(v.y + origin.x, -v.x + origin.y)] == 1; },
       &[&](vec2 v) { ret[vec2(v.y + origin.x, -v.x + origin.y)] = 1; });
-  calculate(2 * range, 2 * range, 2 * range, 2, -1, 1, 1, 1,
+  calculate(2 * viewRange, 2 * viewRange, 2 * viewRange, 2, -1, 1, 1, 1,
       &[&](vec2 v) { return (*t)[origin - v] == 1; },
       &[&](vec2 v) { ret[origin -v] = 1; });
-  calculate(2 * range, 2 * range, 2 * range, 2, -1, 1, 1, 1,
+  calculate(2 * viewRange, 2 * viewRange, 2 * viewRange, 2, -1, 1, 1, 1,
       &[&](vec2 v) { return (*t)[vec2(-v.y + origin.x, v.x + origin.y)] == 1; },
       &[&](vec2 v) { ret[vec2(-v.y + origin.x, v.x + origin.y)] = 1; });
   return move(ret);

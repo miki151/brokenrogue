@@ -58,7 +58,7 @@ int main(string[] args) {
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
   const levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
-  mutable game = Game(levelGen.get(), &levelMapping);
+  mutable game = Game(10, levelGen.get(), &levelMapping);
   mutable uiData = UIRecord();
   mutable exit = false;
   mutable timeDiff = 0.0;
@@ -82,7 +82,7 @@ int main(string[] args) {
       boxData.data.insert("text", "Game over".box_as<any>());
       boxData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
       boxData.data.insert("restart_callback", [&] {
-          game = Game(levelGen.get(), &levelMapping);
+          game = Game(10, levelGen.get(), &levelMapping);
           last_update = current_time_milli();
           realTimeEnd = last_update;
           uiData.data.erase(&"game_over");

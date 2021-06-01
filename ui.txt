@@ -14,7 +14,7 @@ Def vertical list_ui VERTICAL End
   using "reload_ui" key_handler(F1 DOWN)
   using "exit_callback" key_handler(ESCAPE DOWN)
   fill(0 0 0)
-  using "game_level" game_level(20, 50, 65, 450, 400, 400, 0.05, 0.9, 0.0025, 0.2, 0.5,
+  using "game_level" game_level(50, 65, 450, 400, 400, 0.05, 0.9, 0.0025, 0.2, 0.5,
     W HELD,
     S HELD,
     A HELD,

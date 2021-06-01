@@ -13,6 +13,7 @@ export import "std/hash_map.znn";
 export import "level_animation.znn";
 export import "game_object.znn";
 import "ai.znn";
+import "field_of_view.znn";
 
 export struct Tile {
   Glyph glyph;
@@ -41,13 +42,34 @@ export struct Game {
   vector<GameObject> objects;
   vector<LevelAnimation> animations;
   hash_map<string, GameObjectAttributes>* objectFactory;
+  int lineOfSight;
   bool isOver;
 };
 
-export Game(LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
+export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
+  const posInt = (obj->pos + vec2d(0.5, 0.5)).as_int();
+  if (!obj->fovInfo || obj->fovInfo->origin != posInt) {
+    obj->fovInfo = FOVInfo(
+        posInt,
+        table<int>(vec2(game->lineOfSight, game->lineOfSight), 0)
+    );
+    const getObjPos = [&](GameObject* obj2) { return obj->fovInfo->data.size() / 2 + obj2->pos.as_int() - posInt; };
+    for (obj2 : game->objects)
+      if (obj2->attributes.blocksVision) {
+        const opos = getObjPos(&*obj2);
+        if (obj->fovInfo->data.bounds().contains(&opos))
+          obj->fovInfo->data[opos] = 1;
+      }
+    obj->fovInfo->data = calculateFOV(&obj->fovInfo->data);
+  }
+  const vpos = position - posInt + obj->fovInfo->data.size() / 2;
+  return obj->fovInfo->data.bounds().contains(&vpos) && obj->fovInfo->data[vpos] == 1;
+}
+
+export Game(int lineOfSight, LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
   const size = vec2(30, 30);
   return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping), vector<LevelAnimation>(),
-      mapping, false);
+      mapping, lineOfSight, false);
 }
 
 export int? advance(GameObject mutable* c, Game* g, double amount, double angle) {

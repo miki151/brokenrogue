@@ -7,13 +7,11 @@ export import "std/any.znn";
 import "std/io.znn";
 export import "ui.znn";
 import "rectangle.znn";
-import "field_of_view.znn";
 import "ui_state.znn";
 import "std/time.znn";
 
 export [@ui_element]
 struct GameLevelUI {
-  int los;
   int tile_size;
   int fontSize;
   int jumpDuration;
@@ -146,33 +144,20 @@ void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int star
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = &data->game->objects[0];
-  const pos_int = (player->pos + vec2d(0.5, 0.5)).as_int();
-  const view_angle = 0.4;
   const origin = vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
   const to_draw = r->plus_margin(ui->tile_size);
   const state = context.state->get_state<GameLevelUIState>();
-  mutable visibility = table<int>(vec2(ui->los, ui->los), 0);
-  const get_obj_pos = [&](GameObject* obj) { return visibility.size() / 2 + obj->pos.as_int() - pos_int; };
-  for (obj : data->game->objects)
-    if (obj->attributes.blocksVision) {
-      const opos = get_obj_pos(&*obj);
-      if (visibility.bounds().contains(&opos))
-        visibility[opos] = 1;
-    }
-  visibility = calculate_fov(&visibility, visibility.size() / 2, visibility.size().x / 2 - 1);
-  for (pos : centered_rect(pos_int, ui->los))
+  for (pos : centered_rect(player->pos.as_int(), data->game->lineOfSight))
     if (const t = data->game->level.getTile(*pos)) {
       const coord = origin + ui->projectOnScreen(player, pos->as_double(), state->playerDir);
-      const vpos = *pos - pos_int + visibility.size() / 2;
-      if (to_draw.contains(&coord) && visibility.bounds().contains(&vpos) && visibility[vpos] == 1)
+      if (to_draw.contains(&coord) && data->game->canSee(player, *pos))
         (*t)->glyph.render(context.canvas, ui->fontSize, coord);
     }
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
   for (obj : data->game->objects)
-    if (!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) {
-    const opos = get_obj_pos(&*obj);
-    if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
+    if ((!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) &&
+        data->game->canSee(player, obj->pos.as_int())) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (to_draw.contains(&coord)) {
         const jumpState = ((curTime % ui->jumpDuration + ui->jumpDuration) % ui->jumpDuration).as_double() 
@@ -184,22 +169,18 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         toRender.push_back(GlyphRenderElem(obj->attributes.glyph.copy(), coord - vec2(0, offset)));
       }
     }
-  }
   toRender.sort(&[](GlyphRenderElem* p1, GlyphRenderElem* p2) {
       return p1->pos.y < p2->pos.y;
   });
   for (elem : toRender)
     elem->glyph.render(context.canvas, ui->fontSize, elem->pos);
   for (obj : data->game->objects)
-    if (obj->ongoingAttack) {
-      const opos = get_obj_pos(&*obj);
-      if (visibility.bounds().contains(&opos) && visibility[opos] == 1) {
-        const coord = origin + ui->projectOnScreen(player, obj->pos + obj->ongoingAttack->getPosition(),
-            state->playerDir);
-        if (to_draw.contains(&coord))
-          (obj->ongoingAttack->attack.glyph ?? obj->attributes.glyph).render(context.canvas, ui->fontSize, coord,
-              !!obj->ongoingAttack->attack.glyph ? state->playerDir - obj->ongoingAttack->dir : 0);
-      }
+    if (!!obj->ongoingAttack && data->game->canSee(player, obj->pos.as_int())) {
+      const coord = origin + ui->projectOnScreen(player, obj->pos + obj->ongoingAttack->getPosition(),
+          state->playerDir);
+      if (to_draw.contains(&coord))
+        (obj->ongoingAttack->attack.glyph ?? obj->attributes.glyph).render(context.canvas, ui->fontSize, coord,
+            !!obj->ongoingAttack->attack.glyph ? state->playerDir - obj->ongoingAttack->dir : 0);
     }
   for (anim : data->game->animations) {
     const coord = origin + ui->projectOnScreen(player, anim->position, state->playerDir);
