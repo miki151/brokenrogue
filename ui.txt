@@ -27,7 +27,10 @@ Def DeathScreenFont2 30 End
     Y DOWN
   )
   using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)}
-  using "player_hp" position(BOTTOM_CENTER, horizontal { label("HP: ", 50, 255 0 0) text(50, 255 0 0) })
+  using "player_hp" position(BOTTOM_STRETCHED, {
+      fill(50 50 50)
+      horizontal { width 50 {} label("HP: ", 30, 255 0 0) text(30, 255 0 0) }
+  })
   using "game_over" {
     consume_events
     position(CENTER, {
