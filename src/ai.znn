@@ -33,13 +33,19 @@ export AIMelee copy(AIMelee*) = default;
 export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, double) {
   if (!object->attributes.creature->meleeAttack)
     return false;
-  for (obj : game->objects)
-    if (&*obj != object && canReachMelee(object, &*obj)) {
-      const v = obj->pos - object->pos;
-      discard object->addMeleeAttack(atan2(v.x, v.y));
-      return true;
-    }
-  return false;
+  const obj = game->getPlayer();
+  return canReachMelee(object, obj) && object->addMeleeAttack((obj->pos - object->pos).angle());
+}
+
+export struct AIRanged {};
+
+export AIRanged copy(AIRanged*) = default;
+
+export bool makeMove(AIRanged*, Game mutable* game, GameObject mutable* object, double) {
+  if (!object->attributes.creature->rangedAttack)
+    return false;
+  const obj = game->getPlayer();
+  return game->canSee(object, obj->pos.as_int()) && game->addRangedAttack(object, (obj->pos - object->pos).angle());
 }
 
 export struct AIPathfind {};
@@ -47,12 +53,9 @@ export AIPathfind copy(AIPathfind*) = default;
 
 export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game->getPlayer();
-  if (!canReachMelee(object, obj)) {
-    const targetDir = obj->pos- object->pos;
-    discard object->advance(game, 4 * timeDiff, atan2(targetDir.x, targetDir.y));
-    return true;
-  }
-  return false;
+  return game->canSee(object, obj->pos.as_int())
+      && !canReachMelee(object, obj)
+      && !!object->advance(game, 4 * timeDiff, (obj->pos - object->pos).angle());
 }
 
 export struct AIFirst {
@@ -69,6 +72,7 @@ export bool makeMove(AIFirst* first, Game mutable* game, GameObject mutable* obj
 
 export union AI {
   AIMelee melee;
+  AIRanged ranged;
   AIAvoidMelee avoidMelee;
   AIPathfind pathfind;
   AIFirst first;

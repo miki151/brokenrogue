@@ -5,6 +5,7 @@ import "pretty_input.znn";
 export struct RangedAttack {
   Glyph glyph;
   double timeout;
+  double velocity;
 };
 
 export bool round_brackets(pretty_dummy_struct<RangedAttack>) {

@@ -1,5 +1,6 @@
 
 export import "vec2.znn";
+import "game_object.znn";
 
 export struct Projectile {
   vec2d dir;

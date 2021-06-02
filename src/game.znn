@@ -126,9 +126,9 @@ export void advance(Game mutable* g, double timeDiff) {
       if (it->ongoingAttack->remainingTime <= 0.0)
         it->ongoingAttack = null;
     }
-    if (it->attributes.projectile) {
+    if (it->projectile) {
       const prevPos = it->pos;
-      if (const targetIndex = it->advance(g, it->attributes.projectile->dir * timeDiff)) {
+      if (const targetIndex = it->advance(g, it->projectile->dir * timeDiff)) {
         deadCreatures.push_back(it.index);
         const target = &g->objects[*targetIndex];
         if (target->attributes.creature) {
@@ -155,25 +155,27 @@ export void advance(Game mutable* g, double timeDiff) {
 
 export bool addRangedAttack(Game mutable* game, GameObject mutable* o, double direction) {
   if (o->rangedAttackTimeout <= 0.0 && !!o->attributes.creature && !!o->attributes.creature->rangedAttack) {
-    game->spawnProjectile(o, direction, o->attributes.creature->rangedAttack->glyph.copy());
-    o->rangedAttackTimeout = o->attributes.creature->rangedAttack->timeout;
+    const attack = &*o->attributes.creature->rangedAttack;
+    game->spawnProjectile(o, vec2d(sin(direction), cos(direction)) * attack->velocity, attack->glyph.copy());
+    o->rangedAttackTimeout = attack->timeout;
     return true;
   }
   return false;
 }
 
-export void spawnProjectile(Game mutable *g, GameObject* o, double dir, Glyph glyph) {
-  const vdir = vec2d(sin(dir), cos(dir));
+export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph glyph) {
+  const vdir = dir / dir.length_d();
+  const size = 0.4;
   g->objects.push_back(GameObject(
-      o->pos + vdir * 1.0,
+      o->pos + vdir * (size + o->attributes.box->size) / 2.0,
       GameObjectAttributes(
         move(glyph),
-        BoundingBox(0.4),
+        BoundingBox(size),
         null,
-        Projectile(vdir * 20.0),
         false
       )
   ));
+  g->objects.back()->projectile = Projectile(dir);
 }
 
 export GameObject* getPlayer(Game* g) {

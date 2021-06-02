@@ -1,6 +1,5 @@
 
 export import "creature.znn";
-export import "projectile.znn";
 export import "glyph.znn";
 
 export struct BoundingBox {
@@ -28,7 +27,6 @@ export struct GameObjectAttributes {
   Glyph glyph;
   BoundingBox? box;
   Creature? creature;
-  Projectile? projectile;
   bool blocksVision;
 };
 

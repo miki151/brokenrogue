@@ -6,6 +6,7 @@ export import "std/range.znn";
 export import "melee_attack.znn";
 import "std/math.znn";
 export import "table.znn";
+export import "projectile.znn";
 
 export vec2d getPosition(MeleeAttackInfo* info) {
   const state = info->remainingTime / info->attack.duration;
@@ -35,10 +36,11 @@ export struct GameObject {
   MeleeAttackInfo? ongoingAttack;
   double rangedAttackTimeout;
   FOVInfo? fovInfo;
+  Projectile? projectile;
 };
 
 export GameObject(vec2d pos, GameObjectAttributes attr) {
-  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0, null);
+  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0, null, null);
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction) {
