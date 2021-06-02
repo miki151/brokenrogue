@@ -20,7 +20,7 @@ export bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* obje
   const obj = game->getPlayer();
   if (canReachMelee(obj, object) && !!obj->ongoingAttack) {
     const v = object->pos - obj->pos;
-    discard object->advance(game, 4 * timeDiff, atan2(v.x, v.y));
+    discard object->walk(game, timeDiff, atan2(v.x, v.y));
     return true;
   }
   return false;
@@ -55,7 +55,7 @@ export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object
   const obj = game->getPlayer();
   return game->canSee(object, obj->pos.as_int())
       && !canReachMelee(object, obj)
-      && !!object->advance(game, 4 * timeDiff, (obj->pos - object->pos).angle());
+      && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle());
 }
 
 export struct AIFirst {

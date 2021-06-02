@@ -72,11 +72,11 @@ export Game(int lineOfSight, LevelGenerator* generator, hash_map<string, GameObj
       mapping, lineOfSight, false);
 }
 
-export int? advance(GameObject mutable* c, Game* g, double amount, double angle) {
-  return c->advance(g, vec2d(sin(angle), cos(angle)) * amount);
+export int? walk(GameObject mutable* c, Game* g, double amount, double angle) {
+  return c->advance(g, vec2d(sin(angle), cos(angle)) * amount * c->attributes.creature->speed);
 }
 
-export int? advance(GameObject mutable* c, Game* g, vec2d dir) {
+int? advance(GameObject mutable* c, Game* g, vec2d dir) {
   c->pos += dir;
   if (c->attributes.creature)
     c->animation.lastMovement = current_time_milli();

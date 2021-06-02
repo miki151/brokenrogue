@@ -42,13 +42,13 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = data->game->getPlayer();
   if (*event == ui->forward_key)
-    discard player->advance(data->game, 4 * context.timeDiff, state->playerDir);
+    discard player->walk(data->game, context.timeDiff, state->playerDir);
   else if (*event == ui->backward_key)
-    discard player->advance(data->game, -4 * context.timeDiff, state->playerDir);
+    discard player->walk(data->game, -context.timeDiff, state->playerDir);
   else if (*event == ui->left_key)
-    discard player->advance(data->game, 4 * context.timeDiff, state->playerDir + 1.57);
+    discard player->walk(data->game, context.timeDiff, state->playerDir + 1.57);
   else if (*event == ui->right_key)
-    discard player->advance(data->game, 4 * context.timeDiff, state->playerDir - 1.57);
+    discard player->walk(data->game, context.timeDiff, state->playerDir - 1.57);
   else if (*event == ui->shoot_key)
     shoot(context);
   else if (*event == ui->melee_key) {
@@ -98,8 +98,7 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_e
       const angle = state->playerDir + atan2(pos.x, pos.y);
       const length = pos.length_d();
       if (length > 1000 * ui->minJoystickMovement) {
-        discard player->advance(data->game, -4 * context.timeDiff * length / 1000,
-            angle);
+        discard player->walk(data->game, -context.timeDiff * length / 1000, angle);
         data->game->advance(fabs(context.timeDiff * length / 1000));
       }
     }

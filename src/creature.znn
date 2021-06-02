@@ -5,6 +5,7 @@ export import "ai.znn";
 
 export struct Creature {
   int health;
+  double speed;
   MeleeAttack? meleeAttack;
   RangedAttack? rangedAttack;
   AI ai;
