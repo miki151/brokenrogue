@@ -48,7 +48,8 @@ End
   Place(
       (1 1, Set("player"), 1, On("floor"), 1),
       (1 1, Set("rat"), 4, On("floor"), 1),
-      (1 1, Set("enemy1"), 4, On("floor"), 1),
-      (1 1, Set("enemy2"), 1, On("room"), 5)
+      (1 1, Set("kobold"), 2, On("floor"), 1),
+      (1 1, Set("goblin"), 3, On("floor"), 1),
+      (1 1, Set("boss1"), 1, On("room"), 5)
   )
 }

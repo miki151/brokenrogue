@@ -10,6 +10,9 @@ End
 Def horizontal list_ui HORIZONTAL End
 Def vertical list_ui VERTICAL End
 
+Def DeathScreenFont1 40 End
+Def DeathScreenFont2 30 End
+
 {
   using "reload_ui" key_handler(F1 DOWN)
   using "exit_callback" key_handler(ESCAPE DOWN)
@@ -31,18 +34,18 @@ Def vertical list_ui VERTICAL End
       fill(0 0 0)
       frame(1, 255 255 255)
       margins(20, vertical {
-        position(CENTER, label("Game over!", 30, 255 255 255))
+        position(CENTER, label("Game over!", DeathScreenFont1, 255 255 255))
         height 10 {}
-        position(CENTER, label("____", 15, 255 255 255))
-        position(CENTER, label(",'   Y`.", 15, 255 255 255))
-        position(CENTER, label("/        )", 15, 255 255 255))
-        position(CENTER, label("\ ()  () /", 15, 255 255 255))
-        position(CENTER, label("`. /) ,'", 15, 255 255 255))
-        position(CENTER, label("8====| '' |====8", 15, 255 255 255))
-        position(CENTER, label("`LLLU'", 15, 255 255 255))
-        position(CENTER, label("/    )", 15, 255 255 255))
+        position(CENTER, label("____", DeathScreenFont2, 255 255 255))
+        position(CENTER, label(",'   Y`.", DeathScreenFont2, 255 255 255))
+        position(CENTER, label("/        )", DeathScreenFont2, 255 255 255))
+        position(CENTER, label("\ ()  () /", DeathScreenFont2, 255 255 255))
+        position(CENTER, label("`. /) ,'", DeathScreenFont2, 255 255 255))
+        position(CENTER, label("8====| '' |====8", DeathScreenFont2, 255 255 255))
+        position(CENTER, label("`LLLU'", DeathScreenFont2, 255 255 255))
+        position(CENTER, label("/    )", DeathScreenFont2, 255 255 255))
         height 10 {}
-        label("Press [ENTER] to restart or [ESC] to quit.", 15, 255 255 255) 
+        label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
       })
     })
     using "restart_callback" key_handler(ENTER DOWN)
