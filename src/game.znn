@@ -156,16 +156,16 @@ export void advance(Game mutable* g, double timeDiff) {
 export bool addRangedAttack(Game mutable* game, GameObject mutable* o, double direction) {
   if (o->rangedAttackTimeout <= 0.0 && !!o->attributes.creature && !!o->attributes.creature->rangedAttack) {
     const attack = &*o->attributes.creature->rangedAttack;
-    game->spawnProjectile(o, vec2d(sin(direction), cos(direction)) * attack->velocity, attack->glyph.copy());
+    game->spawnProjectile(o, vec2d(sin(direction), cos(direction)) * attack->velocity,
+        attack->glyph.copy(), attack->size);
     o->rangedAttackTimeout = attack->timeout;
     return true;
   }
   return false;
 }
 
-export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph glyph) {
+export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph glyph, double size) {
   const vdir = dir / dir.length_d();
-  const size = 0.4;
   g->objects.push_back(GameObject(
       o->pos + vdir * (size + o->attributes.box->size) / 2.0,
       GameObjectAttributes(

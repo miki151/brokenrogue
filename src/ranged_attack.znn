@@ -6,6 +6,7 @@ export struct RangedAttack {
   Glyph glyph;
   double timeout;
   double velocity;
+  double size;
 };
 
 export bool round_brackets(pretty_dummy_struct<RangedAttack>) {
