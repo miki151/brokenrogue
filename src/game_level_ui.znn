@@ -12,6 +12,7 @@ import "std/time.znn";
 
 export [@ui_element]
 struct GameLevelUI {
+  bool seeWholeMap;
   int tile_size;
   int fontSize;
   int jumpDuration;
@@ -150,14 +151,14 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   for (pos : centered_rect(player->pos.as_int(), data->game->lineOfSight))
     if (const t = data->game->level.getTile(*pos)) {
       const coord = origin + ui->projectOnScreen(player, pos->as_double(), state->playerDir);
-      if (to_draw.contains(&coord) && data->game->canSee(player, *pos))
+      if (to_draw.contains(&coord) && (ui->seeWholeMap || data->game->canSee(player, *pos)))
         (*t)->glyph.render(context.canvas, ui->fontSize, coord);
     }
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
   for (obj : data->game->objects)
     if ((!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) &&
-        data->game->canSee(player, obj->pos.as_int())) {
+        (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int()))) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (to_draw.contains(&coord)) {
         const jumpState = ((curTime % ui->jumpDuration + ui->jumpDuration) % ui->jumpDuration).as_double() 
@@ -175,7 +176,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   for (elem : toRender)
     elem->glyph.render(context.canvas, ui->fontSize, elem->pos);
   for (obj : data->game->objects)
-    if (!!obj->ongoingAttack && data->game->canSee(player, obj->pos.as_int())) {
+    if (!!obj->ongoingAttack && (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int()))) {
       const coord = origin + ui->projectOnScreen(player, obj->pos + obj->ongoingAttack->getPosition(),
           state->playerDir);
       if (to_draw.contains(&coord))
