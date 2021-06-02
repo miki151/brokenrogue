@@ -2,6 +2,7 @@
 export import "vec2.znn";
 export import "std/box.znn";
 export import "std/vector.znn";
+export import "std/random.znn";
 export import "level_canvas.znn";
 
 export concept <T> LevelGenPredicate {
@@ -52,5 +53,19 @@ export struct LevelGenPredicateChance {
 };
 
 export bool apply(LevelGenPredicateChance* c, LevelCanvas* canvas, vec2 v) {
-  return true;
+  return get_random_d() <= c->value;
+}
+
+export struct LevelGenPredicateArea {
+  int radius;
+  int minCount;
+  box<LevelGenPredicate> predicate;
+};
+
+export bool apply(LevelGenPredicateArea* p, LevelCanvas* canvas, vec2 v) {
+  mutable count = 0;
+  for (w : centered_rect(v, p->radius))
+    if (canvas->area.contains(&*w) && p->predicate->apply(canvas, *w))
+      ++count;
+  return count >= p->minCount;
 }

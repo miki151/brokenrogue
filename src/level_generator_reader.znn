@@ -6,7 +6,8 @@ import "game_object_attributes.znn";
 
 template <T> requires (T == LevelGeneratorMargins || T == LevelGenPredicateOn || T == LevelGenPredicateChance
     || T == LevelGeneratorMargin || T == LevelGeneratorPosition || T == LevelGeneratorFilter
-    || T == LevelGeneratorPlaceElem || T == LevelGeneratorConnect)
+    || T == LevelGeneratorPlaceElem || T == LevelGeneratorConnect || T == LevelGeneratorRepeat
+    || T == LevelGenPredicateArea)
 bool round_brackets(pretty_dummy_struct<T>) {
   return true;
 }
@@ -97,7 +98,7 @@ box<LevelGenerator>!string read_data(input_stream mutable* stream, pretty_dummy_
     return (try stream->read_data<LevelGeneratorRemove>()).box_as<LevelGenerator>();
   if (s == "Margins")
     return (try stream->read_data<LevelGeneratorMargins>()).box_as<LevelGenerator>();
-  if (s == "Margin")
+  if (s == "MarginImpl")
     return (try stream->read_data<LevelGeneratorMargin>()).box_as<LevelGenerator>();
   if (s == "Position")
     return (try stream->read_data<LevelGeneratorPosition>()).box_as<LevelGenerator>();
@@ -109,6 +110,8 @@ box<LevelGenerator>!string read_data(input_stream mutable* stream, pretty_dummy_
     return (try stream->read_data<LevelGeneratorChoose>()).box_as<LevelGenerator>();
   if (s == "Connect")
     return (try stream->read_data<LevelGeneratorConnect>()).box_as<LevelGenerator>();
+  if (s == "Repeat")
+    return (try stream->read_data<LevelGeneratorRepeat>()).box_as<LevelGenerator>();
   if (s == "\{") {
     stream->index = last_index;
     return (try stream->read_data<LevelGeneratorChain>()).box_as<LevelGenerator>();
@@ -130,6 +133,8 @@ box<LevelGenPredicate>!string read_data(input_stream mutable* stream, pretty_dum
     return (try stream->read_data<LevelGenPredicateOr>()).box_as<LevelGenPredicate>();
   if (s == "Chance")
     return (try stream->read_data<LevelGenPredicateChance>()).box_as<LevelGenPredicate>();
+  if (s == "Area")
+    return (try stream->read_data<LevelGenPredicateArea>()).box_as<LevelGenPredicate>();
   stream->index = last_index;
   return stream->get_error("Not an level generator predicate type: \"{s}\"");
 }

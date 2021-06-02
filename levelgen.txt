@@ -1,7 +1,48 @@
+Def None() {} End
+
+Def Margin(Size, Gen1, Gen2)
+  Margins(Size, Gen1, Gen2)
+End
+
+Def Margin(Position, Size, Gen1, Gen2)
+  MarginImpl(Position, Size, Gen1, Gen2)
+End
+
+Def Inside(Size, Gen)
+  Margin(Size, None, Gen)
+End
+
+Def Inside(Pos, Size, Gen)
+  Margin(Pos, Size, None, Gen)
+End
+
+Def Border(Size, Gen)
+  Margin(Size, Gen, None)
+End
+
+Def Border(Pos, Size, Gen)
+  Margin(Pos, Size, Gen, None)
+End
+
+Def Filter(Pred, Gen) Filter(Pred, Gen, None) End
+
+Def CellularAutomaton(Generator, BeginProb)
+  Inside(1, {
+    Filter(Chance(BeginProb), Set("cell_added"))
+    Repeat(4, {
+      Filter(Area(1, 5, On("cell_added")), Set("cell_added2"))
+      Filter(On("cell_added2"), Set("cell_added"), Remove("cell_added"))
+      Remove("cell_added2")
+    })
+    Filter(On("cell_added"), Generator)
+    Remove("cell_added")
+  })
+End
 
 {
 #  Margins(1, Set("wall"), Set("floor"))
   Set("wall")
+  CellularAutomaton(Set("floor"), 0.45)
   Margins(1, {}, Place(4 4, Reset("floor", "room"), {6 10}, On("wall"), 2))
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
   Place(

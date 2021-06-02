@@ -262,3 +262,16 @@ export bool make(LevelGeneratorConnect* g, LevelCanvas* c) {
     }
   return true;
 }
+
+export struct LevelGeneratorRepeat {
+  int count;
+  box<LevelGenerator> generator;
+};
+
+export bool make(LevelGeneratorRepeat* g, LevelCanvas* c) {
+  for (i = 0; i < g->count; ++i)
+    if (!g->generator->make(c))
+      return false;
+  return true;
+}
+
