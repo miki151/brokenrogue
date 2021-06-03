@@ -90,8 +90,7 @@ int main(string[] args) {
       uiData.data.insert("game_over", move(boxData).box_as<any>());
     }
     uiData.data.insert("player_hp",
-        (game.getPlayer()->health->as_double() / *game.getPlayer()->attributes.maxHealth)
-            .box_as<any>());
+        (*game.getPlayer()->health / *game.getPlayer()->attributes.maxHealth).box_as<any>());
     const cur_time = current_time_milli();
     timeDiff = 0.001 * (cur_time - last_update);
     if (cur_time <= realTimeEnd)

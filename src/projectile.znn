@@ -4,6 +4,7 @@ import "game_object.znn";
 
 export struct Projectile {
   vec2d dir;
+  double damage;
 };
 
 

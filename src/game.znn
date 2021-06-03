@@ -90,12 +90,12 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
   return ret;
 }
 
-bool woundCreature(Game mutable* g, int objIndex, int curTime) {
+bool woundCreature(Game mutable* g, int objIndex, int curTime, double damage) {
   const hitObject = &g->objects[objIndex];
   g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime));
   if (hitObject->health)
-    --*hitObject->health;
-  if (hitObject->health ?? 1 <= 0) {
+    *hitObject->health -= damage;
+  if (hitObject->health ?? 1.0 <= 0.0) {
     for (i : range(0, 10))
       g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime + i));
     return true;
@@ -120,7 +120,7 @@ export void advance(Game mutable* g, double timeDiff) {
           if (it2 != it && !!it2->attributes.creature && !!it2->attributes.box &&
               it2->attributes.box->isPenetrated(it->pos + it->ongoingAttack->getPosition() - it2->pos)) {
             it->ongoingAttack->nullified = true;
-            if (g->woundCreature(it2.index, curTime))
+            if (g->woundCreature(it2.index, curTime, it->ongoingAttack->attack.damage))
               deadCreatures.push_back(it2.index);
             break;
           }
@@ -133,7 +133,7 @@ export void advance(Game mutable* g, double timeDiff) {
         deadCreatures.push_back(it.index);
         const target = &g->objects[*targetIndex];
         if (target->attributes.creature) {
-          if (g->woundCreature(*targetIndex, curTime))
+          if (g->woundCreature(*targetIndex, curTime, it->projectile->damage))
             deadCreatures.push_back(*targetIndex);
         } else
           g->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
@@ -158,14 +158,15 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, double di
   if (o->rangedAttackTimeout <= 0.0 && !!o->attributes.creature && !!o->attributes.creature->rangedAttack) {
     const attack = &*o->attributes.creature->rangedAttack;
     game->spawnProjectile(o, vec2d(sin(direction), cos(direction)) * attack->velocity,
-        attack->glyph.copy(), attack->size);
+        attack->glyph.copy(), attack->size, attack->damage);
     o->rangedAttackTimeout = attack->timeout;
     return true;
   }
   return false;
 }
 
-export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph glyph, double size) {
+export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph glyph, double size,
+    double damage) {
   const vdir = dir / dir.length_d();
   g->objects.push_back(GameObject(
       o->pos + vdir * (size + o->attributes.box->size) / 2.0,
@@ -177,7 +178,7 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
         null
       )
   ));
-  g->objects.back()->projectile = Projectile(dir);
+  g->objects.back()->projectile = Projectile(dir, damage);
 }
 
 export GameObject* getPlayer(Game* g) {

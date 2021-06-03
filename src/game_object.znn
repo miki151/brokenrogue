@@ -37,11 +37,11 @@ export struct GameObject {
   double rangedAttackTimeout;
   FOVInfo? fovInfo;
   Projectile? projectile;
-  int? health;
+  double? health;
 };
 
 export GameObject(vec2d pos, GameObjectAttributes attr) {
-  const health = attr.maxHealth;
+  const health = attr.maxHealth.map_to(&[](int* a) { return a->as_double(); });
   return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0, null, null, health);
 }
 
