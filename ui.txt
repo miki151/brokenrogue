@@ -26,16 +26,17 @@ Def DeathScreenFont2 30 End
     B DOWN,
     Y DOWN
   )
-  using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)}
-  using "player_hp" position(BOTTOM_STRETCHED, height 45 {
+  position(BOTTOM_STRETCHED, height 45 {
       fill(50 50 50)
+      position(RIGHT_CENTER,
+          using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})
       position(LEFT_CENTER, horizontal {
           width 20 {}
           label("HP:", 20, 255 255 255)
           width 10 {}
           width 300 height 15 {
             fill(0 0 0)
-            horibar(255 0 0)
+            using "player_hp" horibar(255 0 0)
           }
       })
   })
