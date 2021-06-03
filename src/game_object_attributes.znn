@@ -29,6 +29,7 @@ export struct GameObjectAttributes {
   Creature? creature;
   bool blocksVision;
   int? maxHealth;
+  bool canRemember;
 };
 
 export GameObjectAttributes copy(GameObjectAttributes*) = default;

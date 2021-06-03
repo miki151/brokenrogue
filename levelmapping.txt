@@ -1,10 +1,10 @@
 
 {
-  "wall" "#" 210 105 30 1.0 1.0 null true null
-  "water" "_" 50 105 255 1.0 null null false null
-  "lava" "_" 255 105 50 1.0 null null false null
-  "corpse" "%" 255 10 10 1.0 null null false null
-  "bridge" "_" 210 105 50 1.0 null null false null
+  "wall" "#" 210 105 30 1.0 1.0 null true null true
+  "water" "_" 50 105 255 1.0 null null false null true
+  "lava" "_" 255 105 50 1.0 null null false null true
+  "corpse" "%" 255 10 10 1.0 null null false null true
+  "bridge" "_" 210 105 50 1.0 null null false null true
   "rat"
       "r" 200 100 100 0.8
       0.5
@@ -14,6 +14,7 @@
           first { pathfind melee }
       false
       1
+      false
   "goblin"
       "o" 0 200 0 1.0
       1.0
@@ -23,6 +24,7 @@
           first { pathfind melee }
       false
       3
+      false
   "fencer"
       "f" 255 0 255 1.0
       1.0
@@ -32,6 +34,7 @@
           first { avoidMelee pathfind melee }
       false
       1
+      false
   "kobold"
       "k" 0 100 250 1.0
       1.0
@@ -41,6 +44,7 @@
           first { ranged }
       false
       1
+      false
   "boss1"
       "&" 200 0 100 2.0
       2.0
@@ -50,6 +54,7 @@
           first { avoidMelee pathfind melee }
       false
       6
+      false
   "player"
       "@" 200 200 200 1.0
       1.0
@@ -59,4 +64,5 @@
           first { avoidMelee pathfind melee }
       false
       10
+      false
 }

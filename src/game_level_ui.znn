@@ -151,9 +151,9 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     }
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
-  for (obj : data->game->objects)
-    if ((!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) &&
-        (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int()))) {
+  for (obj : data->game->objects) {
+    const canSee = ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int());
+    if ((!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) && (canSee || obj->remember)) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (to_draw.contains(&coord)) {
         const jumpState = ((curTime % ui->jumpDuration + ui->jumpDuration) % ui->jumpDuration).as_double() 
@@ -163,8 +163,13 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
             ? 0
             : (ui->fontSize * ui->jumpHeight * getJumpOffset(jumpState)).as_int();
         toRender.push_back(GlyphRenderElem(obj->attributes.glyph.copy(), coord - vec2(0, offset)));
+        if (!canSee && obj->remember)
+          toRender.back()->glyph.col = color(100, 100, 100);
+        else if (obj->attributes.canRemember)
+          obj->remember = true;
       }
     }
+  }
   toRender.sort(&[](GlyphRenderElem* p1, GlyphRenderElem* p2) {
       return p1->pos.y < p2->pos.y;
   });

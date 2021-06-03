@@ -175,7 +175,8 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
         BoundingBox(size),
         null,
         false,
-        null
+        null,
+        false
       )
   ));
   g->objects.back()->projectile = Projectile(dir, damage);
