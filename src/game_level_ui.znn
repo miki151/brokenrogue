@@ -14,7 +14,7 @@ export [@ui_element]
 struct GameLevelUI {
   bool seeWholeMap;
   int tile_size;
-  int fontSize;
+  double fontRatio;
   int jumpDuration;
   int woundedAnimDuration;
   int explosionDuration;
@@ -31,6 +31,10 @@ struct GameLevelUI {
   key_event melee_key;
   key_event shoot_key;
 };
+
+int getFontSize(GameLevelUI* ui) {
+  return (ui->fontRatio * ui->tile_size).as_int();
+}
 
 export struct GameLevelUIData {
   Game mutable* game;
@@ -128,13 +132,13 @@ struct GlyphRenderElem {
 };
 
 void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
-  const h = ui->fontSize * 2 / 3;
-  const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui->fontSize / 3;
+  const h = ui->getFontSize() * 2 / 3;
+  const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui->getFontSize() / 3;
   const t = curTime - start;
   const dur = ui->woundedAnimDuration;
   const offset = vec2((w * t / dur).as_int(), (h * t * t / (dur * dur) - h / 2).as_int());
   const pos = origin + offset;
-  Glyph("*", color(255, 0, 0), 0.5).render(context.canvas, ui->fontSize, pos);
+  Glyph("*", color(255, 0, 0), 0.5).render(context.canvas, ui->getFontSize(), pos);
 }
 
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
@@ -147,7 +151,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     if (const t = data->game->level.getTile(*pos)) {
       const coord = origin + ui->projectOnScreen(player, pos->as_double(), state->playerDir);
       if (to_draw.contains(&coord) && (ui->seeWholeMap || data->game->canSee(player, *pos)))
-        (*t)->glyph.render(context.canvas, ui->fontSize, coord);
+        (*t)->glyph.render(context.canvas, ui->getFontSize(), coord);
     }
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
@@ -161,7 +165,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         const offset = !obj->animation.lastMovement
             || *obj->animation.lastMovement < curTime - (1000 * context.timeDiff).as_int() - 10
             ? 0
-            : (ui->fontSize * ui->jumpHeight * getJumpOffset(jumpState)).as_int();
+            : (ui->getFontSize() * ui->jumpHeight * getJumpOffset(jumpState)).as_int();
         toRender.push_back(GlyphRenderElem(obj->attributes.glyph.copy(), coord - vec2(0, offset)));
         if (!canSee && obj->remember)
           toRender.back()->glyph.col = color(100, 100, 100);
@@ -174,13 +178,13 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       return p1->pos.y < p2->pos.y;
   });
   for (elem : toRender)
-    elem->glyph.render(context.canvas, ui->fontSize, elem->pos);
+    elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos);
   for (obj : data->game->objects)
     if (!!obj->ongoingAttack && (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int()))) {
       const coord = origin + ui->projectOnScreen(player, obj->pos + obj->ongoingAttack->getPosition(),
           state->playerDir);
       if (to_draw.contains(&coord))
-        (obj->ongoingAttack->attack.glyph ?? obj->attributes.glyph).render(context.canvas, ui->fontSize, coord,
+        (obj->ongoingAttack->attack.glyph ?? obj->attributes.glyph).render(context.canvas, ui->getFontSize(), coord,
             !!obj->ongoingAttack->attack.glyph ? state->playerDir - obj->ongoingAttack->dir : 0);
     }
   for (anim : data->game->animations) {
@@ -189,7 +193,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       switch (anim->type) {
         case (EXPLOSION) {
           if (anim->time + ui->explosionDuration > curTime)
-            Glyph("*", color(255, 100, 0), 1.0).render(context.canvas, ui->fontSize, coord);
+            Glyph("*", color(255, 100, 0), 1.0).render(context.canvas, ui->getFontSize(), coord);
         }
         case (BLOOD) {
           if (anim->time + ui->woundedAnimDuration > curTime)
