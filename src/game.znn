@@ -93,8 +93,9 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
 bool woundCreature(Game mutable* g, int objIndex, int curTime) {
   const hitObject = &g->objects[objIndex];
   g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime));
-  --hitObject->attributes.creature->health;
-  if (hitObject->attributes.creature->health <= 0) {
+  if (hitObject->health)
+    --*hitObject->health;
+  if (hitObject->health ?? 1 <= 0) {
     for (i : range(0, 10))
       g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime + i));
     return true;
@@ -172,7 +173,8 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
         move(glyph),
         BoundingBox(size),
         null,
-        false
+        false,
+        null
       )
   ));
   g->objects.back()->projectile = Projectile(dir);

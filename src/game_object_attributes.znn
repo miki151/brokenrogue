@@ -28,6 +28,7 @@ export struct GameObjectAttributes {
   BoundingBox? box;
   Creature? creature;
   bool blocksVision;
+  int? maxHealth;
 };
 
 export GameObjectAttributes copy(GameObjectAttributes*) = default;

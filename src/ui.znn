@@ -250,7 +250,7 @@ vector<rectangle> getElemPositions(list_ui* t, UIContext context, rectangle* r) 
       case (HORIZONTAL) {
         const width = it->get()->size(context).x;
         ret.push_back(rectangle(vec2(r->left() + start, r->top()),
-            vec2(r->right() + start + width, r->bottom())));
+            vec2(r->left() + start + width, r->bottom())));
         start += width;
       }
     }
@@ -370,5 +370,20 @@ export bool onKeyEvent(consume_events*, UIContext, rectangle*, key_event*) {
 
 export bool onMouseEvent(consume_events*, UIContext, rectangle*, mouse_event*) {
   return true;
+}
+
+export [@ui_element]
+struct horizontal_bar_ui {
+  color color;
+};
+
+export void render(horizontal_bar_ui* t, UIContext context, rectangle* r) {
+  if (const value = context.data->cast_to<double>()) {
+    const rect = rectangle(r->v1, vec2(r->v1.x + (r->width() * **value).as_int(), r->v2.y));
+    context.canvas->fillRectangle(&rect, &t->color);
+  } else {
+    context.canvas->drawText(r->v1,
+        "Horibar expected a double value, got {context.data->get_type()}", 20, &color(255, 0, 0));
+  }
 }
 

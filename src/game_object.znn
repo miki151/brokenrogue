@@ -37,10 +37,12 @@ export struct GameObject {
   double rangedAttackTimeout;
   FOVInfo? fovInfo;
   Projectile? projectile;
+  int? health;
 };
 
 export GameObject(vec2d pos, GameObjectAttributes attr) {
-  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0, null, null);
+  const health = attr.maxHealth;
+  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0, null, null, health);
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction) {
