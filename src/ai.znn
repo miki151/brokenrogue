@@ -58,6 +58,17 @@ export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object
       && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle());
 }
 
+export struct AICircle {};
+export AICircle copy(AICircle*) = default;
+
+export bool makeMove(AICircle*, Game mutable* game, GameObject mutable* object, double timeDiff) {
+  const obj = game->getPlayer();
+  return game->canSee(object, obj->pos.as_int())
+      && !canReachMelee(object, obj)
+      && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle() + 1.57)
+      && false;
+}
+
 export struct AIFirst {
   vector<AI> elems;
 };
@@ -75,6 +86,7 @@ export union AI {
   AIRanged ranged;
   AIAvoidMelee avoidMelee;
   AIPathfind pathfind;
+  AICircle circle;
   AIFirst first;
 };
 

@@ -2,12 +2,22 @@
 export import "glyph.znn";
 import "pretty_input.znn";
 
+export struct RangedAttackExtraTimeout {
+  int count;
+  double timeout;
+};
+
+export RangedAttackExtraTimeout copy(RangedAttackExtraTimeout*) = default;
+
 export struct RangedAttack {
   Glyph glyph;
   double timeout;
   double velocity;
   double size;
   double damage;
+  double inaccuracy;
+  RangedAttackExtraTimeout? extraTimeout;
+  int colorVariance;
 };
 
 export bool round_brackets(pretty_dummy_struct<RangedAttack>) {

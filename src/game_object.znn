@@ -35,6 +35,7 @@ export struct GameObject {
   GameObjectAttributes attributes;
   MeleeAttackInfo? ongoingAttack;
   double rangedAttackTimeout;
+  int rangedAttackProjectileCount;
   FOVInfo? fovInfo;
   Projectile? projectile;
   double? health;
@@ -43,7 +44,7 @@ export struct GameObject {
 
 export GameObject(vec2d pos, GameObjectAttributes attr) {
   const health = attr.maxHealth.map_to(&[](int* a) { return a->as_double(); });
-  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0, null, null, health,
+  return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0, 0, null, null, health,
       false);
 }
 

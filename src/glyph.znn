@@ -3,6 +3,7 @@ export import "color.znn";
 export import "ui_canvas.znn";
 import "std/math.znn";
 import "std/io.znn";
+import "std/random.znn";
 
 export struct Glyph {
   string sym;
@@ -16,6 +17,16 @@ export Glyph(string c, color col) {
 }
 
 export Glyph copy(Glyph*) = default;
+
+export Glyph randomizeColor(Glyph* g, int variance) {
+  mutable ret = g->copy();
+  if (variance > 0) {
+    ret.col.r = max(0, min(255, ret.col.r + get_random(variance + 1) - variance / 2));
+    ret.col.g = max(0, min(255, ret.col.g + get_random(variance + 1) - variance / 2));
+    ret.col.b = max(0, min(255, ret.col.b + get_random(variance + 1) - variance / 2));
+  }
+  return move(ret);
+}
 
 export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos) {
   canvas->drawText(pos, g->sym, (g->size * font_size).as_int(), &g->col, ui_text_flag::CENTER_XY);

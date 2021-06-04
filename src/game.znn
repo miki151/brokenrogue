@@ -82,7 +82,7 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
     c->animation.lastMovement = current_time_milli();
   mutable int? ret = null;
   for (it : g->objects)
-    if (&*it != c)
+    if (&*it != c && !it->projectile)
       if (const v = getRebound(c, &*it)) {
         c->pos -= *v;
         ret = it.index;
@@ -154,12 +154,21 @@ export void advance(Game mutable* g, double timeDiff) {
     g->objects.push_back(toAdd.pop_back());
 }
 
-export bool addRangedAttack(Game mutable* game, GameObject mutable* o, double direction) {
+export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable double direction) {
   if (o->rangedAttackTimeout <= 0.0 && !!o->attributes.creature && !!o->attributes.creature->rangedAttack) {
     const attack = &*o->attributes.creature->rangedAttack;
+    direction += (get_random_d() - 0.5) * attack->inaccuracy;
+    mutable glyph = attack->glyph.copy();
     game->spawnProjectile(o, vec2d(sin(direction), cos(direction)) * attack->velocity,
-        attack->glyph.copy(), attack->size, attack->damage);
+        attack->glyph.randomizeColor(attack->colorVariance), attack->size, attack->damage);
     o->rangedAttackTimeout = attack->timeout;
+    if (attack->extraTimeout) {
+      ++o->rangedAttackProjectileCount;
+      if (o->rangedAttackProjectileCount >= attack->extraTimeout->count) {
+        o->rangedAttackTimeout = attack->extraTimeout->timeout;
+        o->rangedAttackProjectileCount = 0;
+      }
+    }
     return true;
   }
   return false;
