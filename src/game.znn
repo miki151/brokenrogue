@@ -107,9 +107,10 @@ export void advance(Game mutable* g, double timeDiff) {
   mutable deadCreatures = vector<int>();
   mutable toAdd = vector<GameObject>();
   const curTime = current_time_milli();
-  for (it : g->objects)
-    if (it.index > 0 && !!it->attributes.creature)
-      discard it->attributes.creature->ai.makeMove(g, &*it, timeDiff);
+  // Must iterate objects using an index as they may get killed and removed from the list.
+  for (i = 0; i < g->objects.size(); ++i)
+    if (i > 0 && !!g->objects[i].attributes.creature)
+      discard g->objects[i].attributes.creature->ai.makeMove(g, &g->objects[i], timeDiff);
   for (it : g->objects) {
     if (it->rangedAttackTimeout > 0.0)
       it->rangedAttackTimeout -= timeDiff;
@@ -158,7 +159,6 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
   if (o->rangedAttackTimeout <= 0.0 && !!o->attributes.creature && !!o->attributes.creature->rangedAttack) {
     const attack = &*o->attributes.creature->rangedAttack;
     direction += (get_random_d() - 0.5) * attack->inaccuracy;
-    mutable glyph = attack->glyph.copy();
     game->spawnProjectile(o, vec2d(sin(direction), cos(direction)) * attack->velocity,
         attack->glyph.randomizeColor(attack->colorVariance), attack->size, attack->damage);
     o->rangedAttackTimeout = attack->timeout;
