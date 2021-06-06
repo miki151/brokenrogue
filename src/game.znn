@@ -150,8 +150,11 @@ export void advance(Game mutable* g, double timeDiff) {
     if (deadCreatures[i] == 0)
       g->isOver = true;
     else {
-      if (!!g->objects[deadCreatures[i]]->attributes.creature)
-        toAdd.push_back(GameObject(g->objects[deadCreatures[i]]->pos, g->objectFactory->get(&"corpse")->copy()));
+      const deadCreature = g-g->>objects[deadCreatures[i]].get();
+      if (!!deadCreature->attributes.creature) {
+        toAdd.push_back(GameObject(deadCreature->pos, g->objectFactory->get(&"corpse")->copy()));
+        toAdd.back()->attributes.glyph.size = deadCreature->attributes.glyph.size * 0.8;
+      }
       g->objects.remove(deadCreatures[i]);
     }
   }
