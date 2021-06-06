@@ -143,7 +143,7 @@ void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int star
 
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const data = *context.data->cast_to<GameLevelUIData>();
-  const player = &data->game->objects[0];
+  const player = data->game->getPlayer();
   const origin = vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
   const to_draw = r->plus_margin(ui->tile_size);
   const state = context.state->get_state<GameLevelUIState>();
@@ -155,7 +155,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     }
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
-  for (obj : data->game->objects) {
+  for (it : data->game->objects) {
+    const obj = it->get();
     const canSee = ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int());
     if ((!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) && (canSee || obj->remember)) {
       const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
@@ -179,7 +180,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   });
   for (elem : toRender)
     elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos);
-  for (obj : data->game->objects) {
+  for (it : data->game->objects) {
+    const obj = it->get();
     mutable double? forceDir = null;
     if (&*obj == data->game->getPlayer() && !obj->ongoingAttack)
       forceDir = state->playerDir;
