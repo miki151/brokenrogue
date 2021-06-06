@@ -46,13 +46,13 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = data->game->getPlayer();
   if (*event == ui->forward_key)
-    discard player->walk(data->game, context.timeDiff, state->playerDir);
+    discard player->walk(data->game, context.timeDiff, state->playerDir, null);
   else if (*event == ui->backward_key)
-    discard player->walk(data->game, -context.timeDiff, state->playerDir);
+    discard player->walk(data->game, -context.timeDiff, state->playerDir, null);
   else if (*event == ui->left_key)
-    discard player->walk(data->game, context.timeDiff, state->playerDir + 1.57);
+    discard player->walk(data->game, context.timeDiff, state->playerDir + 1.57, null);
   else if (*event == ui->right_key)
-    discard player->walk(data->game, context.timeDiff, state->playerDir - 1.57);
+    discard player->walk(data->game, context.timeDiff, state->playerDir - 1.57, null);
   else if (*event == ui->shoot_key)
     shoot(context);
   else if (*event == ui->melee_key) {
@@ -102,7 +102,7 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_e
       const angle = state->playerDir + atan2(pos.x, pos.y);
       const length = pos.length_d();
       if (length > 1000 * ui->minJoystickMovement) {
-        discard player->walk(data->game, -context.timeDiff * length / 1000, angle);
+        discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
         data->game->advance(fabs(context.timeDiff * length / 1000));
       }
     }
@@ -179,14 +179,18 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   });
   for (elem : toRender)
     elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos);
-  for (obj : data->game->objects)
-    if (!!obj->ongoingAttack && (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int()))) {
-      const coord = origin + ui->projectOnScreen(player, obj->pos + obj->ongoingAttack->getPosition(),
-          state->playerDir);
-      if (to_draw.contains(&coord))
-        (obj->ongoingAttack->attack.glyph ?? obj->attributes.glyph).render(context.canvas, ui->getFontSize(), coord,
-            !!obj->ongoingAttack->attack.glyph ? state->playerDir - obj->ongoingAttack->dir : 0);
-    }
+  for (obj : data->game->objects) {
+    mutable double? forceDir = null;
+    if (&*obj == data->game->getPlayer() && !obj->ongoingAttack)
+      forceDir = state->playerDir;
+    if (const weapon = obj->getMeleeWeaponPosition(forceDir))
+      if (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int())) {
+        const coord = origin + ui->projectOnScreen(player, weapon->pos, state->playerDir);
+        if (to_draw.contains(&coord))
+          (obj->attributes.creature->meleeAttack->glyph ?? obj->attributes.glyph).render(context.canvas, ui->getFontSize(), coord,
+              !!obj->attributes.creature->meleeAttack->glyph ? state->playerDir - weapon->dir : 0);
+      }
+  }
   for (anim : data->game->animations) {
     const coord = origin + ui->projectOnScreen(player, anim->position, state->playerDir);
     if (to_draw.contains(&coord))

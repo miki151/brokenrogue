@@ -2,8 +2,15 @@
 export import "glyph.znn";
 import "pretty_input.znn";
 
+export enum MeleeWeaponOrigin {
+  LEFT,
+  RIGHT,
+  CENTER
+};
+
 export struct MeleeAttack {
   Glyph? glyph;
+  MeleeWeaponOrigin origin;
   double reach;
   double duration;
   double damage;

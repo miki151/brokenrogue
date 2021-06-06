@@ -8,9 +8,39 @@ import "std/math.znn";
 export import "table.znn";
 export import "projectile.znn";
 
-export vec2d getPosition(MeleeAttackInfo* info) {
-  const state = info->remainingTime / info->attack.duration;
-  return vec2d(sin(info->dir), cos(info->dir)) * (info->attack.reach * (1 - 2 * fabs(state - 0.5)));
+export struct MeleeWeaponPosition {
+  vec2d pos;
+  double dir;
+};
+
+export MeleeWeaponPosition? getMeleeWeaponPosition(GameObject* object, double? forceDir) {
+  if (!object->attributes.creature || !object->attributes.creature->meleeAttack)
+    return null;
+  const attack = &*object->attributes.creature->meleeAttack;
+  const state = !object->ongoingAttack ? 0
+      : object->ongoingAttack->remainingTime / object->ongoingAttack->attack.duration;
+  const offset = object->attributes.box->size / 2.2;
+  const reach = attack->reach;
+  mutable dir = (forceDir ?? (!object->ongoingAttack ? object->lastWalkDirection : object->ongoingAttack->dir));
+  mutable offsetV = vec2d(0, 0);
+  switch (attack->origin) {
+    case (LEFT) {
+      offsetV = vec2d(sin(dir + 1.57), cos(dir + 1.57)) * offset;
+      dir -= atan2(offset, reach) / 2; 
+    }
+    case (RIGHT) {
+      offsetV = vec2d(sin(dir - 1.57), cos(dir - 1.57)) * offset;
+      dir += atan2(offset, reach) / 2;
+    }
+    case (CENTER) {
+      offsetV = vec2d(sin(dir), cos(dir)) * (offset / 2.0);
+    }
+  }
+  return MeleeWeaponPosition(
+      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * ( reach
+          * (1 - 2 * fabs(state - 0.5))),
+      dir
+  );
 }
 
 export vec2d getMaxMeleeAttackPosition(GameObject* object, double dir) {
@@ -40,12 +70,13 @@ export struct GameObject {
   Projectile? projectile;
   double? health;
   bool remember;
+  double lastWalkDirection;
 };
 
 export GameObject(vec2d pos, GameObjectAttributes attr) {
   const health = attr.maxHealth.map_to(&[](int* a) { return a->as_double(); });
   return GameObject::GameObject(pos, GameObjectAnimation(), move(attr), null, 0, 0, null, null, health,
-      false);
+      false, 0);
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction) {

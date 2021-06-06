@@ -72,7 +72,8 @@ export Game(int lineOfSight, LevelGenerator* generator, hash_map<string, GameObj
       mapping, lineOfSight, false);
 }
 
-export int? walk(GameObject mutable* c, Game* g, double amount, double angle) {
+export int? walk(GameObject mutable* c, Game* g, double amount, double angle, double? facingDir) {
+  c->lastWalkDirection = facingDir ?? angle;
   return c->advance(g, vec2d(sin(angle), cos(angle)) * amount * c->attributes.creature->speed);
 }
 
@@ -119,7 +120,7 @@ export void advance(Game mutable* g, double timeDiff) {
       if (!it->ongoingAttack->nullified)
         for (it2 : g->objects)
           if (it2 != it && !!it2->attributes.creature && !!it2->attributes.box &&
-              it2->attributes.box->isPenetrated(it->pos + it->ongoingAttack->getPosition() - it2->pos)) {
+              it2->attributes.box->isPenetrated(it->getMeleeWeaponPosition(null)->pos - it2->pos)) {
             it->ongoingAttack->nullified = true;
             if (g->woundCreature(it2.index, curTime, it->ongoingAttack->attack.damage))
               deadCreatures.push_back(it2.index);

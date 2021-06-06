@@ -19,8 +19,8 @@ export AIAvoidMelee copy(AIAvoidMelee*) = default;
 export bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game->getPlayer();
   if (canReachMelee(obj, object) && !!obj->ongoingAttack) {
-    const v = object->pos - obj->pos;
-    discard object->walk(game, timeDiff, atan2(v.x, v.y));
+    const dir = (object->pos - obj->pos).angle();
+    discard object->walk(game, timeDiff, dir, -dir);
     return true;
   }
   return false;
@@ -55,7 +55,7 @@ export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object
   const obj = game->getPlayer();
   return game->canSee(object, obj->pos.as_int())
       && !canReachMelee(object, obj)
-      && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle());
+      && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle(), null);
 }
 
 export struct AICircle {};
@@ -65,7 +65,7 @@ export bool makeMove(AICircle*, Game mutable* game, GameObject mutable* object, 
   const obj = game->getPlayer();
   return game->canSee(object, obj->pos.as_int())
       && !canReachMelee(object, obj)
-      && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle() + 1.57)
+      && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle() + 1.57, null)
       && false;
 }
 
