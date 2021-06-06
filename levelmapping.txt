@@ -5,6 +5,16 @@
   "lava" "_" 255 105 50 1.0 null null false null true
   "corpse" "%" 255 10 10 1.0 null null false null true
   "bridge" "_" 210 105 50 1.0 null null false null true
+  "bee"
+      "b" 200 100 100 0.4
+      0.2
+          5
+          ("^" 230 230 230 0.2, CENTER, 0.3, 0.2, 0.1)
+          null
+          first { avoidMelee pathfind melee }
+      false
+      1
+      false
   "rat"
       "r" 200 100 100 0.8
       0.5
