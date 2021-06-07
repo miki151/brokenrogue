@@ -73,14 +73,18 @@ void render(T* t, mutable UIContext context, rectangle* r) {
 }
 
 export template <T> requires container_ui<T>
-vec2 size(T* t, UIContext context) {
-  mutable ret = vec2(0, 0);
-  for (elem : t->get_elems()) {
-    const sz = elem->get()->size(context);
-    ret.x = max(ret.x, sz.x);
-    ret.y = max(ret.y, sz.y);
+vec2 size(T* t, mutable UIContext context) {
+  if (const data = t->transform_data(context.data)) {
+    context.data = *data;
+    mutable ret = vec2(0, 0);
+    for (elem : t->get_elems()) {
+      const sz = elem->get()->size(context);
+      ret.x = max(ret.x, sz.x);
+      ret.y = max(ret.y, sz.y);
+    }
+    return ret;
   }
-  return ret;
+  return vec2(100, 50);
 }
 
 export template <T> requires container_ui<T>
@@ -161,7 +165,28 @@ export void render(text_ui* t, UIContext context, rectangle* r) {
 }
 
 export vec2 size(text_ui* t, UIContext context) {
-  return context.canvas->getTextSize("something", t->size);
+  if (const s = context.data->cast_to<string>())
+    return context.canvas->getTextSize(**s, t->size);
+  return vec2(40, 40);
+}
+
+export [@ui_element]
+struct colored_text_ui {
+  int size;
+};
+
+export void render(colored_text_ui* t, UIContext context, rectangle* r) {
+  if (const rec = context.data->cast_to<UIRecord>())
+    if (const col = (*rec)->data.get_maybe(&"color"))
+      if (const text = (*rec)->data.get_maybe(&"text"))
+        context.canvas->drawText(r->v1, **(**text)->cast_to<string>(), t->size, *(**col)->cast_to<color>());
+}
+
+export vec2 size(colored_text_ui* t, UIContext context) {
+  if (const rec = context.data->cast_to<UIRecord>())
+    if (const text = (*rec)->data.get_maybe(&"text"))
+      return context.canvas->getTextSize(**(**text)->cast_to<string>(), t->size);
+  return vec2(40, 40);
 }
 
 export [@ui_element]

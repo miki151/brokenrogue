@@ -43,6 +43,24 @@ struct Flags {
   string? font;
 };
 
+template <Types...> requires copy<Types>...
+UIRecord createRecord(string[] names, Types... values) {
+  mutable ret = UIRecord();
+  static for (i = 0; i < countof(values); ++i) {
+    ret.data.insert(names[i], values...[i].copy().box_as<any>());
+  }
+  return move(ret);
+}
+
+void insertCreatureInfo(UIRecord mutable* record, string field, double hp, string name, Glyph* glyph) {
+  mutable creatureData = UIRecord();
+  creatureData.data.insert("hp", hp.box_as<any>());
+  creatureData.data.insert("name", name.box_as<any>());
+  creatureData.data.insert("glyph", createRecord({"text", "color"}.slice(), glyph->sym, glyph->col.copy())
+      .box_as<any>());
+  record->data.insert(field, move(creatureData).box_as<any>());
+}
+
 int main(string[] args) {
   const panic_handler = [](string s) { printf("{s}\n"); exit(0); };
   set_panic_handler(&panic_handler);
@@ -65,9 +83,12 @@ int main(string[] args) {
   mutable last_update = current_time_milli();
   mutable realTimeEnd = last_update;
   const timeSpentCallback = [&] (int time) { realTimeEnd = max(realTimeEnd, last_update + time); };
+  mutable HighlightedObjectInfo? highlightedObjectInfo = null; 
+  const highlightedObjectCallback = [&] (HighlightedObjectInfo? info) { highlightedObjectInfo = info.copy(); };
   const game_data = GameLevelUIData(
       &game,
-      &timeSpentCallback
+      &timeSpentCallback,
+      &highlightedObjectCallback
   );
   uiData.data.insert("game_level", box_as<any>(move(game_data)));
   mutable events_state = sdl_events_state();
@@ -89,8 +110,14 @@ int main(string[] args) {
       }.box_as<UICallback>().box_as<any>());
       uiData.data.insert("game_over", move(boxData).box_as<any>());
     }
-    uiData.data.insert("player_hp",
-        max(0.0, *game.getPlayer()->health / *game.getPlayer()->attributes.maxHealth).box_as<any>());
+    insertCreatureInfo(&uiData, "player_info", 
+        max(0.0, *game.getPlayer()->health / *game.getPlayer()->attributes.maxHealth), "Player",
+            &game.getPlayer()->attributes.glyph);
+    if (highlightedObjectInfo)
+      insertCreatureInfo(&uiData, "enemy_info", highlightedObjectInfo->hp, highlightedObjectInfo->name,
+          &highlightedObjectInfo->glyph);
+    else
+      uiData.data.erase(&"enemy_info");
     const cur_time = current_time_milli();
     timeDiff = 0.001 * (cur_time - last_update);
     if (cur_time <= realTimeEnd)

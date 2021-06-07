@@ -9,6 +9,7 @@ export import "ui.znn";
 import "rectangle.znn";
 import "ui_state.znn";
 import "std/time.znn";
+export import "glyph.znn";
 
 export [@ui_element]
 struct GameLevelUI {
@@ -36,9 +37,18 @@ int getFontSize(GameLevelUI* ui) {
   return (ui->fontRatio * ui->tile_size).as_int();
 }
 
+export struct HighlightedObjectInfo {
+  Glyph glyph;
+  string name;
+  double hp;
+};
+
+export HighlightedObjectInfo copy(HighlightedObjectInfo*) = default;
+
 export struct GameLevelUIData {
   Game mutable* game;
   invoke<void, int>* timeSpentCallback;
+  invoke<void, HighlightedObjectInfo?>* highlightedObjectCallback;
 };
 
 export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event* event) {
@@ -155,11 +165,21 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     }
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
+  mutable highlightedObject = player;
+  mutable bestAngle = 100000.0;
   for (it : data->game->objects) {
     const obj = it->get();
     const canSee = ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int());
     if ((!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) && (canSee || obj->remember)) {
-      const coord = origin + ui->projectOnScreen(player, obj->pos, state->playerDir);
+      const projected = ui->projectOnScreen(player, obj->pos, state->playerDir);
+      if (obj != player && !!obj->attributes.creature) {
+        const angle = fabs(atan2(projected.x, -projected.y));
+        if (angle < bestAngle) {
+          bestAngle = angle;
+          highlightedObject = obj;
+        }
+      }
+      const coord = origin + projected;
       if (to_draw.contains(&coord)) {
         const jumpState = ((curTime % ui->jumpDuration + ui->jumpDuration) % ui->jumpDuration).as_double() 
             / ui->jumpDuration;
@@ -175,6 +195,15 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       }
     }
   }
+  if (highlightedObject != player)
+    data->highlightedObjectCallback->invoke(HighlightedObjectInfo(
+        highlightedObject->attributes.glyph.copy(),
+        highlightedObject->attributes.name,
+        *highlightedObject->health / *highlightedObject->attributes.maxHealth));
+  else {
+    const HighlightedObjectInfo? tmp = null;
+    data->highlightedObjectCallback->invoke(move(tmp));
+  }
   toRender.sort(&[](GlyphRenderElem* p1, GlyphRenderElem* p2) {
       return p1->pos.y < p2->pos.y;
   });
@@ -189,7 +218,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       if (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int())) {
         const coord = origin + ui->projectOnScreen(player, weapon->pos, state->playerDir);
         if (to_draw.contains(&coord))
-          (obj->attributes.creature->meleeAttack->glyph ?? obj->attributes.glyph).render(context.canvas, ui->getFontSize(), coord,
+          (obj->attributes.creature->meleeAttack->glyph ?? obj->attributes.glyph).render(
+              context.canvas, ui->getFontSize(), coord,
               !!obj->attributes.creature->meleeAttack->glyph ? state->playerDir - weapon->dir : 0);
       }
   }

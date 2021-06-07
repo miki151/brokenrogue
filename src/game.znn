@@ -193,6 +193,7 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
       o->pos + vdir * (size + o->attributes.box->size) / 2.0,
       GameObjectAttributes(
         move(glyph),
+        "projectile",
         BoundingBox(size),
         null,
         false,

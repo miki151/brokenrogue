@@ -25,6 +25,7 @@ export BoundingBox implicit_copy(BoundingBox*) = default;
 
 export struct GameObjectAttributes {
   Glyph glyph;
+  string name;
   BoundingBox? box;
   Creature? creature;
   bool blocksVision;
