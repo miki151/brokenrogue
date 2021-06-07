@@ -44,6 +44,7 @@ export struct Game {
   hash_map<string, GameObjectAttributes>* objectFactory;
   int lineOfSight;
   bool isOver;
+  int gameObjectIdCounter;
 };
 
 export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
@@ -68,8 +69,10 @@ export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
 
 export Game(int lineOfSight, LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
   const size = vec2(30, 30);
-  return Game::Game(Level("Level 1", size), getObjects(size, generator, mapping), vector<LevelAnimation>(),
-      mapping, lineOfSight, false);
+  const objects = getObjects(size, generator, mapping);
+  const lastId = objects.back()->get()->id;
+  return Game::Game(Level("Level 1", size), move(objects), vector<LevelAnimation>(),
+      mapping, lineOfSight, false, lastId + 1);
 }
 
 export int? walk(GameObject mutable* c, Game* g, double amount, double angle, double? facingDir) {
@@ -118,12 +121,12 @@ export void advance(Game mutable* g, double timeDiff) {
       object->rangedAttackTimeout -= timeDiff;
     if (object->ongoingAttack) {
       object->ongoingAttack->remainingTime -= timeDiff;
-      if (!object->ongoingAttack->nullified)
-        for (it2 : g->objects) {
+      for (it2 : g->objects)
+        if (!object->ongoingAttack->woundedObjects.contains(&it2->get()->id)) {
           const object2 = it2->get();
           if (object2 != object && !!object2->attributes.creature && !!object2->attributes.box &&
               object2->attributes.box->isPenetrated(object->getMeleeWeaponPosition(null)->pos - object2->pos)) {
-            object->ongoingAttack->nullified = true;
+            object->ongoingAttack->woundedObjects.insert(object2->id);
             if (g->woundCreature(it2.index, curTime, object->ongoingAttack->attack.damage))
               deadCreatures.push_back(it2.index);
             break;
@@ -150,9 +153,10 @@ export void advance(Game mutable* g, double timeDiff) {
     if (deadCreatures[i] == 0)
       g->isOver = true;
     else {
-      const deadCreature = g-g->>objects[deadCreatures[i]].get();
+      const deadCreature = g->objects[deadCreatures[i]].get();
       if (!!deadCreature->attributes.creature) {
-        toAdd.push_back(GameObject(deadCreature->pos, g->objectFactory->get(&"corpse")->copy()));
+        toAdd.push_back(GameObject(g->gameObjectIdCounter, deadCreature->pos,
+            g->objectFactory->get(&"corpse")->copy()));
         toAdd.back()->attributes.glyph.size = deadCreature->attributes.glyph.size * 0.8;
       }
       g->objects.remove(deadCreatures[i]);
@@ -185,6 +189,7 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
     double damage) {
   const vdir = dir / dir.length_d();
   g->objects.push_back(GameObject(
+      g->gameObjectIdCounter,
       o->pos + vdir * (size + o->attributes.box->size) / 2.0,
       GameObjectAttributes(
         move(glyph),
@@ -218,7 +223,7 @@ vector<box<GameObject>> getObjects(vec2 levelSize, LevelGenerator* generator,
           assert(playerIndex == -1);
           playerIndex = ret.size();
         }
-        ret.push_back(GameObject(v->as_double(), (*attr)->copy()).box());
+        ret.push_back(GameObject(ret.size(), v->as_double(), (*attr)->copy()).box());
       }
   if (playerIndex > 0)
     swap(&ret[playerIndex], &ret[0]);
