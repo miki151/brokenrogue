@@ -37,13 +37,18 @@ export Tile*? getTile(Level* l, vec2 pos) {
   return null;
 }
 
+export enum GameStatus {
+  GAME_LOST,
+  GAME_WON
+};
+
 export struct Game {
   Level level;
   vector<box<GameObject>> objects;
   vector<LevelAnimation> animations;
   hash_map<string, GameObjectAttributes>* objectFactory;
   int lineOfSight;
-  bool isOver;
+  GameStatus? status;
   int gameObjectIdCounter;
 };
 
@@ -72,7 +77,7 @@ export Game(int lineOfSight, LevelGenerator* generator, hash_map<string, GameObj
   const objects = getObjects(size, generator, mapping);
   const lastId = objects.back()->get()->id;
   return Game::Game(Level("Level 1", size), move(objects), vector<LevelAnimation>(),
-      mapping, lineOfSight, false, lastId + 1);
+      mapping, lineOfSight, null, lastId + 1);
 }
 
 export int? walk(GameObject mutable* c, Game* g, double amount, double angle, double? facingDir) {
@@ -151,7 +156,7 @@ export void advance(Game mutable* g, double timeDiff) {
   deadCreatures.sort(&[](int* a, int* b) { return *a > *b; });
   for (i = 0; i < deadCreatures.size(); ++i) {
     if (deadCreatures[i] == 0)
-      g->isOver = true;
+      g->status = GameStatus::GAME_LOST;
     else {
       const deadCreature = g->objects[deadCreatures[i]].get();
       if (!!deadCreature->attributes.creature) {
@@ -162,6 +167,14 @@ export void advance(Game mutable* g, double timeDiff) {
       g->objects.remove(deadCreatures[i]);
     }
   }
+  const wonGame = [&] {
+    for (it : g->objects)
+      if (it.index > 0 && !!it->get()->attributes.creature)
+        return false;
+    return true;
+  }();
+  if (wonGame)
+    g->status = GameStatus::GAME_WON;
   while (!toAdd.empty())
     g->objects.push_back(toAdd.pop_back().box());
 }

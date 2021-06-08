@@ -60,7 +60,7 @@ End
       margins(20, text(25, 255 255 255))
     })
   }
-  using "game_over" {
+  using "GAME_LOST" {
     consume_events
     position(CENTER, {
       fill(0 0 0)
@@ -76,6 +76,20 @@ End
         position(CENTER, label("8====| '' |====8", DeathScreenFont2, 255 255 255))
         position(CENTER, label("`LLLU'", DeathScreenFont2, 255 255 255))
         position(CENTER, label("/    )", DeathScreenFont2, 255 255 255))
+        height 10 {}
+        label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
+      })
+    })
+    using "restart_callback" key_handler(ENTER DOWN)
+    using "exit_callback" key_handler(ESCAPE DOWN)
+  }
+  using "GAME_WON" {
+    consume_events
+    position(CENTER, {
+      fill(0 0 0)
+      frame(1, 255 255 255)
+      margins(20, vertical {
+        position(CENTER, label("You won!", DeathScreenFont1, 255 255 255))
         height 10 {}
         label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
       })

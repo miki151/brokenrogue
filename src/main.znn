@@ -106,18 +106,17 @@ int main(string[] args) {
   while (!exit) {
     fps.add_tick();
     uiData.data.insert("fps", "{fps.get_fps()}".box_as<any>());
-    if (game.isOver && !uiData.data.contains(&"game_over")) {
+    if (!!game.status && !uiData.data.contains(&game.status->asString())) {
       mutable boxData = UIRecord();
-      boxData.data.insert("text", "Game over".box_as<any>());
       boxData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
       boxData.data.insert("restart_callback", [&] {
           showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating level...");
+          uiData.data.erase(&game.status->asString());
           game = Game(10, levelGen.get(), &levelMapping);
           last_update = current_time_milli();
           realTimeEnd = last_update;
-          uiData.data.erase(&"game_over");
       }.box_as<UICallback>().box_as<any>());
-      uiData.data.insert("game_over", move(boxData).box_as<any>());
+      uiData.data.insert(game.status->asString(), move(boxData).box_as<any>());
     }
     insertCreatureInfo(&uiData, "player_info", 
         max(0.0, *game.getPlayer()->health / *game.getPlayer()->attributes.maxHealth), "Player",
