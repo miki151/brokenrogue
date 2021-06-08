@@ -8,6 +8,7 @@ export import "projectile.znn";
 export import "table.znn";
 export import "glyph.znn";
 import "std/time.znn";
+import "std/io.znn";
 export import "level_generator.znn";
 export import "std/hash_map.znn";
 export import "level_animation.znn";
@@ -102,33 +103,39 @@ export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
   return obj->fovInfo->data.bounds().contains(&vpos) && obj->fovInfo->data[vpos] == 1;
 }
 
-vector<box<GameObject>> generateObjects(int initialId, vec2 levelSize, LevelGenerator* generator,
+vector<box<GameObject>> generateObjects(int levelNum, int initialId, vec2 levelSize, LevelGenerator* generator,
     hash_map<string, GameObjectAttributes>* mapping) {
   mutable ret = vector<box<GameObject>>();
-  const levelTable = *generator->generate(levelSize);
+  const levelTable = [&] {
+    for (i = 0; i < 10; ++i)
+      if (const res = generator->generate(levelSize))
+        return *move(res);
+    panic("Failed to generate level {levelNum}");
+  }();
   mutable playerIndex = -1;
   for (v : levelTable.bounds())
     for (token : levelTable[*v])
       if (const attr = mapping->get_maybe(&*token)) {
         if (*token == "player") {
-          assert(playerIndex == -1);
+          assert(playerIndex == -1, "Player creature generated more than once");
           playerIndex = ret.size();
         }
         ret.push_back(GameObject(initialId + ret.size(), v->as_double(), (*attr)->copy()).box());
       }
+  assert(playerIndex > -1, "Player creature wasn't generated");
   if (playerIndex > 0)
     swap(&ret[playerIndex], &ret[0]);
   return move(ret);
 }
 
-export Game(int lineOfSight, vector<LevelGenerator*> generator, hash_map<string, GameObjectAttributes>* mapping) {
-  const size = vec2(30, 30);
+export Game(int lineOfSight, vector<pair<vec2, LevelGenerator*>> generator,
+    hash_map<string, GameObjectAttributes>* mapping) {
   mutable lastId = 0;
   mutable levels = vector<Level>();
   for (gen : generator) {
-    const objects = generateObjects(lastId, size, *gen, mapping);
+    const objects = generateObjects(gen.index, lastId, gen->first, gen->second, mapping);
     lastId = objects.back()->get()->id + 1;
-    levels.push_back(Level("Level 1", size, move(objects), vector<LevelAnimation>()));
+    levels.push_back(Level("Level 1", gen->first, move(objects), vector<LevelAnimation>()));
   }
   return Game::Game(move(levels), 0, mapping, lineOfSight, null, lastId);
 }

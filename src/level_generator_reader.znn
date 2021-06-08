@@ -3,6 +3,7 @@ export import "level_generator.znn";
 import "pretty_input.znn";
 import "std/io.znn";
 import "game_object_attributes.znn";
+import "vec2.znn";
 
 template <T> requires (T == LevelGeneratorMargins || T == LevelGenPredicateOn || T == LevelGenPredicateChance
     || T == LevelGeneratorMargin || T == LevelGeneratorPosition || T == LevelGeneratorFilter
@@ -139,9 +140,9 @@ box<LevelGenPredicate>!string read_data(input_stream mutable* stream, pretty_dum
   return stream->get_error("Not an level generator predicate type: \"{s}\"");
 }
 
-export vector<box<LevelGenerator>>!string readLevelGenerator(string content) {
+export vector<pair<vec2, box<LevelGenerator>>>!string readLevelGenerator(string content) {
   mutable stream = try create_input_stream(content);
-  return stream.read_data<vector<box<LevelGenerator>>>();
+  return stream.read_data<vector<pair<vec2, box<LevelGenerator>>>>();
 }
 
 export hash_map<string, GameObjectAttributes>!string readLevelMapping(string content) {
