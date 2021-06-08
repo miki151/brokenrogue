@@ -24,11 +24,13 @@ export Tile copy(Tile*) = default;
 export struct Level {
   string name;
   table<Tile> tiles;
+  vector<box<GameObject>> objects;
+  vector<LevelAnimation> animations;
 };
 
-export Level(string name, vec2 size) {
+export Level(string name, vec2 size, vector<box<GameObject>> objects, vector<LevelAnimation> animations) {
   const tiles = table(size, Tile(Glyph(".", color(80, 80, 80))));
-  return Level::Level(name, move(tiles));
+  return Level::Level(name, move(tiles), move(objects), move(animations));
 }
 
 export Tile*? getTile(Level* l, vec2 pos) {
@@ -43,14 +45,42 @@ export enum GameStatus {
 };
 
 export struct Game {
-  const Level level;
-  vector<box<GameObject>> objects;
-  vector<LevelAnimation> animations;
+  vector<Level> levels;
+  int currentLevel;
   const hash_map<string, GameObjectAttributes>* objectFactory;
   const int lineOfSight;
   GameStatus? status;
   int gameObjectIdCounter;
 };
+
+export Level* getLevel(Game* g) {
+  return &g->levels[g->currentLevel];
+}
+
+export Level mutable* getLevel(Game mutable* g) {
+  return &g->levels[g->currentLevel];
+}
+
+export void useStairs(Game mutable* g) {
+  ++g->currentLevel;
+}
+
+export bool canUseStairs(Game* g) {
+  if (g->currentLevel == g->levels.size() - 1)
+    return false;
+  for (it : *g->getObjects())
+    if (it->get()->attributes.isStairs && (it->get()->pos - g->getPlayer()->pos).length_d() < 1.0)
+      return true;
+  return false;
+}
+
+export vector<box<GameObject>>* getObjects(Game* g) {
+  return &g->getLevel()->objects;
+}
+
+export vector<box<GameObject>> mutable* getObjects(Game mutable* g) {
+  return &g->getLevel()->objects;
+}
 
 export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
   const posInt = (obj->pos + vec2d(0.5, 0.5)).as_int();
@@ -60,7 +90,7 @@ export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
         table<int>(vec2(game->lineOfSight, game->lineOfSight), 0)
     );
     const getObjPos = [&](GameObject* obj2) { return obj->fovInfo->data.size() / 2 + obj2->pos.as_int() - posInt; };
-    for (obj2 : game->objects)
+    for (obj2 : *game->getObjects())
       if (obj2->get()->attributes.blocksVision) {
         const opos = getObjPos(obj2->get());
         if (obj->fovInfo->data.bounds().contains(&opos))
@@ -72,12 +102,35 @@ export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
   return obj->fovInfo->data.bounds().contains(&vpos) && obj->fovInfo->data[vpos] == 1;
 }
 
-export Game(int lineOfSight, LevelGenerator* generator, hash_map<string, GameObjectAttributes>* mapping) {
+vector<box<GameObject>> generateObjects(int initialId, vec2 levelSize, LevelGenerator* generator,
+    hash_map<string, GameObjectAttributes>* mapping) {
+  mutable ret = vector<box<GameObject>>();
+  const levelTable = *generator->generate(levelSize);
+  mutable playerIndex = -1;
+  for (v : levelTable.bounds())
+    for (token : levelTable[*v])
+      if (const attr = mapping->get_maybe(&*token)) {
+        if (*token == "player") {
+          assert(playerIndex == -1);
+          playerIndex = ret.size();
+        }
+        ret.push_back(GameObject(initialId + ret.size(), v->as_double(), (*attr)->copy()).box());
+      }
+  if (playerIndex > 0)
+    swap(&ret[playerIndex], &ret[0]);
+  return move(ret);
+}
+
+export Game(int lineOfSight, vector<LevelGenerator*> generator, hash_map<string, GameObjectAttributes>* mapping) {
   const size = vec2(30, 30);
-  const objects = getObjects(size, generator, mapping);
-  const lastId = objects.back()->get()->id;
-  return Game::Game(Level("Level 1", size), move(objects), vector<LevelAnimation>(),
-      mapping, lineOfSight, null, lastId + 1);
+  mutable lastId = 0;
+  mutable levels = vector<Level>();
+  for (gen : generator) {
+    const objects = generateObjects(lastId, size, *gen, mapping);
+    lastId = objects.back()->get()->id + 1;
+    levels.push_back(Level("Level 1", size, move(objects), vector<LevelAnimation>()));
+  }
+  return Game::Game(move(levels), 0, mapping, lineOfSight, null, lastId);
 }
 
 export int? walk(GameObject mutable* c, Game* g, double amount, double angle, double? facingDir) {
@@ -90,7 +143,7 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
   if (c->attributes.creature)
     c->animation.lastMovement = current_time_milli();
   mutable int? ret = null;
-  for (it : g->objects)
+  for (it : *g->getObjects())
     if (it->get() != c && !it->get()->projectile)
       if (const v = getRebound(c, it->get())) {
         c->pos -= *v;
@@ -100,13 +153,13 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
 }
 
 bool woundCreature(Game mutable* g, int objIndex, int curTime, double damage) {
-  const hitObject = g->objects[objIndex].get();
-  g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime));
+  const hitObject = (*g->getObjects())[objIndex].get();
+  g->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime));
   if (hitObject->health)
     *hitObject->health -= damage;
   if (hitObject->health ?? 1.0 <= 0.0) {
     for (i : range(0, 10))
-      g->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime + i));
+      g->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, hitObject->pos, curTime + i));
     return true;
   }
   return false;
@@ -117,16 +170,16 @@ export void advance(Game mutable* g, double timeDiff) {
   mutable toAdd = vector<GameObject>();
   const curTime = current_time_milli();
   // Must iterate objects using an index as they may get killed and removed from the list.
-  for (i = 0; i < g->objects.size(); ++i)
-    if (i > 0 && !!g->objects[i]->attributes.creature)
-      discard g->objects[i]->attributes.creature->ai.makeMove(g, g->objects[i].get(), timeDiff);
-  for (it : g->objects) {
+  for (i = 0; i < g->getObjects()->size(); ++i)
+    if (i > 0 && !!(*g->getObjects())[i]->attributes.creature)
+      discard (*g->getObjects())[i]->attributes.creature->ai.makeMove(g, (*g->getObjects())[i].get(), timeDiff);
+  for (it : *g->getObjects()) {
     const object = it->get();
     if (object->rangedAttackTimeout > 0.0)
       object->rangedAttackTimeout -= timeDiff;
     if (object->ongoingAttack) {
       object->ongoingAttack->remainingTime -= timeDiff;
-      for (it2 : g->objects)
+      for (it2 : *g->getObjects())
         if (!object->ongoingAttack->woundedObjects.contains(&it2->get()->id)) {
           const object2 = it2->get();
           if (object2 != object && !!object2->attributes.creature && !!object2->attributes.box &&
@@ -144,12 +197,12 @@ export void advance(Game mutable* g, double timeDiff) {
       const prevPos = object->pos;
       if (const targetIndex = object->advance(g, object->projectile->dir * timeDiff)) {
         deadCreatures.push_back(it.index);
-        const target = g->objects[*targetIndex].get();
+        const target = (*g->getObjects())[*targetIndex].get();
         if (target->attributes.creature) {
           if (g->woundCreature(*targetIndex, curTime, object->projectile->damage))
             deadCreatures.push_back(*targetIndex);
         } else
-          g->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
+          g->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
       }
     }
   }
@@ -158,25 +211,19 @@ export void advance(Game mutable* g, double timeDiff) {
     if (deadCreatures[i] == 0)
       g->status = GameStatus::GAME_LOST;
     else {
-      const deadCreature = g->objects[deadCreatures[i]].get();
+      const deadCreature = (*g->getObjects())[deadCreatures[i]].get();
+      if (deadCreature->attributes.isEndGameBoss)
+        g->status = GameStatus::GAME_WON;
       if (!!deadCreature->attributes.creature) {
         toAdd.push_back(GameObject(g->gameObjectIdCounter, deadCreature->pos,
             g->objectFactory->get(&"corpse")->copy()));
         toAdd.back()->attributes.glyph.size = deadCreature->attributes.glyph.size * 0.8;
       }
-      g->objects.remove(deadCreatures[i]);
+      g->getObjects()->remove(deadCreatures[i]);
     }
   }
-  const wonGame = [&] {
-    for (it : g->objects)
-      if (it.index > 0 && !!it->get()->attributes.creature)
-        return false;
-    return true;
-  }();
-  if (wonGame)
-    g->status = GameStatus::GAME_WON;
   while (!toAdd.empty())
-    g->objects.push_back(toAdd.pop_back().box());
+    g->getObjects()->push_back(toAdd.pop_back().box());
 }
 
 export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable double direction) {
@@ -201,7 +248,7 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
 export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph glyph, double size,
     double damage) {
   const vdir = dir / dir.length_d();
-  g->objects.push_back(GameObject(
+  g->getObjects()->push_back(GameObject(
       g->gameObjectIdCounter,
       o->pos + vdir * (size + o->attributes.box->size) / 2.0,
       GameObjectAttributes(
@@ -211,36 +258,19 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
         null,
         false,
         null,
+        false,
+        false,
         false
       )
   ).box());
-  g->objects.back()->get()->projectile = Projectile(dir, damage);
+  g->getObjects()->back()->get()->projectile = Projectile(dir, damage);
 }
 
 export GameObject* getPlayer(Game* g) {
-  return g->objects[0].get();
+  return (*g->getObjects())[0].get();
 }
 
 export GameObject mutable* getPlayer(Game mutable* g) {
-  return g->objects[0].get();
-}
-
-vector<box<GameObject>> getObjects(vec2 levelSize, LevelGenerator* generator,
-    hash_map<string, GameObjectAttributes>* mapping) {
-  mutable ret = vector<box<GameObject>>();
-  const levelTable = *generator->generate(levelSize);
-  mutable playerIndex = -1;
-  for (v : levelTable.bounds())
-    for (token : levelTable[*v])
-      if (const attr = mapping->get_maybe(&*token)) {
-        if (*token == "player") {
-          assert(playerIndex == -1);
-          playerIndex = ret.size();
-        }
-        ret.push_back(GameObject(ret.size(), v->as_double(), (*attr)->copy()).box());
-      }
-  if (playerIndex > 0)
-    swap(&ret[playerIndex], &ret[0]);
-  return move(ret);
+  return (*g->getObjects())[0].get();
 }
 

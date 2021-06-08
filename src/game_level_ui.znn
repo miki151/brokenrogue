@@ -31,6 +31,7 @@ struct GameLevelUI {
   key_event wait_key;
   key_event melee_key;
   key_event shoot_key;
+  key_event change_level_key;
 };
 
 int getFontSize(GameLevelUI* ui) {
@@ -67,6 +68,10 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
     shoot(context);
   else if (*event == ui->melee_key) {
     discard player->addMeleeAttack(state->playerDir);
+  }
+  else if (*event == ui->change_level_key && data->game->canUseStairs()) {
+    data->game->useStairs();
+    return true;
   } else if (*event != ui->wait_key)
     return false;
   data->game->advance(context.timeDiff);
@@ -158,7 +163,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const to_draw = r->plus_margin(ui->tile_size);
   const state = context.state->get_state<GameLevelUIState>();
   for (pos : centered_rect(player->pos.as_int(), data->game->lineOfSight))
-    if (const t = data->game->level.getTile(*pos)) {
+    if (const t = data->game->getLevel()->getTile(*pos)) {
       const coord = origin + ui->projectOnScreen(player, pos->as_double(), state->playerDir);
       if (to_draw.contains(&coord) && (ui->seeWholeMap || data->game->canSee(player, *pos)))
         (*t)->glyph.render(context.canvas, ui->getFontSize(), coord);
@@ -167,7 +172,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const curTime = current_time_milli();
   mutable highlightedObject = player;
   mutable bestAngle = 100000.0;
-  for (it : data->game->objects) {
+  for (it : *data->game->getObjects()) {
     const obj = it->get();
     const canSee = ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int());
     if ((!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) && (canSee || obj->remember)) {
@@ -209,7 +214,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   });
   for (elem : toRender)
     elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos);
-  for (it : data->game->objects) {
+  for (it : *data->game->getObjects()) {
     const obj = it->get();
     mutable double? forceDir = null;
     if (&*obj == data->game->getPlayer() && !obj->ongoingAttack)
@@ -223,7 +228,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
               !!obj->attributes.creature->meleeAttack->glyph ? state->playerDir - weapon->dir : 0);
       }
   }
-  for (anim : data->game->animations) {
+  for (anim : data->game->getLevel()->animations) {
     const coord = origin + ui->projectOnScreen(player, anim->position, state->playerDir);
     if (to_draw.contains(&coord))
       switch (anim->type) {
@@ -237,6 +242,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         }
       }
   }
+  if (data->game->canUseStairs())
+    context.canvas->drawText(origin + vec2(0, 40), "Press [ENTER] to use the stairs", 20, &color(255, 255, 0), ui_text_flag::CENTER_XY);
 }
 
 

@@ -47,7 +47,8 @@ End
     D HELD,
     SPACE HELD,
     B DOWN,
-    Y DOWN
+    Y DOWN,
+    ENTER DOWN
   )
 #      position(RIGHT_CENTER,
 #          using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})

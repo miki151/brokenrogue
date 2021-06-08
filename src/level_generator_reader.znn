@@ -139,9 +139,9 @@ box<LevelGenPredicate>!string read_data(input_stream mutable* stream, pretty_dum
   return stream->get_error("Not an level generator predicate type: \"{s}\"");
 }
 
-export box<LevelGenerator>!string readLevelGenerator(string content) {
+export vector<box<LevelGenerator>>!string readLevelGenerator(string content) {
   mutable stream = try create_input_stream(content);
-  return stream.read_data<box<LevelGenerator>>();
+  return stream.read_data<vector<box<LevelGenerator>>>();
 }
 
 export hash_map<string, GameObjectAttributes>!string readLevelMapping(string content) {

@@ -41,6 +41,7 @@ box<UIElement>!string readUIFrom(string path) {
 
 struct Flags {
   string? font;
+  bool noPanicHandler;
 };
 
 template <Types...> requires copy<Types>...
@@ -69,9 +70,10 @@ void showDialog(sdl_window* window, SDLCanvas* canvas, rectangle* rect, UIElemen
 }
 
 int main(string[] args) {
-  const panic_handler = [](string s) { printf("{s}\n"); exit(0); };
-  set_panic_handler(&panic_handler);
   const flags = *read_flags<Flags>(args);
+  const panic_handler = [](string s) { printf("{s}\n"); exit(0); };
+  if (!flags.noPanicHandler)
+    set_panic_handler(&panic_handler);
   *sdl_init();
   init_random();
   mutable ui = *readUIFrom("ui.txt");
@@ -84,7 +86,10 @@ int main(string[] args) {
   const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
   const levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
   showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating level...");
-  mutable game = Game(10, levelGen.get(), &levelMapping);
+  const getNewGame = [&] {
+    return Game(10, levelGen.transform([](box<LevelGenerator>* g) { return g->get(); }), &levelMapping);
+  };
+  mutable game = getNewGame();
   mutable exit = false;
   mutable timeDiff = 0.0;
   mutable last_update = current_time_milli();
@@ -112,7 +117,7 @@ int main(string[] args) {
       boxData.data.insert("restart_callback", [&] {
           showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating level...");
           uiData.data.erase(&game.status->asString());
-          game = Game(10, levelGen.get(), &levelMapping);
+          game = getNewGame();
           last_update = current_time_milli();
           realTimeEnd = last_update;
       }.box_as<UICallback>().box_as<any>());

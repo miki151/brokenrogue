@@ -31,6 +31,8 @@ export struct GameObjectAttributes {
   bool blocksVision;
   int? maxHealth;
   bool canRemember;
+  bool isStairs;
+  bool isEndGameBoss;
 };
 
 export GameObjectAttributes copy(GameObjectAttributes*) = default;
