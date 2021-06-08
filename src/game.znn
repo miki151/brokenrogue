@@ -43,11 +43,11 @@ export enum GameStatus {
 };
 
 export struct Game {
-  Level level;
+  const Level level;
   vector<box<GameObject>> objects;
   vector<LevelAnimation> animations;
-  hash_map<string, GameObjectAttributes>* objectFactory;
-  int lineOfSight;
+  const hash_map<string, GameObjectAttributes>* objectFactory;
+  const int lineOfSight;
   GameStatus? status;
   int gameObjectIdCounter;
 };
