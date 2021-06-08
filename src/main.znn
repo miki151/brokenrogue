@@ -61,6 +61,13 @@ void insertCreatureInfo(UIRecord mutable* record, string field, double hp, strin
   record->data.insert(field, move(creatureData).box_as<any>());
 }
 
+void showDialog(sdl_window* window, SDLCanvas* canvas, rectangle* rect, UIElement* ui, string message) {
+  mutable uiData = UIRecord();
+  mutable uiState = UIState();
+  ui->render(UIContext(canvas, &createRecord({"dialog_text"}.slice(), message), &uiState, 0.0), rect);
+  window->update();
+}
+
 int main(string[] args) {
   const panic_handler = [](string s) { printf("{s}\n"); exit(0); };
   set_panic_handler(&panic_handler);
@@ -76,8 +83,8 @@ int main(string[] args) {
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
   const levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
+  showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating level...");
   mutable game = Game(10, levelGen.get(), &levelMapping);
-  mutable uiData = UIRecord();
   mutable exit = false;
   mutable timeDiff = 0.0;
   mutable last_update = current_time_milli();
@@ -90,9 +97,10 @@ int main(string[] args) {
       &timeSpentCallback,
       &highlightedObjectCallback
   );
+  mutable uiData = UIRecord();
+  mutable uiState = UIState();
   uiData.data.insert("game_level", box_as<any>(move(game_data)));
   mutable events_state = sdl_events_state();
-  mutable uiState = UIState();
   uiData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
   mutable fps = fps_meter();
   while (!exit) {
@@ -103,6 +111,7 @@ int main(string[] args) {
       boxData.data.insert("text", "Game over".box_as<any>());
       boxData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
       boxData.data.insert("restart_callback", [&] {
+          showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating level...");
           game = Game(10, levelGen.get(), &levelMapping);
           last_update = current_time_milli();
           realTimeEnd = last_update;
