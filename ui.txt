@@ -48,7 +48,12 @@ End
     SPACE HELD,
     B DOWN,
     Y DOWN,
-    ENTER DOWN
+    ENTER DOWN,
+    {
+      fill(0 0 0)
+      frame(1, 255 255 255)
+      margins(10, label("Press [ENTER] to descend to the next level.", 20, 255 255 255))
+    }
   )
 #      position(RIGHT_CENTER,
 #          using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})

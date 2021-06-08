@@ -32,6 +32,7 @@ struct GameLevelUI {
   key_event melee_key;
   key_event shoot_key;
   key_event change_level_key;
+  box<UIElement> stairsMessage;
 };
 
 int getFontSize(GameLevelUI* ui) {
@@ -242,8 +243,11 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         }
       }
   }
-  if (data->game->canUseStairs())
-    context.canvas->drawText(origin + vec2(0, 40), "Press [ENTER] to use the stairs", 20, &color(255, 255, 0), ui_text_flag::CENTER_XY);
+  if (data->game->canUseStairs()) {
+    const size = ui->stairsMessage->size(context);
+    const messagePos = origin + vec2(0, 60);
+    ui->stairsMessage->render(context, &rectangle(messagePos - size / 2, messagePos + size / 2));
+  }
 }
 
 
