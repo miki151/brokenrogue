@@ -45,7 +45,11 @@ export MeleeWeaponPosition? getMeleeWeaponPosition(GameObject* object, double? f
 }
 
 export vec2d getMaxMeleeAttackPosition(GameObject* object, double dir) {
-  return vec2d(sin(dir), cos(dir)) * object->attributes.creature->meleeAttack->reach;
+  return object->pos + vec2d(sin(dir), cos(dir)) * object->attributes.creature->meleeAttack->reach;
+}
+
+export bool isPenetrated(GameObject* object, vec2d pos) {
+  return !!object->attributes.box && object->attributes.box->isPenetrated(pos - object->pos);
 }
 
 export struct MeleeAttackInfo {

@@ -8,8 +8,11 @@ export import "std/box.znn";
 
 bool canReachMelee(GameObject* obj, GameObject* target) {
   const dir = (target->pos - obj->pos).angle();
-  return !!target->attributes.box &&
-      target->attributes.box->isPenetrated(obj->getMaxMeleeAttackPosition(dir) + obj->pos - target->pos);
+  // Test some intermediate points in case we can reach beyond the target.
+  for (i = 0.0; i <= 1.0; i += 0.1)
+    if (target->isPenetrated(obj->getMaxMeleeAttackPosition(dir) * i + obj->pos * (1.0 - i)))
+      return true;
+  return false;
 }
 
 export struct AIAvoidMelee {};
@@ -69,16 +72,16 @@ export bool makeMove(AICircle*, Game mutable* game, GameObject mutable* object, 
       && false;
 }
 
-export struct AIFirst {
+export struct AIAll {
   vector<AI> elems;
 };
-export AIFirst copy(AIFirst*) = default;
+export AIAll copy(AIAll*) = default;
 
-export bool makeMove(AIFirst* first, Game mutable* game, GameObject mutable* object, double timeDiff) {
+export bool makeMove(AIAll* first, Game mutable* game, GameObject mutable* object, double timeDiff) {
+  mutable res = false;
   for (elem : first->elems)
-    if (elem->makeMove(game, object, timeDiff))
-      return true;
-  return false;
+    res = elem->makeMove(game, object, timeDiff) || res;
+  return res;
 }
 
 export union AI {
@@ -87,7 +90,7 @@ export union AI {
   AIAvoidMelee avoidMelee;
   AIPathfind pathfind;
   AICircle circle;
-  AIFirst first;
+  AIAll all;
 };
 
 export AI copy(AI*) = default;

@@ -39,7 +39,20 @@ Def CellularAutomaton(Generator, BeginProb)
   })
 End
 
-{ 15 10
+{
+#10 10
+#{
+#  Border(1, Set("border"))
+#  Set("wall")
+#  Inside(1, {
+#      Reset("floor")
+#      Place(
+#          (1 1, Set("boss1"), 1, And{}, 1),
+#          (1 1, Set("player"), 1, And{}, 1))
+#  })
+#}
+#}
+15 10
 {
   Border(1, Set("border"))
   Set("wall")
