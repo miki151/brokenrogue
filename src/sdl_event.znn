@@ -25,7 +25,7 @@ export union SDLEvent {
   SDLUnknownEvent unknown;
 };
 
-export void!string sdl_set_relative_mouse_mode(bool state) {
+export void!string sdlSetRelativeMouseMode(bool state) {
   const getError = [](string s) -> void!string {
     return s;
   };
@@ -35,19 +35,19 @@ export void!string sdl_set_relative_mouse_mode(bool state) {
   }
 }
 
-export struct sdl_events_state {
+export struct SDLEventsState {
   enum_set<key_type> pressed_keys;
   vec2 leftJostickState;
   vec2 rightJostickState;
 };
 
-export sdl_events_state() {
-  return sdl_events_state::sdl_events_state(enum_set<key_type>(), vec2(0, 0), vec2(0, 0));
+export SDLEventsState() {
+  return SDLEventsState::SDLEventsState(enum_set<key_type>(), vec2(0, 0), vec2(0, 0));
 }
 
-export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
+export vector<SDLEvent> getEvents(SDLEventsState mutable* state) {
   mutable ret = vector<SDLEvent>();
-  const update_key = [&] (key_type k, bool s) {
+  const updateKey = [&] (key_type k, bool s) {
     state->pressed_keys.set(k, s);
   };
   embed {
@@ -55,7 +55,7 @@ export vector<SDLEvent> get_events(sdl_events_state mutable* state) {
     while (SDL_PollEvent(&event)) {
       auto get = [&] {
         auto get_event = [&](key_type key, bool down) {
-          invoke(&update_key, key, down);
+          invoke(&updateKey, key, down);
           return SDLEvent::key(key_event{key, down ? key_event_type::DOWN : key_event_type::UP});
         };
         if (event.type == SDL_JOYBUTTONDOWN || event.type == SDL_JOYBUTTONUP) {

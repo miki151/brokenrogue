@@ -22,7 +22,7 @@ export void destruct(sdl_texture* s) {
   }
 }
 
-export sdl_texture!string make_target_texture(sdl_window* window, vec2 size) {
+export sdl_texture!string make_target_texture(SDLWindow* window, vec2 size) {
   const getResult = [](SDL_Texture mutable* s) -> sdl_texture!string {
     return sdl_texture(s);
   };
@@ -39,7 +39,7 @@ export sdl_texture!string make_target_texture(sdl_window* window, vec2 size) {
   }
 }
 
-export sdl_texture!string to_texture(sdl_surface* s, sdl_window* window) {
+export sdl_texture!string to_texture(SDLSurface* s, SDLWindow* window) {
   const getResult = [](SDL_Texture mutable* s) -> sdl_texture!string {
     return sdl_texture(s);
   };

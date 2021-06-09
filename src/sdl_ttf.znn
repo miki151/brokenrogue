@@ -23,13 +23,13 @@ export embed {
   struct FC_Font;
 }
 
-export struct sdl_font {
-  sdl_window* window;
+export struct SDLFont {
+  SDLWindow* window;
   string path;
   hash_map<int, FC_Font mutable*> fonts;
 };
 
-FC_Font mutable*!string get_font_impl(sdl_font mutable* font, int size) {
+FC_Font mutable*!string getFontImpl(SDLFont mutable* font, int size) {
   const gen_error = [] (string s) -> expected<FC_Font mutable*, string> {
     return s;
   };
@@ -49,21 +49,21 @@ FC_Font mutable*!string get_font_impl(sdl_font mutable* font, int size) {
   return *font->fonts.get(&size);
 }
 
-export sdl_font!string load_sdl_font(sdl_window* window, string path, int min_size, int max_size) {
-  return sdl_font(window, path, hash_map<int, FC_Font mutable*>());
+export SDLFont!string loadSDLFont(SDLWindow* window, string path, int min_size, int max_size) {
+  return SDLFont(window, path, hash_map<int, FC_Font mutable*>());
 }
 
-export void!string draw_text(sdl_font mutable* font, vec2 pos, int size, color color, string text) {
-  const fc_font = try font->get_font_impl(size);
+export void!string drawText(SDLFont mutable* font, vec2 pos, int size, color color, string text) {
+  const fc_font = try font->getFontImpl(size);
   embed {
     FC_DrawColor(fc_font, font->window->renderer, pos.x, pos.y,
         FC_MakeColor(color.r, color.g, color.b, 255), "%s", text.data());
   }
 }
 
-export void!string draw_rotated_text(sdl_font mutable* font, vec2 pos, int size, color color, string text,
+export void!string drawRotatedText(SDLFont mutable* font, vec2 pos, int size, color color, string text,
     sdl_texture* texture, double angle) {
-  const fc_font = try font->get_font_impl(size);
+  const fc_font = try font->getFontImpl(size);
   const texSize = *texture->size();
   embed {
     auto renderer = font->window->renderer;
@@ -84,8 +84,8 @@ export void!string draw_rotated_text(sdl_font mutable* font, vec2 pos, int size,
   }
 }
 
-export vec2!string get_text_size(sdl_font mutable* font, string text, int size) {
-  const fc_font = try font->get_font_impl(size);
+export vec2!string getTextSize(SDLFont mutable* font, string text, int size) {
+  const fc_font = try font->getFontImpl(size);
   mutable ret = vec2(0, 0);
   embed {
     ret = {FC_GetWidth(fc_font, "%s", text.data()),

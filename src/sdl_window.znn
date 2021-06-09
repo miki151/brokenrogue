@@ -19,12 +19,12 @@ export embed {
   struct SDL_Renderer;
 }
 
-export struct sdl_window {
+export struct SDLWindow {
   SDL_Window mutable* window;
   SDL_Renderer mutable* renderer;
 };
 
-export vec2 size(sdl_window* window) {
+export vec2 size(SDLWindow* window) {
   mutable ret = vec2(0, 0);
   embed {
     SDL_GetWindowSize(window->window, &ret.x, &ret.y);
@@ -32,7 +32,7 @@ export vec2 size(sdl_window* window) {
   return move(ret);
 }
 
-export void!string filled_rectangle(sdl_window* s, rectangle* rect, color color) {
+export void!string filledRectangle(SDLWindow* s, rectangle* rect, color color) {
   const getError = [](string s) -> void!string {
     return s;
   };
@@ -45,7 +45,7 @@ export void!string filled_rectangle(sdl_window* s, rectangle* rect, color color)
   }
 }
 
-export void!string outlined_rectangle(sdl_window* s, rectangle* rect, color color, int width) {
+export void!string outlinedRectangle(SDLWindow* s, rectangle* rect, color color, int width) {
   const getError = [](string s) -> void!string {
     return s;
   };
@@ -58,7 +58,7 @@ export void!string outlined_rectangle(sdl_window* s, rectangle* rect, color colo
   }
 }
 
-export void!string blit_from(sdl_window* dst, vec2 coord, sdl_texture* src, vec2? size) {
+export void!string blitFrom(SDLWindow* dst, vec2 coord, sdl_texture* src, vec2? size) {
   const get_error = [](string s) -> expected<void, string> {
     return s;
   };
@@ -71,16 +71,16 @@ export void!string blit_from(sdl_window* dst, vec2 coord, sdl_texture* src, vec2
   }
 }
 
-export void update(sdl_window* window) {
+export void update(SDLWindow* window) {
   embed {
     SDL_RenderPresent(window->renderer);
   }
 }
 
-export sdl_window!string sdl_create_window(vec2? size, string title) {
-  mutable sdl_window? ret = null;
+export SDLWindow!string sdl_create_window(vec2? size, string title) {
+  mutable SDLWindow? ret = null;
   mutable string? errorRet = null;
-  const gen_error = [] (string s) -> expected<sdl_window, string> {
+  const gen_error = [] (string s) -> expected<SDLWindow, string> {
     return "Error creating window: {s}";
   };
   embed {
@@ -100,7 +100,7 @@ export sdl_window!string sdl_create_window(vec2? size, string title) {
     if (!renderer)
       return invoke(&gen_error, zenon_string::reference(SDL_GetError()));
     SDL_GL_SetSwapInterval(true);
-    ret = sdl_window{window, renderer};
+    ret = SDLWindow{window, renderer};
     if (-1 != SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt")) {
       auto res = SDL_NumJoysticks();
       if (res < 0)
@@ -114,7 +114,7 @@ export sdl_window!string sdl_create_window(vec2? size, string title) {
   return *move(ret);
 }
 
-void filled_triangle_bottom(sdl_window* dst, vec2 v1, vec2 v2, vec2 v3) {
+void filledTriangleBottom(SDLWindow* dst, vec2 v1, vec2 v2, vec2 v3) {
   const invslope1 = (v2.x - v1.x).as_double() / (v2.y - v1.y);
   const invslope2 = (v3.x - v1.x).as_double() / (v3.y - v1.y);
 
@@ -129,7 +129,7 @@ void filled_triangle_bottom(sdl_window* dst, vec2 v1, vec2 v2, vec2 v3) {
   } 
 }
 
-export void filled_triangle_top(sdl_window* dst, vec2 v1, vec2 v2, vec2 v3) {
+export void filledTriangleTop(SDLWindow* dst, vec2 v1, vec2 v2, vec2 v3) {
   const invslope1 = (v3.x - v1.x).as_double() / (v3.y - v1.y);
   const invslope2 = (v3.x - v2.x).as_double() / (v3.y - v2.y);
 
@@ -144,7 +144,7 @@ export void filled_triangle_top(sdl_window* dst, vec2 v1, vec2 v2, vec2 v3) {
   } 
 }
 
-void sort_points(vec2 mutable* p1, vec2 mutable* p2, vec2 mutable* p3) {
+void sortPoints(vec2 mutable* p1, vec2 mutable* p2, vec2 mutable* p3) {
   const swap = [](vec2 mutable* v, vec2 mutable* w) {
     const x = *v;
     *v = *w;
@@ -159,7 +159,7 @@ void sort_points(vec2 mutable* p1, vec2 mutable* p2, vec2 mutable* p3) {
   }
 }
 
-export void!string filled_triangle(sdl_window* dst, mutable vec2 p1, mutable vec2 p2, mutable vec2 p3, color color) {
+export void!string filledTriangle(SDLWindow* dst, mutable vec2 p1, mutable vec2 p2, mutable vec2 p3, color color) {
   const getError = [](string s) -> expected<void, string> {
     return s;
   };
@@ -167,14 +167,14 @@ export void!string filled_triangle(sdl_window* dst, mutable vec2 p1, mutable vec
     if (SDL_SetRenderDrawColor(dst->renderer, color.r, color.g, color.b, 255) != 0)
       return invoke(&getError, zenon_string::reference(SDL_GetError()));
   }
-  sort_points(&p1, &p2, &p3);
+  sortPoints(&p1, &p2, &p3);
   if (p2.y == p3.y)
-    dst->filled_triangle_bottom(p1, p2, p3);
+    dst->filledTriangleBottom(p1, p2, p3);
   else if (p1.y == p2.y)
-    dst->filled_triangle_top(p1, p2, p3);
+    dst->filledTriangleTop(p1, p2, p3);
   else {
     const p4 = vec2(p1.x + ((p2.y - p1.y).as_double() / (p3.y - p1.y) * (p3.x - p1.x)).as_int(), p2.y);
-    dst->filled_triangle_bottom(p1, p2, p4);
-    dst->filled_triangle_top(p2, p4, p3);
+    dst->filledTriangleBottom(p1, p2, p4);
+    dst->filledTriangleTop(p2, p4, p3);
   }
 }

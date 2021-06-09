@@ -16,11 +16,11 @@ export embed {
 
 extern struct SDL_Surface;
 
-export struct sdl_surface {
+export struct SDLSurface {
   SDL_Surface mutable* surface;
 };
 
-export void destruct(sdl_surface* s) {
+export void destruct(SDLSurface* s) {
   embed {
     SDL_FreeSurface(s->surface);
   }
@@ -32,7 +32,7 @@ export enum SDLTransformType {
   MIRROR_HOR
 };
 
-export color getPixel(sdl_surface* source, vec2 pos) {
+export color getPixel(SDLSurface* source, vec2 pos) {
   embed_returns {
   auto surface = source->surface;
   auto get = [&]() -> Uint32 {
@@ -60,7 +60,7 @@ export color getPixel(sdl_surface* source, vec2 pos) {
   }
 }
 
-export void setPixel(sdl_surface* source, vec2 pos, color col) {
+export void setPixel(SDLSurface* source, vec2 pos, color col) {
   embed {
   auto surface = source->surface;
   auto set = [&](Uint32 value) {
@@ -85,11 +85,11 @@ export void setPixel(sdl_surface* source, vec2 pos, color col) {
   }
 }
 
-export expected<sdl_surface, string> createSurface(vec2 size) {
-  const getResult = [](SDL_Surface mutable* s) -> expected<sdl_surface, string> {
-    return sdl_surface(s);
+export expected<SDLSurface, string> createSurface(vec2 size) {
+  const getResult = [](SDL_Surface mutable* s) -> expected<SDLSurface, string> {
+    return SDLSurface(s);
   };
-  const getError = [](string s) -> expected<sdl_surface, string> {
+  const getError = [](string s) -> expected<SDLSurface, string> {
     return s;
   };
   embed_returns {
@@ -100,11 +100,11 @@ export expected<sdl_surface, string> createSurface(vec2 size) {
   }
 }
 
-export expected<sdl_surface, string> transform(sdl_surface* source, SDLTransformType transformType) {
-  const getResult = [](SDL_Surface mutable* s) -> expected<sdl_surface, string> {
-    return sdl_surface(s);
+export expected<SDLSurface, string> transform(SDLSurface* source, SDLTransformType transformType) {
+  const getResult = [](SDL_Surface mutable* s) -> expected<SDLSurface, string> {
+    return SDLSurface(s);
   };
-  const getError = [](string s) -> expected<sdl_surface, string> {
+  const getError = [](string s) -> expected<SDLSurface, string> {
     return s;
   };
   embed_returns {
@@ -130,17 +130,17 @@ export expected<sdl_surface, string> transform(sdl_surface* source, SDLTransform
   }
 }
 
-export vec2 size(sdl_surface* s) {
+export vec2 size(SDLSurface* s) {
   embed_returns {
     return vec2{s->surface->w, s->surface->h};
   }
 }
 
-export sdl_surface!string sdl_load_bmp(string path) {
-  const getResult = [](SDL_Surface mutable* s) -> sdl_surface!string {
-    return sdl_surface(s);
+export SDLSurface!string sdlLoadBMP(string path) {
+  const getResult = [](SDL_Surface mutable* s) -> SDLSurface!string {
+    return SDLSurface(s);
   };
-  const getError = [](string s) -> sdl_surface!string {
+  const getError = [](string s) -> SDLSurface!string {
     return s;
   };
   embed_returns {
@@ -151,7 +151,7 @@ export sdl_surface!string sdl_load_bmp(string path) {
   }
 }
 
-export string? clear(sdl_surface* s, color color) {
+export string? clear(SDLSurface* s, color color) {
   embed {
     if (SDL_FillRect(s->surface, nullptr, SDL_MapRGB(s->surface->format, color.r, color.g, color.b)) != 0)
       return zenon_string::reference(SDL_GetError());
@@ -159,7 +159,7 @@ export string? clear(sdl_surface* s, color color) {
   return null;
 }
 
-export void!string filled_rectangle(sdl_surface* s, rectangle* rect, color color) {
+export void!string filledRectangle(SDLSurface* s, rectangle* rect, color color) {
   const getError = [](string s) -> void!string {
     return s;
   };

@@ -29,9 +29,9 @@ struct X {
   Y y;
 };
 
-hash_map<string, sdl_texture> loadTextures(sdl_window* window) {
+hash_map<string, sdl_texture> loadTextures(SDLWindow* window) {
   mutable ret = hash_map<string, sdl_texture>();
-//  ret.insert("tex1", *sdl_load_bmp("texture1.bmp")->to_texture(window));
+//  ret.insert("tex1", *sdlLoadBMP("texture1.bmp")->to_texture(window));
   return move(ret);
 }
 
@@ -62,7 +62,7 @@ void insertCreatureInfo(UIRecord mutable* record, string field, double hp, strin
   record->data.insert(field, move(creatureData).box_as<any>());
 }
 
-void showDialog(sdl_window* window, SDLCanvas* canvas, rectangle* rect, UIElement* ui, string message) {
+void showDialog(SDLWindow* window, SDLCanvas* canvas, rectangle* rect, UIElement* ui, string message) {
   mutable uiData = UIRecord();
   mutable uiState = UIState();
   ui->render(UIContext(canvas, &createRecord({"dialog_text"}.slice(), message), &uiState, 0.0), rect);
@@ -78,8 +78,8 @@ int main(string[] args) {
   init_random();
   mutable ui = *readUIFrom("ui.txt");
   const window = *sdl_create_window(vec2(1280, 720), "Infinihack");
-  *sdl_set_relative_mouse_mode(true);
-  mutable font = *window.load_sdl_font(flags.font ?? "font.ttf", 10, 100);
+  *sdlSetRelativeMouseMode(true);
+  mutable font = *window.loadSDLFont(flags.font ?? "font.ttf", 10, 100);
   const textTexture = *window.make_target_texture(vec2(100, 100));
   const canvas = SDLCanvas(&window, &font, loadTextures(&window), move(textTexture));
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
@@ -106,7 +106,7 @@ int main(string[] args) {
   mutable uiData = UIRecord();
   mutable uiState = UIState();
   uiData.data.insert("game_level", box_as<any>(move(game_data)));
-  mutable events_state = sdl_events_state();
+  mutable events_state = SDLEventsState();
   uiData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
   mutable fps = fps_meter();
   while (!exit) {
@@ -138,7 +138,7 @@ int main(string[] args) {
       game.advance(timeDiff);
     last_update = cur_time;
     const context = UIContext(&canvas, &uiData, &uiState, timeDiff);
-    for (event : events_state.get_events()) {
+    for (event : events_state.getEvents()) {
       if (exit)
         break;
       switch (*event) {
