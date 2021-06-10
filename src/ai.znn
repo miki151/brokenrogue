@@ -40,6 +40,26 @@ export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, d
   return canReachMelee(object, obj) && object->addMeleeAttack((obj->pos - object->pos).angle());
 }
 
+export struct AIAdjustMelee {};
+
+export AIAdjustMelee copy(AIAdjustMelee*) = default;
+
+export bool makeMove(AIAdjustMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
+  const obj = game->getPlayer();
+  if (!!object->ongoingAttack && canReachMelee(object, obj)) {
+    const angle = (obj->pos - object->pos).angle();
+    if (angle > object->ongoingAttack->dir + 0.1) {
+      discard object->walk(game, timeDiff, angle + 1.57, angle);
+      return true;
+    }
+    if (angle < object->ongoingAttack->dir - 0.1) {
+      discard object->walk(game, timeDiff, angle - 1.57, angle);
+      return true;
+    }
+  }
+  return false;
+}
+
 export struct AIRanged {};
 
 export AIRanged copy(AIRanged*) = default;
@@ -84,13 +104,27 @@ export bool makeMove(AIAll* first, Game mutable* game, GameObject mutable* objec
   return res;
 }
 
+export struct AIFirst {
+  vector<AI> elems;
+};
+export AIFirst copy(AIFirst*) = default;
+
+export bool makeMove(AIFirst* first, Game mutable* game, GameObject mutable* object, double timeDiff) {
+  for (elem : first->elems)
+    if (elem->makeMove(game, object, timeDiff))
+      return true;
+  return false;
+}
+
 export union AI {
   AIMelee melee;
   AIRanged ranged;
   AIAvoidMelee avoidMelee;
+  AIAdjustMelee adjustMelee;
   AIPathfind pathfind;
   AICircle circle;
   AIAll all;
+  AIFirst first;
 };
 
 export AI copy(AI*) = default;

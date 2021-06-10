@@ -57,12 +57,32 @@ End
   Border(1, Set("border"))
   Set("wall")
   Inside(1, {
-    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, Set("player"))})
-    Position(RIGHT_CENTER, 4 4, {
+    Position(LEFT_CENTER, 3 3, { Reset("floor") Position(CENTER, 1 1, Set("player"))})
+    Position(CENTER, 3 3, {
         Reset("floor")
-        Place((1 1, Set("kobold"), 1, And{}, 1), (1 1, Set("stairs"), 1, And{}, 1))
+        Position(CENTER, 1 1, Set("dummy"))
+    })
+    Position(RIGHT_CENTER, 3 3, {
+        Reset("floor")
+        Position(CENTER, 1 1, Set("stairs"))
     })
   })
+  Connect(On("floor"), 10, On("wall"), Reset("floor"))
+}
+20 15
+{
+  Border(1, Set("border"))
+  Set("wall")
+  CellularAutomaton(Reset("floor"), 0.45)
+  Margins(1, {}, Place(4 4, Reset("floor", "room"), {3 5}, On("wall"), 2))
+  Inside(1, {
+    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, Set("special", "player"))})
+    Position(RIGHT_CENTER, 5 5, { Reset("floor") Position(CENTER, 1 1, Set("stairs", "goblin"))})
+  })
+  Place(
+      (1 1, Set("rat"), 5, And { Not On("special") On("floor")}, 1),
+      (1 1, Set("kobold"), 3, And { Not On("special") On("floor")}, 1)
+  )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
 }
 30 20
@@ -72,14 +92,14 @@ End
   CellularAutomaton(Reset("floor"), 0.45)
   Margins(1, {}, Place(4 4, Reset("floor", "room"), {6 10}, On("wall"), 2))
   Inside(1, {
-    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, Set("player"))})
+    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, Set("special", "player"))})
     Position(RIGHT_CENTER, 5 5, { Reset("floor") Position(CENTER, 1 1, Set("boss1", "stairs"))})
   })
   Place(
-      (1 1, Set("rat"), 3, On("floor"), 1),
-      (1 1, Set("kobold"), 2, On("floor"), 1),
-      (1 1, Set("goblin"), 3, On("floor"), 1),
-      (1 1, Set("fencer"), 1, On("floor"), 1)
+      (1 1, Set("rat"), 3, And { Not On("special") On("floor")}, 1),
+      (1 1, Set("kobold"), 2, And { Not On("special") On("floor")}, 1),
+      (1 1, Set("goblin"), 3, And { Not On("special") On("floor")}, 1),
+      (1 1, Set("fencer"), 1, And { Not On("special") On("floor")}, 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
 }
@@ -96,8 +116,8 @@ End
   Place(
       (1 1, Set("rat"), 2, And { Not On("special") On("floor")}, 1),
       (1 1, Set("kobold"), 1, And { Not On("special") On("floor")}, 1),
-      (1 1, Set("goblin"), 3, And { Not On("special") On("floor")}, 1),
-      (1 1, Set("fencer"), 3, And { Not On("special") On("floor")}, 1),
+      (1 1, Set("goblin"), 2, And { Not On("special") On("floor")}, 1),
+      (1 1, Set("soldier"), 3, And { Not On("special") On("floor")}, 1),
       (3 3, Reset("floor", "bee"), 1, And { Not On("special") On("floor") Not On("border")}, 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))

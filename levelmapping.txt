@@ -45,6 +45,19 @@
       false
       false
       false
+  "soldier"
+      "o" 255 0 255 1.0
+      "Goblin soldier"
+      1.0
+          6
+          ("(" 255 100 100 0.6, LEFT, 1.3, 0.3, 2.0)
+          null
+          all { first { adjustMelee avoidMelee pathfind } melee }
+      false
+      4
+      false
+      false
+      false
   "fencer"
       "f" 255 0 255 1.0
       "Goblin fencer"
@@ -94,6 +107,19 @@
           all { avoidMelee pathfind melee }
       false
       6
+      false
+      false
+      false
+  "dummy"
+      "T" 0 100 250 1.0
+      "Training dummy"
+      1.0
+          1
+          null
+          null
+          all { ranged }
+      false
+      3
       false
       false
       false
