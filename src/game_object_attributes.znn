@@ -33,6 +33,7 @@ export struct GameObjectAttributes {
   bool canRemember;
   bool isStairs;
   bool isEndGameBoss;
+  string? message;
 };
 
 export GameObjectAttributes copy(GameObjectAttributes*) = default;

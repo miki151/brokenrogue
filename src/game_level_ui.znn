@@ -243,10 +243,11 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         }
       }
   }
-  if (data->game->canUseStairs()) {
-    const size = ui->stairsMessage->size(context);
+  if (const message = data->game->getMessage(player->pos)) {
     const messagePos = origin + vec2(0, 60);
-    ui->stairsMessage->render(context, &rectangle(messagePos - size / 2, messagePos + size / 2));
+    const ctx = UIContext(context.canvas, &*message, context.state, context.timeDiff);
+    const size = ui->stairsMessage->size(ctx);
+    ui->stairsMessage->render(ctx, &rectangle(messagePos - size / 2, messagePos + size / 2));
   }
 }
 

@@ -162,12 +162,14 @@ struct text_ui {
 export void render(text_ui* t, UIContext context, rectangle* r) {
   if (const s = context.data->cast_to<string>())
     context.canvas->drawText(r->v1, **s, t->size, &t->color);
+  else
+    context.canvas->drawText(r->v1, "Expected string, got {context.data->get_type()}", t->size, &t->color);
 }
 
 export vec2 size(text_ui* t, UIContext context) {
   if (const s = context.data->cast_to<string>())
     return context.canvas->getTextSize(**s, t->size);
-  return vec2(40, 40);
+  return vec2(120, 40);
 }
 
 export [@ui_element]

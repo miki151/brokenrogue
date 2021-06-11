@@ -75,6 +75,14 @@ export bool canUseStairs(Game* g) {
   return false;
 }
 
+export string? getMessage(Game* g, vec2d pos) {
+  for (it : *g->getObjects())
+    if ((it->get()->pos - pos).length_d() < 1.0)
+      if (const m = it->get()->attributes.message)
+        return m;
+  return null;
+}
+
 export vector<box<GameObject>>* getObjects(Game* g) {
   return &g->getLevel()->objects;
 }
@@ -267,7 +275,8 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
         null,
         false,
         false,
-        false
+        false,
+        null
       )
   ).box());
   g->getObjects()->back()->get()->projectile = Projectile(dir, damage);

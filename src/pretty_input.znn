@@ -220,7 +220,8 @@ vector<T>!string read_data(input_stream mutable* stream, pretty_dummy_struct<vec
 
 export template <T, U> requires read_data_overload<T>, read_data_overload<U>
 pair<T, U>!string read_data(input_stream mutable* stream, pretty_dummy_struct<pair<T, U>>) {
-  return pair(try stream->read_data<T>(), try stream->read_data<U>());
+  const e1 = try stream->read_data<T>();
+  return pair(move(e1), try stream->read_data<U>());
 }
 
 export template <T, U> requires read_data_overload<T>, read_data_overload<U>, hash_key<T>
@@ -230,7 +231,8 @@ hash_map<T, U>!string read_data(input_stream mutable* stream, pretty_dummy_struc
   while (true) {
     if (stream->expect("\}"))
       break;
-    ret.insert(try stream->read_data<T>(), try stream->read_data<U>());
+    const key = try stream->read_data<T>();
+    ret.insert(move(key), try stream->read_data<U>());
   }
   return move(ret);
 }

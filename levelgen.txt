@@ -57,9 +57,9 @@ End
   Border(1, Set("border"))
   Set("wall")
   Inside(1, {
-    Position(LEFT_CENTER, 3 3, { Reset("floor") Position(CENTER, 1 1, Set("player"))})
+    Position(LEFT_CENTER, 3 3, { Reset("floor", "tutorial1") Position(CENTER, 1 1, Set("player"))})
     Position(CENTER, 3 3, {
-        Reset("floor")
+        Reset("floor", "tutorial2")
         Position(CENTER, 1 1, Set("dummy"))
     })
     Position(RIGHT_CENTER, 3 3, {

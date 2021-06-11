@@ -85,7 +85,7 @@ int main(string[] args) {
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
   const levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
-  showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating level...");
+  showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
   const getNewGame = [&] {
     return Game(10, levelGen.transform([](pair<vec2, box<LevelGenerator>>* g) {
           return pair(g->first, g->second.get()); }), &levelMapping);
