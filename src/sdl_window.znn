@@ -92,14 +92,12 @@ export SDLWindow!string sdl_create_window(vec2? size, string title) {
     }
 
     auto window = SDL_CreateWindow(title.data(), SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED, size ? size->x : gScreenRect.w, size ? size->y : gScreenRect.y,
-        0 );
+        SDL_WINDOWPOS_UNDEFINED, size ? size->x : gScreenRect.w, size ? size->y : gScreenRect.y, 0);
     if (!window)
       return invoke(&gen_error, zenon_string::reference(SDL_GetError()));
-    auto renderer = SDL_CreateRenderer(window, -1, 0);
+    auto renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     if (!renderer)
       return invoke(&gen_error, zenon_string::reference(SDL_GetError()));
-    SDL_GL_SetSwapInterval(true);
     ret = SDLWindow{window, renderer};
     if (-1 != SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt")) {
       auto res = SDL_NumJoysticks();
