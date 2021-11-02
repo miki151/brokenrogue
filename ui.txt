@@ -18,14 +18,14 @@ Def CreatureWidget() {
   margins(10, vertical {
     horizontal {
       width 10 {}
-      using "glyph" colored_text(28)
+      using "glyph" colored_text(20)
       width 7 {}
-      using "name" text(28, 255 255 255)
+      using "name" text(20, 255 255 255)
     }
     height 10 {}
     horizontal {
       width 10 {}
-      label("HP:", 28, 255 255 255)
+      label("HP:", 20, 255 255 255)
       width 10 {}
       width 300 height 15 {
         fill(0 0 0)

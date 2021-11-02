@@ -47,7 +47,7 @@ End
 #  Inside(1, {
 #      Reset("floor")
 #      Place(
-#          (1 1, Set("boss1"), 1, And{}, 1),
+#          (1 1, Set("soldier"), 1, And{}, 1),
 #          (1 1, Set("player"), 1, And{}, 1))
 #  })
 #}
@@ -117,7 +117,7 @@ End
       (1 1, Set("rat"), 2, And { Not On("special") On("floor")}, 1),
       (1 1, Set("kobold"), 1, And { Not On("special") On("floor")}, 1),
       (1 1, Set("goblin"), 2, And { Not On("special") On("floor")}, 1),
-      (1 1, Set("soldier"), 3, And { Not On("special") On("floor")}, 1),
+      (1 1, Set("adventurer"), 3, And { Not On("special") On("floor")}, 1),
       (3 3, Reset("floor", "bee"), 1, And { Not On("special") On("floor") Not On("border")}, 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
