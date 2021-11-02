@@ -12,7 +12,7 @@ export import "std/any.znn";
 export import "std/io.znn";
 export import "std/box.znn";
 export import "ui_state.znn";
-import "rectangle_placement.znn";
+export import "rectangle_placement.znn";
 
 export struct UIContext {
   UICanvas* canvas;

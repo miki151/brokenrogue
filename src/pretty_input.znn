@@ -8,7 +8,6 @@ export import "std/enum.znn";
 export import "std/range.znn";
 export import "std/pair.znn";
 import "pretty_preprocess.znn";
-export import "rectangle_placement.znn";
 
 export struct input_stream_position {
   int line;
