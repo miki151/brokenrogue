@@ -6,9 +6,9 @@
   "corpse" "%" 255 10 10 1.0 "Corpse" null null false null true false false null
   "bridge" "_" 210 105 50 1.0 "Bridge" null null false null true false false null
   "stairs" ">" 255 255 255 1.0 "Stairs" null null false null true true false
-    "Press [ENTER] to descend to the next level."
+    "Click the right mouse button to descend to the next level."
   "tutorial1" " " 255 255 255 1.0 "Tutorial message" null null false null true true false
-    "Move around using the WASD keys and the mouse. Wait by holding [SPACE]."
+    "Move around using the mouse. Hold the right mouse button to walk sideways. Wait by holding [SPACE]."
   "tutorial2" " " 255 255 255 1.0 "Tutorial message" null null false null true true false
     "Use the left mouse button to initiate an attack on the training dummy. Move or wait to advance the clock!"
   "bee"

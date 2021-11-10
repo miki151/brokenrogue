@@ -24,6 +24,10 @@ struct GameLevelUI {
   double cameraSensitivity;
   double joystickMovementDeadRange;
   double minJoystickMovement;
+  double movementPower;
+  double movementBase;
+  double rotationPower;
+  double rotationBase;
   key_event forwardKey;
   key_event backwardKey;
   key_event leftKey;
@@ -88,10 +92,11 @@ vec2 projectOnScreen(GameLevelUI* ui, GameObject* player, vec2d pos, double play
 
 export struct GameLevelUIState {
   double playerDir;
+  int? rightMouseButton;
 };
 
 export GameLevelUIState() {
-  return GameLevelUIState::GameLevelUIState(0.0);
+  return GameLevelUIState::GameLevelUIState(0.0, null);
 }
 
 void shoot(UIContext context) {
@@ -105,9 +110,30 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_e
   const state = context.state->get_state<GameLevelUIState>();
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = data->game->getPlayer();
+  const rightClickCutOff = 500;
+  const curTime = current_time_milli();
   switch (event->type) {
     case (JOYSTICK_RIGHT) {
-      state->playerDir -= context.timeDiff * ui->cameraSensitivity * event->pos.x;
+      const rightButtonHeld = !!state->rightMouseButton;
+      if (abs(event->pos.y) > abs(event->pos.x) || rightButtonHeld) {
+        mutable pos = event->pos;
+        if (!rightButtonHeld)
+          pos.x = 0;
+        else
+          pos.y = 0;
+        mutable angle = state->playerDir + atan2(pos.x, pos.y);
+        mutable length = pos.length_d() * 2.5;
+        length = pow(length, ui->movementPower) * ui->movementBase;
+        discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
+        data->game->advance(fabs(context.timeDiff * length / 1000));
+      } else {
+        mutable diff = context.timeDiff * ui->cameraSensitivity * event->pos.x;
+        const minus = diff < 0;
+        diff = pow(fabs(diff), ui->rotationPower) * ui->rotationBase;
+        if (minus)
+          diff = -diff;
+        state->playerDir -= diff;
+      }
     }
     case (JOYSTICK_LEFT) {
       mutable pos = event->pos;
@@ -123,7 +149,14 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_e
       }
     }
     case (RIGHT) {
-      shoot(context);
+      state->rightMouseButton = curTime;
+    }
+    case (RIGHT_RELEASED) {
+      if (!!state->rightMouseButton && *state->rightMouseButton > curTime - rightClickCutOff
+          && data->game->canUseStairs())
+        data->game->useStairs();
+//      shoot(context);
+      state->rightMouseButton = null;
     }
     case (LEFT) {
       discard player->addMeleeAttack(state->playerDir);

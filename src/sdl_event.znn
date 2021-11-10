@@ -96,7 +96,8 @@ export vector<SDLEvent> getEvents(SDLEventsState mutable* state) {
           }
         }
         if (event.type == SDL_MOUSEMOTION) {
-          return SDLEvent::mouse({mouse_event_type::JOYSTICK_RIGHT, {event.motion.xrel * 40, 0}});
+          return SDLEvent::mouse({mouse_event_type::JOYSTICK_RIGHT,
+              {event.motion.xrel * 40, event.motion.yrel * 40}});
         }
         if (event.type == SDL_JOYAXISMOTION) {
           int value = event.jaxis.value / 33;
@@ -122,6 +123,15 @@ export vector<SDLEvent> getEvents(SDLEventsState mutable* state) {
           }
           return SDLEvent::mouse(mouse_event{ button, vec2{event.button.x, event.button.y} });
         }
+        if (event.type == SDL_MOUSEBUTTONUP) {
+          mouse_event_type button = mouse_event_type::RIGHT_RELEASED;
+          switch (event.button.button) {
+            case SDL_BUTTON_RIGHT:
+              return SDLEvent::mouse(mouse_event{ mouse_event_type::RIGHT_RELEASED, vec2{event.button.x, event.button.y} });
+            deault:
+              break;
+          }
+        }
         return SDLEvent::unknown(SDLUnknownEvent{});
       };
       ret.push_back(get());
@@ -134,6 +144,4 @@ export vector<SDLEvent> getEvents(SDLEventsState mutable* state) {
   ret.push_back(SDLEvent::mouse((mouse_event(mouse_event_type::JOYSTICK_RIGHT, state->rightJostickState))));
   return move(ret);
 }
-
-
 
