@@ -1,6 +1,6 @@
 
 export import "std/expected.znn";
-import "std/io.znn";
+export import "std/io.znn";
 import "std/char.znn";
 export import "std/vector.znn";
 export import "std/hash_map.znn";
