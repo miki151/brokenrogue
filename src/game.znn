@@ -159,7 +159,7 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
     c->animation.lastMovement = current_time_milli();
   mutable int? ret = null;
   for (it : *g->getObjects())
-    if (it->get() != c && !it->get()->projectile)
+    if ((!c->projectile || c->projectile->attacker != it.index) && it->get() != c && !it->get()->projectile)
       if (const v = getRebound(c, it->get())) {
         c->pos -= *v;
         ret = it.index;
@@ -265,7 +265,7 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
   const vdir = dir / dir.length_d();
   g->getObjects()->push_back(GameObject(
       g->gameObjectIdCounter,
-      o->pos + vdir * (size + o->attributes.box->size) / 2.0,
+      o->pos,
       GameObjectAttributes(
         move(glyph),
         "projectile",
@@ -279,7 +279,7 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
         null
       )
   ).box());
-  g->getObjects()->back()->get()->projectile = Projectile(dir, damage);
+  g->getObjects()->back()->get()->projectile = Projectile(dir, damage, o->id);
 }
 
 export GameObject* getPlayer(Game* g) {
