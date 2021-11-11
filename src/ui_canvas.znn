@@ -8,6 +8,8 @@ export enum texture_flip {
 export concept<T> UICanvas {
   void fillRectangle(T*, rectangle*, color*);
   void frameRectangle(T*, rectangle*, color*, int width);
+  void drawLine(T*, vec2, vec2, color*);
+  void drawCircle(T*, vec2, int, color*);
   void drawTexture(T*, rectangle*, string, texture_flip);
   vec2 getTextureSize(T*, string);
   void drawText(T*, vec2, string, int, color*);

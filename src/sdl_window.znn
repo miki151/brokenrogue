@@ -112,6 +112,59 @@ export SDLWindow!string sdl_create_window(vec2? size, string title) {
   return *move(ret);
 }
 
+export void!string drawLine(SDLWindow* s, vec2 v1, vec2 v2, color color) {
+  const getError = [](string s) -> void!string {
+    return s;
+  };
+  embed {
+    if (SDL_SetRenderDrawColor(s->renderer, color.r, color.g, color.b, 255) != 0)
+      return invoke(&getError, zenon_string::reference(SDL_GetError()));
+    if (SDL_RenderDrawLine(s->renderer, v1.x, v1.y, v2.x, v2.y) != 0)
+      return invoke(&getError, zenon_string::reference(SDL_GetError()));
+  }
+}
+
+export void!string drawCircle(SDLWindow* s, vec2 center, int radius, color color) {
+  const getError = [](string s) -> void!string {
+    return s;
+  };
+  const diameter = (radius * 2);
+  mutable x = (radius - 1);
+  mutable y = 0;
+  mutable tx = 1;
+  mutable ty = 1;
+  mutable error = (tx - diameter);
+
+  embed {
+  if (SDL_SetRenderDrawColor(s->renderer, color.r, color.g, color.b, 255) != 0)
+    return invoke(&getError, zenon_string::reference(SDL_GetError()));
+  }
+
+  while (x >= y) {
+    //  Each of the following renders an octant of the circle
+    embed {
+    SDL_RenderDrawPoint(s->renderer, center.x + x, center.y - y);
+    SDL_RenderDrawPoint(s->renderer, center.x + x, center.y + y);
+    SDL_RenderDrawPoint(s->renderer, center.x - x, center.y - y);
+    SDL_RenderDrawPoint(s->renderer, center.x - x, center.y + y);
+    SDL_RenderDrawPoint(s->renderer, center.x + y, center.y - x);
+    SDL_RenderDrawPoint(s->renderer, center.x + y, center.y + x);
+    SDL_RenderDrawPoint(s->renderer, center.x - y, center.y - x);
+    SDL_RenderDrawPoint(s->renderer, center.x - y, center.y + x);
+    }
+    if (error <= 0) {
+      ++y;
+      error += ty;
+      ty += 2;
+    }
+    if (error > 0) {
+      --x;
+      tx += 2;
+      error += (tx - diameter);
+    }
+  }
+}
+
 void filledTriangleBottom(SDLWindow* dst, vec2 v1, vec2 v2, vec2 v3) {
   const invslope1 = (v2.x - v1.x).as_double() / (v2.y - v1.y);
   const invslope2 = (v3.x - v1.x).as_double() / (v3.y - v1.y);

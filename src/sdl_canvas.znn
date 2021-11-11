@@ -20,6 +20,14 @@ export void frameRectangle(SDLCanvas* canvas, rectangle* r, color* color, int wi
   *canvas->window->outlinedRectangle(r, *color, 1);
 }
 
+export void drawLine(SDLCanvas* canvas, vec2 v1, vec2 v2, color* color) {
+  *canvas->window->drawLine(v1, v2, *color);
+}
+
+export void drawCircle(SDLCanvas* canvas, vec2 center, int radius, color* color) {
+  *canvas->window->drawCircle(center, radius, *color);
+}
+
 export void drawTexture(SDLCanvas* canvas, rectangle* r, string id, texture_flip flip) {
   if (const t = canvas->textures.get_maybe(&id))
     *canvas->window->blitFrom(r->v1, *t, r->size());
