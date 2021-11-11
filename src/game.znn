@@ -159,7 +159,7 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
     c->animation.lastMovement = current_time_milli();
   mutable int? ret = null;
   for (it : *g->getObjects())
-    if ((!c->projectile || c->projectile->attacker != it.index) && it->get() != c && !it->get()->projectile)
+    if ((!c->projectile || c->projectile->attacker != it->get()->id) && it->get() != c && !it->get()->projectile)
       if (const v = getRebound(c, it->get())) {
         c->pos -= *v;
         ret = it.index;
