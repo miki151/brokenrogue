@@ -128,12 +128,20 @@ vector<box<GameObject>> generateObjects(int levelNum, int initialId, vec2 levelS
           assert(playerIndex == -1, "Player creature generated more than once");
           playerIndex = ret.size();
         }
-        ret.push_back(GameObject(initialId + ret.size(), v->as_double(), (*attr)->copy()).box());
+        ret.push_back(GameObject(initialId + ret.size(), v->as_double(), (*attr)->copy(), *token).box());
       }
   assert(playerIndex > -1, "Player creature wasn't generated");
   if (playerIndex > 0)
     swap(&ret[playerIndex], &ret[0]);
   return move(ret);
+}
+
+export void reloadObjectAttributes(Game mutable* game, hash_map<string, GameObjectAttributes>* mapping) {
+  for (it : *game->getObjects()) {
+    const obj = it->get();
+    if (obj->attributesId)
+      obj->attributes = mapping->get(&*obj->attributesId)->copy();
+  }
 }
 
 export Game(int lineOfSight, vector<pair<vec2, LevelGenerator*>> generator,
@@ -231,7 +239,7 @@ export void advance(Game mutable* g, double timeDiff) {
         g->status = GameStatus::GAME_WON;
       if (!!deadCreature->attributes.creature) {
         toAdd.push_back(GameObject(g->gameObjectIdCounter, deadCreature->pos,
-            g->objectFactory->get(&"corpse")->copy()));
+            g->objectFactory->get(&"corpse")->copy(), "corpse"));
         toAdd.back()->attributes.glyph.size = deadCreature->attributes.glyph.size * 0.8;
       }
       g->getObjects()->remove(deadCreatures[i]);
@@ -277,7 +285,8 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
         .isStairs = false,
         .isEndGameBoss = false,
         .message = null
-      )
+      ),
+      null
   ).box());
   g->getObjects()->back()->get()->projectile = Projectile(dir, damage, o->id);
 }
