@@ -178,6 +178,7 @@ double getJumpOffset(mutable double state) {
 struct GlyphRenderElem {
   Glyph glyph;
   vec2 pos;
+  int radius;
 };
 
 void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
@@ -209,7 +210,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   for (it : *data->game->getObjects()) {
     const obj = it->get();
     const canSee = ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int());
-    if ((!obj->ongoingAttack || !!obj->ongoingAttack->attack.glyph) && (canSee || obj->remember)) {
+    if (canSee || obj->remember) {
       const projected = ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (obj != player && !!obj->attributes.creature) {
         const angle = fabs(atan2(projected.x, -projected.y));
@@ -226,7 +227,9 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
             || *obj->animation.lastMovement < curTime - (1000 * context.timeDiff).as_int() - 10
             ? 0
             : (ui->getFontSize() * ui->jumpHeight * getJumpOffset(jumpState)).as_int();
-        toRender.push_back(GlyphRenderElem(obj->attributes.glyph.copy(), coord - vec2(0, offset)));
+        toRender.push_back(GlyphRenderElem(obj->attributes.glyph.copy(), coord - vec2(0, offset),
+            (!!obj->attributes.box && !!obj->attributes.creature ?
+                obj->attributes.box->size / 2 * ui->tileSize.as_double() : 0.0).as_int()));
         if (!canSee && obj->remember)
           toRender.back()->glyph.col = color(100, 100, 100);
         else if (obj->attributes.canRemember)
@@ -246,8 +249,11 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   toRender.sort(&[](GlyphRenderElem* p1, GlyphRenderElem* p2) {
       return p1->pos.y < p2->pos.y;
   });
-  for (elem : toRender)
+  for (elem : toRender) {
     elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos);
+    if (elem->radius > 0)
+      context.canvas->drawCircle(elem->pos, elem->radius, &color(150, 0, 0));
+  }
   for (it : *data->game->getObjects()) {
     const obj = it->get();
     mutable double? forceDir = null;
@@ -255,11 +261,12 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       forceDir = state->playerDir;
     if (const weapon = obj->getMeleeWeaponPosition(forceDir))
       if (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int())) {
-        const coord = origin + ui->projectOnScreen(player, weapon->pos, state->playerDir);
-        if (to_draw.contains(&coord))
-          (obj->attributes.creature->meleeAttack->glyph ?? obj->attributes.glyph).render(
-              context.canvas, ui->getFontSize(), coord,
-              !!obj->attributes.creature->meleeAttack->glyph ? state->playerDir - weapon->dir : 0);
+        const coord1 = origin + ui->projectOnScreen(player, weapon->pos1, state->playerDir);
+        const coord2 = origin + ui->projectOnScreen(player, weapon->pos2, state->playerDir);
+        if (to_draw.contains(&coord1))
+          context.canvas->drawLine(coord1, coord2, &color(255, 255, 255));
+          /*obj->attributes.creature->meleeAttack->glyph.render(
+              context.canvas, ui->getFontSize(), coord2, state->playerDir - weapon->dir);*/
       }
   }
   for (anim : data->game->getLevel()->animations) {

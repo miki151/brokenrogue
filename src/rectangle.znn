@@ -8,6 +8,9 @@ export struct rectangle {
 };
 
 export rectangle(vec2, vec2) = default;
+export rectangle(int px, int py, int kx, int ky) {
+  return rectangle(vec2(px, py), vec2(kx, ky));
+}
 export rectangle(range xRange, range yRange) {
   return rectangle(vec2(xRange.begin(), yRange.begin()), vec2(xRange.end(), yRange.end()),);
 }

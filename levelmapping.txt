@@ -100,7 +100,7 @@
       "Demon"
       1.2
           3
-          (")" 255 100 100 0.8, RIGHT, 2.0, 0.7, 3.5)
+          (")" 255 100 100 1.0, RIGHT, 1.5, 0.7, 3.5)
           null
           all { avoidMelee pathfind melee }
       false

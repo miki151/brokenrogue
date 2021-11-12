@@ -198,7 +198,7 @@ export void advance(Game mutable* g, double timeDiff) {
         if (!object->ongoingAttack->woundedObjects.contains(&it2->get()->id)) {
           const object2 = it2->get();
           if (object2 != object && !!object2->attributes.creature && 
-              object2->isPenetrated(object->getMeleeWeaponPosition(null)->pos)) {
+              object2->isPenetrated(object->getMeleeWeaponPosition(null)->pos2)) {
             object->ongoingAttack->woundedObjects.insert(object2->id);
             if (g->woundCreature(it2.index, curTime, object->ongoingAttack->attack.damage))
               deadCreatures.push_back(it2.index);
@@ -267,16 +267,16 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph gly
       g->gameObjectIdCounter,
       o->pos,
       GameObjectAttributes(
-        move(glyph),
-        "projectile",
-        BoundingBox(size),
-        null,
-        false,
-        null,
-        false,
-        false,
-        false,
-        null
+        .glyph = move(glyph),
+        .name = "projectile",
+        .box = BoundingBox(size),
+        .creature = null,
+        .blocksVision = false,
+        .maxHealth = null,
+        .canRemember = false,
+        .isStairs = false,
+        .isEndGameBoss = false,
+        .message = null
       )
   ).box());
   g->getObjects()->back()->get()->projectile = Projectile(dir, damage, o->id);

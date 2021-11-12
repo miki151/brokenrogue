@@ -10,7 +10,8 @@ export import "projectile.znn";
 export import "std/hash_set.znn";
 
 export struct MeleeWeaponPosition {
-  vec2d pos;
+  vec2d pos1;
+  vec2d pos2;
   double dir;
 };
 
@@ -22,6 +23,7 @@ export MeleeWeaponPosition? getMeleeWeaponPosition(GameObject* object, double? f
       : object->ongoingAttack->remainingTime / object->ongoingAttack->attack.duration;
   const offset = object->attributes.box->size / 2.2;
   const reach = attack->reach;
+  const length = attack->glyph.size;
   mutable dir = (forceDir ?? (!object->ongoingAttack ? object->lastWalkDirection : object->ongoingAttack->dir));
   mutable offsetV = vec2d(0, 0);
   switch (attack->origin) {
@@ -38,14 +40,16 @@ export MeleeWeaponPosition? getMeleeWeaponPosition(GameObject* object, double? f
     }
   }
   return MeleeWeaponPosition(
-      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * ( reach
-          * (1 - 2 * fabs(state - 0.5))),
+      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * reach * (1 - 2 * fabs(state - 0.5)),
+      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * (reach * (1 - 2 * fabs(state - 0.5) + length)),
       dir
   );
 }
 
 export vec2d getMaxMeleeAttackPosition(GameObject* object, double dir) {
-  return object->pos + vec2d(sin(dir), cos(dir)) * object->attributes.creature->meleeAttack->reach;
+  return object->pos + vec2d(sin(dir), cos(dir)) * (
+      object->attributes.creature->meleeAttack->reach +
+      object->attributes.creature->meleeAttack->glyph.size);
 }
 
 export bool isPenetrated(GameObject* object, vec2d pos) {

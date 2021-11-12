@@ -9,7 +9,7 @@ export enum MeleeWeaponOrigin {
 };
 
 export struct MeleeAttack {
-  Glyph? glyph;
+  Glyph glyph;
   MeleeWeaponOrigin origin;
   double reach;
   double duration;
