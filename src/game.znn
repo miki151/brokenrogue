@@ -48,7 +48,7 @@ export enum GameStatus {
 export struct Game {
   vector<Level> levels;
   int currentLevel;
-  const hash_map<string, GameObjectAttributes>* objectFactory;
+  hash_map<string, GameObjectAttributes>* objectFactory;
   const int lineOfSight;
   GameStatus? status;
   int gameObjectIdCounter;
@@ -137,6 +137,7 @@ vector<box<GameObject>> generateObjects(int levelNum, int initialId, vec2 levelS
 }
 
 export void reloadObjectAttributes(Game mutable* game, hash_map<string, GameObjectAttributes>* mapping) {
+  game->objectFactory = mapping;
   for (it : *game->getObjects()) {
     const obj = it->get();
     if (obj->attributesId)
