@@ -84,7 +84,7 @@ int main(string[] args) {
   const canvas = SDLCanvas(&window, &font, loadTextures(&window), move(textTexture));
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
-  const levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
+  mutable levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
   showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
   const getNewGame = [&] {
     return Game(10, levelGen.transform([](pair<vec2, box<LevelGenerator>>* g) {
@@ -149,9 +149,10 @@ int main(string[] args) {
               ui = *move(res);
             else
               printf(res.get_error());
-            if (const res2 = readLevelMapping(*open_file_r("levelmapping.txt")->read_content()))
-              game.reloadObjectAttributes(&*res2);
-            else
+            if (const res2 = readLevelMapping(*open_file_r("levelmapping.txt")->read_content())) {
+              levelMapping = *move(res2);
+              game.reloadObjectAttributes(&levelMapping);
+            } else
               printf(res2.get_error());
           } else
             discard ui->onKeyEvent(context, &ui_rectangle, &key);
