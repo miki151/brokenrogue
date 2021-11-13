@@ -98,7 +98,14 @@ export double length_d(vec2d* v) {
   return sqrt(v->x * v->x + v->y * v->y);
 }
 
-export double angle(vec2d* v) {
+export double get_angle(vec2d* v) {
   return atan2(v->x, v->y);
 }
 
+export vec2d from_polar(double angle, double length) {
+  return vec2d(length * cos(angle), length * sin(angle));
+}
+
+export vec2d rotate(vec2d* v, double angle) {
+  return from_polar(v->get_angle() + angle, v->length_d());
+}

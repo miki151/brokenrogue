@@ -23,7 +23,7 @@ export MeleeWeaponPosition? getMeleeWeaponPosition(GameObject* object, double? f
       : object->ongoingAttack->remainingTime / object->ongoingAttack->attack.duration;
   const offset = object->attributes.box->size / 2.2;
   const reach = attack->reach;
-  const length = attack->glyph.size;
+  const length = attack->length;
   mutable dir = (forceDir ?? (!object->ongoingAttack ? object->lastWalkDirection : object->ongoingAttack->dir));
   mutable offsetV = vec2d(0, 0);
   switch (attack->origin) {

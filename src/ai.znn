@@ -7,7 +7,7 @@ export import "std/box.znn";
 
 
 bool canReachMelee(GameObject* obj, GameObject* target) {
-  const dir = (target->pos - obj->pos).angle();
+  const dir = (target->pos - obj->pos).get_angle();
   // Test some intermediate points in case we can reach beyond the target.
   for (i = 0.0; i <= 1.0; i += 0.1)
     if (target->isPenetrated(obj->getMaxMeleeAttackPosition(dir) * i + obj->pos * (1.0 - i)))
@@ -22,7 +22,7 @@ export AIAvoidMelee copy(AIAvoidMelee*) = default;
 export bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game->getPlayer();
   if (canReachMelee(obj, object) && !!obj->ongoingAttack) {
-    const dir = (object->pos - obj->pos).angle();
+    const dir = (object->pos - obj->pos).get_angle();
     discard object->walk(game, timeDiff, dir, -dir);
     return true;
   }
@@ -37,7 +37,7 @@ export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, d
   if (!object->attributes.creature->meleeAttack)
     return false;
   const obj = game->getPlayer();
-  return canReachMelee(object, obj) && object->addMeleeAttack((obj->pos - object->pos).angle());
+  return canReachMelee(object, obj) && object->addMeleeAttack((obj->pos - object->pos).get_angle());
 }
 
 export struct AIAdjustMelee {};
@@ -47,7 +47,7 @@ export AIAdjustMelee copy(AIAdjustMelee*) = default;
 export bool makeMove(AIAdjustMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game->getPlayer();
   if (!!object->ongoingAttack && canReachMelee(object, obj)) {
-    const angle = (obj->pos - object->pos).angle();
+    const angle = (obj->pos - object->pos).get_angle();
     if (angle > object->ongoingAttack->dir + 0.1) {
       discard object->walk(game, timeDiff, angle + 1.57, angle);
       return true;
@@ -68,7 +68,8 @@ export bool makeMove(AIRanged*, Game mutable* game, GameObject mutable* object, 
   if (!object->attributes.creature->rangedAttack)
     return false;
   const obj = game->getPlayer();
-  return game->canSee(object, obj->pos.as_int()) && game->addRangedAttack(object, (obj->pos - object->pos).angle());
+  return game->canSee(object, obj->pos.as_int()) && game->addRangedAttack(object, (obj->pos - object->pos)
+      .get_angle());
 }
 
 export struct AIPathfind {};
@@ -78,7 +79,7 @@ export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object
   const obj = game->getPlayer();
   return game->canSee(object, obj->pos.as_int())
       && !canReachMelee(object, obj)
-      && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle(), null);
+      && !!object->walk(game, timeDiff, (obj->pos - object->pos).get_angle(), null);
 }
 
 export struct AICircle {};
@@ -88,7 +89,7 @@ export bool makeMove(AICircle*, Game mutable* game, GameObject mutable* object, 
   const obj = game->getPlayer();
   return game->canSee(object, obj->pos.as_int())
       && !canReachMelee(object, obj)
-      && !!object->walk(game, timeDiff, (obj->pos - object->pos).angle() + 1.57, null)
+      && !!object->walk(game, timeDiff, (obj->pos - object->pos).get_angle() + 1.57, null)
       && false;
 }
 

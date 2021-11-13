@@ -10,8 +10,10 @@ export enum MeleeWeaponOrigin {
 
 export struct MeleeAttack {
   Glyph glyph;
+  vec2d glyphOffset;
   MeleeWeaponOrigin origin;
   double reach;
+  double length;
   double duration;
   double damage;
 };

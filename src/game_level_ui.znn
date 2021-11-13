@@ -14,6 +14,7 @@ export import "glyph.znn";
 export [@ui_element]
 struct GameLevelUI {
   bool seeWholeMap;
+  bool showOutlines;
   int tileSize;
   double fontRatio;
   int jumpDuration;
@@ -251,22 +252,27 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   });
   for (elem : toRender) {
     elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos);
-    if (elem->radius > 0)
+    if (ui->showOutlines && elem->radius > 0)
       context.canvas->drawCircle(elem->pos, elem->radius, &color(150, 0, 0));
   }
   for (it : *data->game->getObjects()) {
     const obj = it->get();
     mutable double? forceDir = null;
-    if (&*obj == data->game->getPlayer() && !obj->ongoingAttack)
+    if (obj == data->game->getPlayer() && !obj->ongoingAttack)
       forceDir = state->playerDir;
     if (const weapon = obj->getMeleeWeaponPosition(forceDir))
       if (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int())) {
         const coord1 = origin + ui->projectOnScreen(player, weapon->pos1, state->playerDir);
         const coord2 = origin + ui->projectOnScreen(player, weapon->pos2, state->playerDir);
-        if (to_draw.contains(&coord1))
-          context.canvas->drawLine(coord1, coord2, &color(255, 255, 255));
-          /*obj->attributes.creature->meleeAttack->glyph.render(
-              context.canvas, ui->getFontSize(), coord2, state->playerDir - weapon->dir);*/
+        const attack = &*obj->attributes.creature->meleeAttack;
+        const glyphCoord = origin + ui->projectOnScreen(player,
+            weapon->pos1 + attack->glyphOffset.rotate(-weapon->dir), state->playerDir);
+        if (to_draw.contains(&coord1)) {
+          attack->glyph.render(
+              context.canvas, ui->getFontSize(), glyphCoord, state->playerDir - weapon->dir);
+          if (ui->showOutlines)
+            context.canvas->drawLine(coord1, coord2, &color(255, 255, 255));
+        }
       }
   }
   for (anim : data->game->getLevel()->animations) {
