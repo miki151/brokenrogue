@@ -11,6 +11,12 @@ import "ui_state.znn";
 import "std/time.znn";
 export import "glyph.znn";
 
+export enum MovementScheme {
+  KEYBOARD,
+  MOUSE1,
+  MOUSE2
+};
+
 export [@ui_element]
 struct GameLevelUI {
   bool seeWholeMap;
@@ -21,6 +27,7 @@ struct GameLevelUI {
   int woundedAnimDuration;
   int explosionDuration;
   double jumpHeight;
+  MovementScheme movementScheme;
   double viewAngle;
   double cameraSensitivity;
   double joystickMovementDeadRange;
@@ -42,6 +49,17 @@ struct GameLevelUI {
 
 int getFontSize(GameLevelUI* ui) {
   return (ui->fontRatio * ui->tileSize).as_int();
+}
+
+vec2 getScreenOrigin(MovementScheme scheme, rectangle* r) {
+  switch (scheme) {
+    case (KEYBOARD, MOUSE1) {
+      return vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
+    }
+    case (MOUSE2) {
+      return r->middle();
+    }
+  }
 }
 
 export struct HighlightedObjectInfo {
@@ -91,13 +109,20 @@ vec2 projectOnScreen(GameLevelUI* ui, GameObject* player, vec2d pos, double play
   return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * ui->viewAngle).as_int());
 }
 
+export struct LeftMouseAttackInfo {
+  vec2 mouseOrigin;
+  vec2 lastPosition;
+};
+
 export struct GameLevelUIState {
   double playerDir;
   int? rightMouseButton;
+  LeftMouseAttackInfo? leftMouseAttack;
+  vec2d? lastWalkDirection;
 };
 
 export GameLevelUIState() {
-  return GameLevelUIState::GameLevelUIState(0.0, null);
+  return GameLevelUIState::GameLevelUIState(0.0, null, null, null);
 }
 
 void shoot(UIContext context) {
@@ -107,7 +132,52 @@ void shoot(UIContext context) {
   data->timeSpentCallback->invoke(30);
 }
 
-export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
+bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
+  const state = context.state->get_state<GameLevelUIState>();
+  const data = *context.data->cast_to<GameLevelUIData>();
+  const player = data->game->getPlayer();
+  const rightClickCutOff = 500;
+  const curTime = current_time_milli();
+  const mousePos = event->pos;
+  switch (event->type) {
+    case (JOYSTICK_RIGHT) {
+      if (mousePos != vec2(0, 0)) {
+        if (!state->leftMouseAttack) {
+          mutable angle = mousePos.get_angle();
+          mutable length = mousePos.length_d() * 2.5;
+          length = pow(length, ui->movementPower) * ui->movementBase;
+          discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
+          state->lastWalkDirection = (mousePos.as_double() / mousePos.length_d()) * 0.02
+            + (state->lastWalkDirection ?? vec2d(0, 0)) * 0.98;
+          data->game->advance(fabs(context.timeDiff * length / 1000));
+        } else {
+          state->leftMouseAttack->lastPosition += mousePos;
+        }
+      }
+    }
+    case (LEFT) {
+      state->leftMouseAttack = LeftMouseAttackInfo(mousePos, mousePos);
+    }
+    case (LEFT_RELEASED) {
+      const dir = state->leftMouseAttack->mouseOrigin - state->leftMouseAttack->lastPosition;
+      if (dir != vec2(0, 0))
+        discard player->addMeleeAttack(dir.get_angle());
+      state->leftMouseAttack = null;
+    }
+    case (RIGHT_RELEASED) {
+      if (data->game->canUseStairs())
+        data->game->useStairs();
+    }
+    default {
+      return false;
+    }
+  }
+  return true;
+}
+
+export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse_event* event) {
+  if (ui->movementScheme == MovementScheme::MOUSE2)
+    return onMouseEventMouse2(ui, move(context), r, event);
   const state = context.state->get_state<GameLevelUIState>();
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = data->game->getPlayer();
@@ -116,7 +186,8 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle*, mouse_e
   switch (event->type) {
     case (JOYSTICK_RIGHT) {
       const rightButtonHeld = !!state->rightMouseButton;
-      if (abs(event->pos.y) > abs(event->pos.x) || rightButtonHeld) {
+      if (ui->movementScheme == MovementScheme::MOUSE1 &&
+          (abs(event->pos.y) > abs(event->pos.x) || rightButtonHeld)) {
         mutable pos = event->pos;
         if (!rightButtonHeld)
           pos.x = 0;
@@ -195,7 +266,7 @@ void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int star
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = data->game->getPlayer();
-  const origin = vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
+  const origin = getScreenOrigin(ui->movementScheme, r);
   const to_draw = r->plus_margin(ui->tileSize);
   const state = context.state->get_state<GameLevelUIState>();
   for (pos : centered_rect(player->pos.as_int(), data->game->lineOfSight))
@@ -258,8 +329,11 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   for (it : *data->game->getObjects()) {
     const obj = it->get();
     mutable double? forceDir = null;
-    if (obj == data->game->getPlayer() && !obj->ongoingAttack)
+    if (obj == player && !obj->ongoingAttack) {
       forceDir = state->playerDir;
+      if (!!state->leftMouseAttack)
+        forceDir = (state->leftMouseAttack->mouseOrigin - state->leftMouseAttack->lastPosition).get_angle();
+    }
     if (const weapon = obj->getMeleeWeaponPosition(forceDir))
       if (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int())) {
         const coord1 = origin + ui->projectOnScreen(player, weapon->pos1, state->playerDir);
@@ -288,6 +362,12 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
             drawBloodParticle(ui, context, coord, anim->time, curTime);
         }
       }
+  }
+  if (!player->ongoingAttack && !!state->leftMouseAttack) {
+    const dir = state->leftMouseAttack->mouseOrigin - state->leftMouseAttack->lastPosition;
+    const coord = origin + ui->projectOnScreen(player, player->getMaxMeleeAttackPosition(dir.get_angle()),
+        state->playerDir);
+    context.canvas->fillRectangle(&centered_rect(coord, 5), &color(0, 0, 255));
   }
   if (const message = data->game->getMessage(player->pos)) {
     const messagePos = origin + vec2(0, 60);

@@ -124,10 +124,13 @@ export vector<SDLEvent> getEvents(SDLEventsState mutable* state) {
           return SDLEvent::mouse(mouse_event{ button, vec2{event.button.x, event.button.y} });
         }
         if (event.type == SDL_MOUSEBUTTONUP) {
-          mouse_event_type button = mouse_event_type::RIGHT_RELEASED;
           switch (event.button.button) {
             case SDL_BUTTON_RIGHT:
-              return SDLEvent::mouse(mouse_event{ mouse_event_type::RIGHT_RELEASED, vec2{event.button.x, event.button.y} });
+              return SDLEvent::mouse(mouse_event{ mouse_event_type::RIGHT_RELEASED,
+                  vec2{event.button.x, event.button.y} });
+            case SDL_BUTTON_LEFT:
+              return SDLEvent::mouse(mouse_event{ mouse_event_type::LEFT_RELEASED,
+                  vec2{event.button.x, event.button.y} });
             deault:
               break;
           }

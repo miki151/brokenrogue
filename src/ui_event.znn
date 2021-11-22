@@ -37,6 +37,7 @@ export enum mouse_event_type {
   JOYSTICK_LEFT,
   JOYSTICK_RIGHT,
   RIGHT_RELEASED,
+  LEFT_RELEASED,
 };
 
 export struct mouse_event {
