@@ -5,7 +5,7 @@
   "lava" "_" 255 105 50 1.0 null "Lava" null null false null true false false null
   "corpse" "%" 255 10 10 1.0 null "Corpse" null null false null true false false null
   "bridge" "_" 210 105 50 1.0 null "Bridge" null null false null true false false null
-  "stairs" ">" 255 255 255 1.0 null "Stairs" 1.0 null false null true true false
+  "stairs" ">" 165 165 165 1.0 3 -10 -40 "Stairs" 1.0 null false null true true false
     "Click the right mouse button to descend to the next level."
   "tutorial1" " " 255 255 255 1.0 null "Tutorial message" null null false null true true false
     "Move around using the mouse. Hold the right mouse button to walk sideways. Wait by holding [SPACE]."

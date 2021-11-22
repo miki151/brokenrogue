@@ -51,11 +51,12 @@ export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos) {
 export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos, double angle) {
   if (g->stackInfo)
     for (i : range(0, g->stackInfo->count)) {
+      const ind = g->stackInfo->height > 0 ? i : g->stackInfo->count - i -1;
       mutable col = g->col;
-      col.r += i * g->stackInfo->colorDiff;
-      col.g += i * g->stackInfo->colorDiff;
-      col.b += i * g->stackInfo->colorDiff;
-      canvas->drawRotatedText(pos - vec2(0, i * g->stackInfo->height), g->sym,
+      col.r += ind * g->stackInfo->colorDiff;
+      col.g += ind * g->stackInfo->colorDiff;
+      col.b += ind * g->stackInfo->colorDiff;
+      canvas->drawRotatedText(pos - vec2(0, ind * g->stackInfo->height), g->sym,
           (g->size * font_size).as_int(), &col, angle);
     }
   else
