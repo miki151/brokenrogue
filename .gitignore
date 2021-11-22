@@ -2,3 +2,5 @@
 main
 log.out
 .build_cache
+*.dll
+find
