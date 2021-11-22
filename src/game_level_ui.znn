@@ -136,8 +136,6 @@ bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_ev
   const state = context.state->get_state<GameLevelUIState>();
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = data->game->getPlayer();
-  const rightClickCutOff = 500;
-  const curTime = current_time_milli();
   const mousePos = event->pos;
   switch (event->type) {
     case (JOYSTICK_RIGHT) {
@@ -251,6 +249,7 @@ struct GlyphRenderElem {
   Glyph glyph;
   vec2 pos;
   int radius;
+  bool creature;
 };
 
 void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
@@ -301,7 +300,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
             : (ui->getFontSize() * ui->jumpHeight * getJumpOffset(jumpState)).as_int();
         toRender.push_back(GlyphRenderElem(obj->attributes.glyph.copy(), coord - vec2(0, offset),
             (!!obj->attributes.box && !!obj->attributes.creature ?
-                obj->attributes.box->size / 2 * ui->tileSize.as_double() : 0.0).as_int()));
+                obj->attributes.box->size / 2 * ui->tileSize.as_double() : 0.0).as_int(),
+            !!obj->attributes.creature));
         if (!canSee && obj->remember)
           toRender.back()->glyph.col = color(100, 100, 100);
         else if (obj->attributes.canRemember)
@@ -319,7 +319,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     data->highlightedObjectCallback->invoke(move(tmp));
   }
   toRender.sort(&[](GlyphRenderElem* p1, GlyphRenderElem* p2) {
-      return p1->pos.y < p2->pos.y;
+      return !p1->creature && p2->creature || p1->creature == p2->creature && p1->pos.y < p2->pos.y;
   });
   for (elem : toRender) {
     elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos);
