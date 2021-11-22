@@ -322,7 +322,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       return !p1->creature && p2->creature || p1->creature == p2->creature && p1->pos.y < p2->pos.y;
   });
   for (elem : toRender) {
-    elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos);
+    elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos, state->playerDir);
     if (ui->showOutlines && elem->radius > 0)
       context.canvas->drawCircle(elem->pos, elem->radius, &color(150, 0, 0));
   }
@@ -342,7 +342,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         const glyphCoord = origin + ui->projectOnScreen(player,
             weapon->pos1 + attack->glyphOffset.rotate(-weapon->dir), state->playerDir);
         if (to_draw.contains(&coord1)) {
-          attack->glyph.render(
+          attack->glyph.renderRotated(
               context.canvas, ui->getFontSize(), glyphCoord, state->playerDir - weapon->dir);
           if (ui->showOutlines)
             context.canvas->drawLine(coord1, coord2, &color(255, 255, 255));

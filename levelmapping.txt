@@ -1,22 +1,22 @@
 
 {
-  "wall" "#" 210 105 30 1.0 "Wall" 1.0 null true null true false false null
-  "water" "_" 50 105 255 1.0 "Water" null null false null true false false null
-  "lava" "_" 255 105 50 1.0 "Lava" null null false null true false false null
-  "corpse" "%" 255 10 10 1.0 "Corpse" null null false null true false false null
-  "bridge" "_" 210 105 50 1.0 "Bridge" null null false null true false false null
-  "stairs" ">" 255 255 255 1.0 "Stairs" null null false null true true false
+  "wall" "#" 160 85 0 1.0 3 10 40 "Wall" 1.0 null true null true false false null
+  "water" "_" 50 105 255 1.0 null "Water" null null false null true false false null
+  "lava" "_" 255 105 50 1.0 null "Lava" null null false null true false false null
+  "corpse" "%" 255 10 10 1.0 null "Corpse" null null false null true false false null
+  "bridge" "_" 210 105 50 1.0 null "Bridge" null null false null true false false null
+  "stairs" ">" 255 255 255 1.0 null "Stairs" 1.0 null false null true true false
     "Click the right mouse button to descend to the next level."
-  "tutorial1" " " 255 255 255 1.0 "Tutorial message" null null false null true true false
+  "tutorial1" " " 255 255 255 1.0 null "Tutorial message" null null false null true true false
     "Move around using the mouse. Hold the right mouse button to walk sideways. Wait by holding [SPACE]."
-  "tutorial2" " " 255 255 255 1.0 "Tutorial message" null null false null true true false
+  "tutorial2" " " 255 255 255 1.0 null "Tutorial message" null null false null true true false
     "Use the left mouse button to initiate an attack on the training dummy. Move or wait to advance the clock!"
   "bee"
-      "b" 200 100 100 0.4
+      "b" 200 100 100 0.4 null
       "Killer bee"
       0.2
           5
-          ("^" 230 230 230 0.2, 0.0 0.0, CENTER, 0.3, 0.2, 0.2, 0.1)
+          ("^" 230 230 230 0.2 null, 0.0 0.0, CENTER, 0.3, 0.2, 0.2, 0.1)
           null
           all { avoidMelee pathfind melee }
       false
@@ -26,11 +26,11 @@
       false
       null
   "rat"
-      "r" 200 100 100 0.8
+      "r" 200 100 100 0.8 null
       "Giant rat"
       0.5
           3
-          ("^" 230 230 230 0.4, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, 0.4)
+          ("^" 230 230 230 0.4 null, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, 0.4)
           null
           all { pathfind melee }
       false
@@ -40,11 +40,11 @@
       false
       null
   "goblin"
-      "o" 0 200 0 1.0
+      "o" 0 200 0 1.0 null
       "Goblin"
       0.7
           3
-          (")" 255 100 100 0.7, 0.15 -0.15, RIGHT, 1.0, 0.5, 0.4, 1.5)
+          (")" 255 100 100 0.7 null, 0.15 -0.15, RIGHT, 1.0, 0.5, 0.4, 1.5)
           null
           all { pathfind melee }
       false
@@ -54,11 +54,11 @@
       false
       null
   "fencer"
-      "f" 255 0 255 1.0
+      "f" 255 0 255 1.0 null
       "Goblin fencer"
       1.0
           6
-          ("(" 255 100 100 0.7, 0.15 0.05, LEFT, 1.0, 0.5, 0.3, 0.8)
+          ("(" 255 100 100 0.7 null, 0.15 0.05, LEFT, 1.0, 0.5, 0.3, 0.8)
           null
           all { avoidMelee pathfind melee }
       false
@@ -68,12 +68,12 @@
       false
       null
   "kobold"
-      "k" 0 100 250 1.0
+      "k" 0 100 250 1.0 null
       "Kobold"
       0.8
           1
           null
-          ("*" 0 255 255 0.5, 1.0, 10.0, 0.2, 1.0, 0.0, null, 0)
+          ("*" 0 255 255 0.5 null, 1.0, 10.0, 0.2, 1.0, 0.0, null, 0)
           all { ranged }
       false
       1
@@ -82,12 +82,12 @@
       false
       null
   "dragon"
-      "D" 255 0 0 2.0
+      "D" 255 0 0 2.0 null
       "Dragon"
       1.4
           3
-          ("^" 230 230 230 0.7, 0.0 -0.05, CENTER, 1.1, 0.4, 0.5, 6.5)
-          ("*" 255 0 0 0.3, 0.01, 5.0, 0.2, 0.5, 0.3, 100 5.0, 150)
+          ("^" 230 230 230 0.7 null, 0.0 -0.05, CENTER, 1.1, 0.4, 0.5, 6.5)
+          ("*" 255 0 0 0.3 null, 0.01, 5.0, 0.2, 0.5, 0.3, 100 5.0, 150)
           all { circle melee ranged }
       false
       7
@@ -96,11 +96,11 @@
       true
       null
   "boss1"
-      "&" 200 0 100 1.5
+      "&" 200 0 100 1.5 null
       "Demon"
       1.2
           3
-          (")" 255 100 100 1.2, 0.33 -0.25, RIGHT, 1.0, 0.9, 0.7, 3.5)
+          (")" 255 100 100 1.2 null, 0.33 -0.25, RIGHT, 1.0, 0.9, 0.7, 3.5)
           null
           all { avoidMelee pathfind melee }
       false
@@ -110,7 +110,7 @@
       false
       null
   "dummy"
-      "T" 0 100 250 1.0
+      "T" 0 100 250 1.0 null
       "Training dummy"
       1.0
           1
@@ -124,11 +124,11 @@
       false
       null
   "adventurer"
-      "o" 255 255 0 1.0
+      "o" 255 255 0 1.0 null
       "Goblin chief"
       0.9
           4
-          ("(" 255 100 100 0.7, 0.15 0.05, LEFT, 1.0, 0.5, 0.3, 1.0)
+          ("(" 255 100 100 0.7 null, 0.15 0.05, LEFT, 1.0, 0.5, 0.3, 1.0)
           null
           all { first { adjustMelee avoidMelee pathfind } melee }
       false
@@ -138,11 +138,11 @@
       false
       null
   "player"
-      "@" 200 200 200 1.0
+      "@" 200 200 200 1.0 null
       "Player"
       0.9
           4
-          (")" 100 255 255 0.7, 0.15 -0.15, RIGHT, 1.0, 0.5, 0.3, 1.0)
+          (")" 100 255 255 0.7 null, 0.15 -0.15, RIGHT, 1.0, 0.5, 0.3, 1.0)
           null
           all { avoidMelee pathfind melee }
       false
