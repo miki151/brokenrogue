@@ -56,8 +56,8 @@ End
       margins(10, text(20, 255 255 255))
     }
   )
-#      position(RIGHT_CENTER,
-#          using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})
+      position(TOP_RIGHT,
+          using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})
   position(BOTTOM_RIGHT, using "enemy_info" CreatureWidget())
   position(BOTTOM_LEFT, using "player_info" CreatureWidget())
   using "dialog_text" {
