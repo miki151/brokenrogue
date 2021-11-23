@@ -1,6 +1,6 @@
 
 {
-  "wall" "#" 160 85 0 1.0 3 10 40 "Wall" 1.0 null true null true false false null
+  "wall" "#" 130 55 0 1.0 3 10 40 "Wall" 1.0 null true null true false false null
   "water" "_" 50 105 255 1.0 null "Water" null null false null true false false null
   "lava" "_" 255 105 50 1.0 null "Lava" null null false null true false false null
   "corpse" "%" 255 10 10 1.0 null "Corpse" null null false null true false false null
@@ -8,7 +8,7 @@
   "stairs" ">" 165 165 165 1.0 3 -10 -40 "Stairs" 1.0 null false null true true false
     "Click the right mouse button to descend to the next level."
   "tutorial1" " " 255 255 255 1.0 null "Tutorial message" null null false null true true false
-    "Move around using the mouse. Hold the right mouse button to walk sideways. Wait by holding [SPACE]."
+    "Move around using the WASD keys and the mouse. Wait by holding [SPACE]."
   "tutorial2" " " 255 255 255 1.0 null "Tutorial message" null null false null true true false
     "Use the left mouse button to initiate an attack on the training dummy. Move or wait to advance the clock!"
   "bee"
