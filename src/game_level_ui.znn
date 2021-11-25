@@ -260,7 +260,8 @@ void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int star
   const dur = ui->woundedAnimDuration;
   const offset = vec2((w * t / dur).as_int(), (h * t * t / (dur * dur) - h / 2).as_int());
   const pos = origin + offset;
-  Glyph("*", color(255, 0, 0), 0.5, GlyphLayer::EFFECT).render(context.canvas, ui->getFontSize(), pos);
+  Glyph("*", color(255, 0, 0), 0.5, GlyphLayer::EFFECT)
+      .render(context.canvas, ui->getFontSize(), pos, 0, false, 0);
 }
 
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
@@ -324,7 +325,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   });
   for (elem : toRender) {
     elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos,
-        state->playerDir + elem->projectileDir ?? 0.0, elem->glyph.layer == GlyphLayer::OBJECT);
+        state->playerDir + elem->projectileDir ?? 0.0, elem->glyph.layer == GlyphLayer::OBJECT, 
+        (elem->pos - origin).length_d());
     if (ui->showOutlines && elem->radius > 0)
       context.canvas->drawCircle(elem->pos, elem->radius, &color(150, 0, 0));
   }
@@ -344,8 +346,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         const glyphCoord = origin + ui->projectOnScreen(player,
             weapon->pos1 + attack->glyphOffset.rotate(-weapon->dir), state->playerDir);
         if (to_draw.contains(&coord1)) {
-          attack->glyph.renderRotated(
-              context.canvas, ui->getFontSize(), glyphCoord, state->playerDir - weapon->dir - 3.14 / 4);
+          attack->glyph.render(
+              context.canvas, ui->getFontSize(), glyphCoord, state->playerDir - weapon->dir - 3.14 / 4, false, 0);
           if (ui->showOutlines)
             context.canvas->drawLine(coord1, coord2, &color(255, 255, 255));
         }
@@ -357,7 +359,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       switch (anim->type) {
         case (EXPLOSION) {
           if (anim->time + ui->explosionDuration > curTime)
-            Glyph("*", color(255, 100, 0), 1.0, GlyphLayer::EFFECT).render(context.canvas, ui->getFontSize(), coord);
+            Glyph("*", color(255, 100, 0), 1.0, GlyphLayer::EFFECT)
+                .render(context.canvas, ui->getFontSize(), coord, 0.0, false, 0);
         }
         case (BLOOD) {
           if (anim->time + ui->woundedAnimDuration > curTime)

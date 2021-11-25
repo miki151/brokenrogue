@@ -101,7 +101,7 @@ int main(string[] args) {
   mutable levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
   showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
   const getNewGame = [&] {
-    return Game(10, levelGen.transform([](pair<vec2, box<LevelGenerator>>* g) {
+    return Game(20, levelGen.transform([](pair<vec2, box<LevelGenerator>>* g) {
           return pair(g->first, g->second.get()); }), &levelMapping);
   };
   mutable game = getNewGame();

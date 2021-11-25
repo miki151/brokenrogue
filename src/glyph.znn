@@ -43,17 +43,9 @@ export Glyph randomizeColor(Glyph* g, int variance) {
   return move(ret);
 }
 
-export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos) {
+export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos, double angle, bool creature, double dist) {
   const size = (vec2d(font_size.as_double(), font_size.as_double()) * g->size).as_int();
-  canvas->drawTextureRotated(&rectangle(pos - size / 2, pos + size / 2), g->sym, 0.0, &g->col);
+  const col = g->col.lighter((-dist / 8).as_int());
+  canvas->drawTextureRotated(&rectangle(pos - size / 2, pos + size / 2), g->sym, creature ? 0.0 : angle, &col);
 }
 
-export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos, double angle, bool creature) {
-  const size = (vec2d(font_size.as_double(), font_size.as_double()) * g->size).as_int();
-  canvas->drawTextureRotated(&rectangle(pos - size / 2, pos + size / 2), g->sym, creature ? 0.0 : angle, &g->col);
-}
-
-export void renderRotated(Glyph* g, UICanvas* canvas, int font_size, vec2 pos, double angle) {
-  const size = (vec2d(font_size.as_double(), font_size.as_double()) * g->size).as_int();
-  canvas->drawTextureRotated(&rectangle(pos - size / 2, pos + size / 2), g->sym, angle, &g->col);
-}
