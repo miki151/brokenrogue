@@ -40,38 +40,39 @@ Def CellularAutomaton(Generator, BeginProb)
 End
 
 {
-#20 20
-#{
-#  Inside(7, {
-#      Reset("floor")
-#Place(
-#          (1 1, Set("kobold"), 1, And{}, 1),
-#          (1 1, Set("player"), 1, And{}, 1))
-#  })
-#}
-#}
+20 20
+{
+  Set("grass", "tutorial1")
+  Position(CENTER, 8 5, {
+      Margin(1, Reset("wall"), {
+          Reset("floor")
+          Inside(1, {
+              Position(LEFT_CENTER, 1 1, ResetBlocking("stairs"))
+              Position(RIGHT_CENTER, 1 1, {
+                  SetBlocking("dummy")
+                  Inside(-1, Set("tutorial2"))
+              })
+          })
+      })
+      Position(RIGHT_CENTER, 1 1, {
+          Reset("floor")
+          Inside(-3, Filter(On("tree"), Reset("grass")))
+      })
+  })
+  Filter(On("grass"), Filter(Chance(0.1), Reset("tree")))
+  Filter(On("grass"), Filter(Chance(0.1), Reset("bush")))
+  Filter(On("grass"), Filter(Chance(0.3), Reset("dirt")))
+  Inside(3, 
+  Position(RIGHT_CENTER, 1 1, {
+    Set("player")
+    Inside(-3, Filter(On("tree"), Reset("grass")))
+  }))
+}
 
 Def SetBlocking(NAME) Set(NAME, "blocking") End
 Def ResetBlocking(NAME) Reset(NAME, "blocking") End
 Def CanSetBlocking() Not On("blocking") End
 
-15 10
-{
-  Border(1, Set("border"))
-  Set("wall")
-  Inside(1, {
-    Position(LEFT_CENTER, 3 3, { Reset("floor", "tutorial1") Position(CENTER, 1 1, Set("player"))})
-    Position(CENTER, 3 3, {
-        Reset("floor", "tutorial2")
-        Position(CENTER, 1 1, Set("dummy"))
-    })
-    Position(RIGHT_CENTER, 3 3, {
-        Reset("floor")
-        Position(CENTER, 1 1, ResetBlocking("stairs"))
-    })
-  })
-  Connect(On("floor"), 10, On("wall"), Reset("floor"))
-}
 20 15
 {
   Border(1, SetBlocking("border"))
