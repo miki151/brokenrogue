@@ -9,6 +9,7 @@ export import "ui.znn";
 import "rectangle.znn";
 import "ui_state.znn";
 import "std/time.znn";
+import "std/enum.znn";
 export import "glyph.znn";
 
 export enum MovementScheme {
@@ -249,7 +250,6 @@ struct GlyphRenderElem {
   Glyph glyph;
   vec2 pos;
   int radius;
-  bool creature;
   double? projectileDir;
 };
 
@@ -260,7 +260,7 @@ void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int star
   const dur = ui->woundedAnimDuration;
   const offset = vec2((w * t / dur).as_int(), (h * t * t / (dur * dur) - h / 2).as_int());
   const pos = origin + offset;
-  Glyph("*", color(255, 0, 0), 0.5).render(context.canvas, ui->getFontSize(), pos);
+  Glyph("*", color(255, 0, 0), 0.5, GlyphLayer::EFFECT).render(context.canvas, ui->getFontSize(), pos);
 }
 
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
@@ -269,12 +269,6 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const origin = getScreenOrigin(ui->movementScheme, r);
   const to_draw = r->plus_margin(ui->tileSize);
   const state = context.state->get_state<GameLevelUIState>();
-  for (pos : centered_rect(player->pos.as_int(), data->game->lineOfSight))
-    if (const t = data->game->getLevel()->getTile(*pos)) {
-      const coord = origin + ui->projectOnScreen(player, pos->as_double(), state->playerDir);
-      if (to_draw.contains(&coord) && (ui->seeWholeMap || data->game->canSee(player, *pos)))
-        (*t)->glyph.renderRotated(context.canvas, ui->getFontSize(), coord, state->playerDir);
-    }
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
   mutable highlightedObject = player;
@@ -302,12 +296,13 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         mutable double? projectileDir = null;
         if (obj->projectile)
           projectileDir = 1.57 -obj->projectile->dir.get_angle();
+        
         toRender.push_back(GlyphRenderElem(obj->attributes.glyph->copy(), coord - vec2(0, offset),
             (!!obj->attributes.box && !!obj->attributes.creature ?
                 obj->attributes.box->size / 2 * ui->tileSize.as_double() : 0.0).as_int(),
-            !!obj->attributes.creature, projectileDir));
+            projectileDir));
         if (!canSee && obj->remember)
-          toRender.back()->glyph.col = color(100, 100, 100);
+          toRender.back()->glyph.switchToMemory();
         else if (obj->attributes.canRemember)
           obj->remember = true;
       }
@@ -323,11 +318,13 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     data->highlightedObjectCallback->invoke(move(tmp));
   }
   toRender.sort(&[](GlyphRenderElem* p1, GlyphRenderElem* p2) {
-      return !p1->creature && p2->creature || p1->creature == p2->creature && p1->pos.y < p2->pos.y;
+      const layer1 = p1->glyph.layer.asInt();
+      const layer2 = p2->glyph.layer.asInt();
+      return layer1 < layer2 || layer1 == layer2 && p1->pos.y < p2->pos.y;
   });
   for (elem : toRender) {
     elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos,
-        state->playerDir + elem->projectileDir ?? 0.0, elem->creature);
+        state->playerDir + elem->projectileDir ?? 0.0, elem->glyph.layer == GlyphLayer::OBJECT);
     if (ui->showOutlines && elem->radius > 0)
       context.canvas->drawCircle(elem->pos, elem->radius, &color(150, 0, 0));
   }
@@ -360,7 +357,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       switch (anim->type) {
         case (EXPLOSION) {
           if (anim->time + ui->explosionDuration > curTime)
-            Glyph("*", color(255, 100, 0), 1.0).render(context.canvas, ui->getFontSize(), coord);
+            Glyph("*", color(255, 100, 0), 1.0, GlyphLayer::EFFECT).render(context.canvas, ui->getFontSize(), coord);
         }
         case (BLOOD) {
           if (anim->time + ui->woundedAnimDuration > curTime)

@@ -6,16 +6,29 @@ import "std/math.znn";
 import "std/io.znn";
 import "std/random.znn";
 
+export enum GlyphLayer {
+  FLOOR,
+  ITEM,
+  OBJECT,
+  EFFECT
+};
+
 export struct Glyph {
   string sym;
   color col;
   double size;
+  GlyphLayer layer;
 };
 
-export Glyph(string, color, double) = default;
+export void switchToMemory(Glyph mutable* glyph) {
+  const avg = (glyph->col.r + glyph->col.g + glyph->col.b) / 3;
+  glyph->col = color(avg, avg, avg);
+}
 
-export Glyph(string c, color col) {
-  return Glyph(c, col, 1.0);
+export Glyph(string, color, double, GlyphLayer layer) = default;
+
+export Glyph(string c, color col, GlyphLayer layer) {
+  return Glyph(c, col, 1.0, layer);
 }
 
 export Glyph copy(Glyph*) = default;

@@ -16,28 +16,14 @@ export import "game_object.znn";
 import "ai.znn";
 import "field_of_view.znn";
 
-export struct Tile {
-  Glyph glyph;
-};
-
-export Tile copy(Tile*) = default;
-
 export struct Level {
   string name;
-  table<Tile> tiles;
   vector<box<GameObject>> objects;
   vector<LevelAnimation> animations;
 };
 
 export Level(string name, vec2 size, vector<box<GameObject>> objects, vector<LevelAnimation> animations) {
-  const tiles = table(size, Tile(Glyph(".", color(40, 40, 40))));
-  return Level::Level(name, move(tiles), move(objects), move(animations));
-}
-
-export Tile*? getTile(Level* l, vec2 pos) {
-  if (pos.x >= 0 && pos.x < l->tiles.size().x && pos.y >= 0 && pos.y < l->tiles.size().y)
-    return &l->tiles[pos];
-  return null;
+  return Level::Level(name, move(objects), move(animations));
 }
 
 export enum GameStatus {
