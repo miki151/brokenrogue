@@ -71,6 +71,21 @@ export void!string blitFrom(SDLWindow* dst, vec2 coord, sdl_texture* src, vec2? 
   }
 }
 
+export void!string blitFromRotated(SDLWindow* dst, vec2 coord, sdl_texture* src, vec2? size, double angle,
+    color col) {
+  const get_error = [](string s) -> expected<void, string> {
+    return s;
+  };
+  const src_size = size ?? *src->size();
+  embed {
+    SDL_Rect rect{coord.x, coord.y, src_size.x, src_size.y};
+    SDL_Rect srcRect{0, 0, src_size.x, src_size.y};
+    SDL_SetTextureColorMod(src->texture, col.r, col.g, col.b);
+    if (SDL_RenderCopyEx(dst->renderer, src->texture, &srcRect, &rect, angle * 180 / 3.14, nullptr, SDL_FLIP_NONE) != 0)
+      return invoke(&get_error, zenon_string::reference(SDL_GetError()));
+  }
+}
+
 export void update(SDLWindow* window) {
   embed {
     SDL_RenderPresent(window->renderer);

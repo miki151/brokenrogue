@@ -18,6 +18,7 @@ import "game_level_ui.znn";
 import "level_generator_reader.znn";
 import "std/random.znn";
 import "std/panic.znn";
+import "pretty_input.znn";
 
 struct Y {
   int u;
@@ -29,8 +30,17 @@ struct X {
   Y y;
 };
 
-hash_map<string, sdl_texture> loadTextures(SDLWindow* window) {
+vector<pair<string, string>> readGameSprites(string path) {
+  mutable stream = *create_input_stream(*open_file_r(path)->read_content());
+  return *stream.read_data<vector<pair<string, string>>>();
+
+}
+
+hash_map<string, sdl_texture> loadTextures(SDLWindow* window, string spriteDir,
+    vector<pair<string, string>> spriteMap) {
   mutable ret = hash_map<string, sdl_texture>();
+  for (elem : spriteMap)
+    ret.insert(elem->first, *sdlLoadBMP(spriteDir + "/" + elem->second + ".bmp")->to_texture(window));
 //  ret.insert("tex1", *sdlLoadBMP("texture1.bmp")->to_texture(window));
   return move(ret);
 }
@@ -77,11 +87,15 @@ int main(string[] args) {
   *sdl_init();
   init_random();
   mutable ui = *readUIFrom("ui.txt");
-  const window = *sdl_create_window(vec2(1280, 720), "Infinihack");
+  const window = *sdl_create_window(vec2(1280, 720), "Broken Rogue");
   *sdlSetRelativeMouseMode(true);
   mutable font = *window.loadSDLFont(flags.font ?? "font.ttf", 10, 100);
-  const textTexture = *window.make_target_texture(vec2(100, 100));
-  const canvas = SDLCanvas(&window, &font, loadTextures(&window), move(textTexture));
+  const getCanvas = [&] {
+    const textTexture = *window.make_target_texture(vec2(100, 100));
+    const gameSprites = readGameSprites("sprites.txt");
+    return SDLCanvas(&window, &font, loadTextures(&window, "sprites", move(gameSprites)), move(textTexture));
+  };
+  mutable canvas = getCanvas();
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
   const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
   mutable levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
@@ -126,7 +140,7 @@ int main(string[] args) {
     }
     insertCreatureInfo(&uiData, "player_info", 
         max(0.0, *game.getPlayer()->health / *game.getPlayer()->attributes.maxHealth), "Player",
-            &game.getPlayer()->attributes.glyph);
+            &*game.getPlayer()->attributes.glyph);
     if (highlightedObjectInfo)
       insertCreatureInfo(&uiData, "enemy_info", highlightedObjectInfo->hp, highlightedObjectInfo->name,
           &highlightedObjectInfo->glyph);
@@ -145,6 +159,7 @@ int main(string[] args) {
         case (quit) { return 0; }
         case (key) {
           if (key == key_event(key_type::F1, key_event_type::DOWN)) {
+            canvas = getCanvas();
             if (const res = readUIFrom("ui.txt"))
               ui = *move(res);
             else

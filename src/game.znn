@@ -30,7 +30,7 @@ export struct Level {
 };
 
 export Level(string name, vec2 size, vector<box<GameObject>> objects, vector<LevelAnimation> animations) {
-  const tiles = table(size, Tile(Glyph(".", color(80, 80, 80))));
+  const tiles = table(size, Tile(Glyph(".", color(40, 40, 40))));
   return Level::Level(name, move(tiles), move(objects), move(animations));
 }
 
@@ -241,7 +241,7 @@ export void advance(Game mutable* g, double timeDiff) {
       if (!!deadCreature->attributes.creature) {
         toAdd.push_back(GameObject(g->gameObjectIdCounter, deadCreature->pos,
             g->objectFactory->get(&"corpse")->copy(), "corpse"));
-        toAdd.back()->attributes.glyph.size = deadCreature->attributes.glyph.size * 0.8;
+        toAdd.back()->attributes.glyph->size = deadCreature->attributes.glyph->size * 0.8;
       }
       g->getObjects()->remove(deadCreatures[i]);
     }

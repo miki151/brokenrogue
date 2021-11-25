@@ -35,6 +35,13 @@ export void drawTexture(SDLCanvas* canvas, rectangle* r, string id, texture_flip
     canvas->drawText(r->v1, "bad texture id: {id}", 10, &color(255, 0, 0));
 }
 
+export void drawTextureRotated(SDLCanvas* canvas, rectangle* r, string id, double angle, color* col) {
+  if (const t = canvas->textures.get_maybe(&id))
+    *canvas->window->blitFromRotated(r->v1, *t, r->size(), angle, *col);
+  else
+    canvas->drawText(r->v1, "bad texture id: {id}", 10, &color(255, 0, 0));
+}
+
 export vec2 getTextureSize(SDLCanvas* canvas, string id) {
   if (const t = canvas->textures.get_maybe(&id))
     return *(*t)->size();

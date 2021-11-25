@@ -1,4 +1,6 @@
 
+import "std/math.znn";
+
 export struct color {
   int r;
   int g;
@@ -6,3 +8,11 @@ export struct color {
 };
 
 export color implicit_copy(color*) = default;
+
+int clamp(int amount) {
+  return max(0, min(255, amount));
+}
+
+export color lighter(color* col, int amount) {
+  return color(clamp(col->r + amount), clamp(col->g + amount), clamp(col->b + amount));
+}

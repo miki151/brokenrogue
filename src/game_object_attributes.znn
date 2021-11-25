@@ -24,7 +24,7 @@ export vec2d? getRebound(BoundingBox* b, BoundingBox* other, vec2d p) {
 export BoundingBox implicit_copy(BoundingBox*) = default;
 
 export struct GameObjectAttributes {
-  Glyph glyph;
+  Glyph? glyph;
   string name;
   BoundingBox? box;
   Creature? creature;
