@@ -60,16 +60,17 @@ export bool makeMove(AIAdjustMelee*, Game mutable* game, GameObject mutable* obj
   return false;
 }
 
-export struct AIRanged {};
+export struct AIRanged { int maxDist; };
 
 export AIRanged copy(AIRanged*) = default;
 
-export bool makeMove(AIRanged*, Game mutable* game, GameObject mutable* object, double) {
+export bool makeMove(AIRanged* ai, Game mutable* game, GameObject mutable* object, double) {
   if (!object->attributes.creature->rangedAttack)
     return false;
   const obj = game->getPlayer();
-  return game->canSee(object, obj->pos.as_int()) && game->addRangedAttack(object, (obj->pos - object->pos)
-      .get_angle());
+  return (obj->pos - object->pos).length_d() <= ai->maxDist && 
+      game->canSee(object, obj->pos.as_int()) &&
+      game->addRangedAttack(object, (obj->pos - object->pos).get_angle());
 }
 
 export struct AIPathfind {};
