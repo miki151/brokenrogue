@@ -68,9 +68,12 @@ export bool makeMove(AIRanged* ai, Game mutable* game, GameObject mutable* objec
   if (!object->attributes.creature->rangedAttack)
     return false;
   const obj = game->getPlayer();
-  return (obj->pos - object->pos).length_d() <= ai->maxDist && 
-      game->canSee(object, obj->pos.as_int()) &&
-      game->addRangedAttack(object, (obj->pos - object->pos).get_angle());
+  const canSee = game->canSee(object, obj->pos.as_int());
+  const dir = obj->pos - object->pos;
+  if (canSee)
+    object->lastWalkDirection = dir.get_angle();
+  return dir.length_d() <= ai->maxDist && canSee &&
+      game->addRangedAttack(object, dir.get_angle());
 }
 
 export struct AIPathfind {};

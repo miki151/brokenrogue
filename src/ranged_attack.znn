@@ -9,8 +9,17 @@ export struct RangedAttackExtraTimeout {
 
 export RangedAttackExtraTimeout copy(RangedAttackExtraTimeout*) = default;
 
+export struct RangedWeaponGlyph {
+  Glyph glyph;
+  vec2d glyphOffset;
+  MeleeWeaponOrigin origin;
+};
+
+export RangedWeaponGlyph copy(RangedWeaponGlyph*) = default;
+
 export struct RangedAttack {
   Glyph glyph;
+  RangedWeaponGlyph? weaponGlyph;
   double timeout;
   double velocity;
   double size;

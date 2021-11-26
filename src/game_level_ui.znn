@@ -338,15 +338,14 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       if (!!state->leftMouseAttack)
         forceDir = (state->leftMouseAttack->mouseOrigin - state->leftMouseAttack->lastPosition).get_angle();
     }
-    if (const weapon = obj->getMeleeWeaponPosition(forceDir))
+    for (weapon : obj->getAllWeaponPositions(forceDir))
       if (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int())) {
         const coord1 = origin + ui->projectOnScreen(player, weapon->pos1, state->playerDir);
         const coord2 = origin + ui->projectOnScreen(player, weapon->pos2, state->playerDir);
-        const attack = &*obj->attributes.creature->meleeAttack;
         const glyphCoord = origin + ui->projectOnScreen(player,
-            weapon->pos1 + attack->glyphOffset.rotate(-weapon->dir), state->playerDir);
+            weapon->pos1 + weapon->glyphOffset.rotate(-weapon->dir), state->playerDir);
         if (to_draw.contains(&coord1)) {
-          attack->glyph.render(
+          weapon->glyph->render(
               context.canvas, ui->getFontSize(), glyphCoord, state->playerDir - weapon->dir - 3.14 / 4, false, 0);
           if (ui->showOutlines)
             context.canvas->drawLine(coord1, coord2, &color(255, 255, 255));

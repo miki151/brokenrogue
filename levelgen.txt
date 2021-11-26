@@ -40,6 +40,13 @@ Def CellularAutomaton(Generator, BeginProb)
 End
 
 {
+#10 10
+#{
+#  Set("floor")
+#  Position(LEFT_CENTER, 1 1, Set("player"))
+#  Position(RIGHT_CENTER, 1 1, Set("kobold"))
+#}
+#}
 20 20
 {
   Set("grass", "tutorial1")
