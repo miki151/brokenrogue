@@ -5,5 +5,6 @@ mkdir $DIR
 cp *.dll $DIR
 cp *.txt $DIR
 cp *.ttf $DIR
+cp -R sprites $DIR
 zip -r ../$DIR.zip $DIR
 rm -Rf $DIR
