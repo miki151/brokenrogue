@@ -5,7 +5,9 @@ import "pretty_input.znn";
 export enum MeleeWeaponOrigin {
   LEFT,
   RIGHT,
-  CENTER
+  CENTER,
+  LEFT_SWING,
+  RIGHT_SWING
 };
 
 export struct MeleeAttack {

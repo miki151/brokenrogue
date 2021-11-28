@@ -200,8 +200,10 @@ export void advance(Game mutable* g, double timeDiff) {
             break;
           }
         }
-      if (object->ongoingAttack->remainingTime <= 0.0)
+      if (object->ongoingAttack->remainingTime <= 0.0) {
         object->ongoingAttack = null;
+        object->updateWeaponOrigin();
+      }
     }
     if (object->projectile) {
       const prevPos = object->pos;
