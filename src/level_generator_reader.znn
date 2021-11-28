@@ -145,6 +145,26 @@ export vector<pair<vec2, box<LevelGenerator>>>!string readLevelGenerator(string 
   return stream.read_data<vector<pair<vec2, box<LevelGenerator>>>>();
 }
 
+bool getDefaultValue(pretty_member_dummy<GameObjectAttributes, bool, 8>) {
+  return false;
+}
+
+bool getDefaultValue(pretty_member_dummy<GameObjectAttributes, bool, 7>) {
+  return false;
+}
+
+bool getDefaultValue(pretty_member_dummy<GameObjectAttributes, bool, 6>) {
+  return false;
+}
+
+bool getDefaultValue(pretty_member_dummy<GameObjectAttributes, bool, 4>) {
+  return false;
+}
+
+bool round_brackets(pretty_dummy_struct<GameObjectAttributes>) {
+  return true;
+}
+
 export hash_map<string, GameObjectAttributes>!string readLevelMapping(string content) {
   mutable stream = try create_input_stream(content);
   return stream.read_data<hash_map<string, GameObjectAttributes>>();
