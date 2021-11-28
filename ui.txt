@@ -40,21 +40,37 @@ End
   using "reload_ui" key_handler(F1 DOWN)
   using "exit_callback" key_handler(ESCAPE DOWN)
   fill(0 0 0)
-  using "game_level" game_level(false, false, 50, 1.0, 450, 400, 400, 0.05, KEYBOARD, 1.0, 0.0035, 0.2, 0.5,
-      1.2, 0.2, 1.3, 2,
-    W HELD,
-    S HELD,
-    A HELD,
-    D HELD,
-    SPACE HELD,
-    B DOWN,
-    Y DOWN,
-    ENTER DOWN,
-    {
-      fill(0 0 0)
-      frame(1, 255 255 255)
-      margins(10, text(20, 255 255 255))
-    }
+  using "game_level" game_level(
+      seeWholeMap = false
+      showOutlines = false
+      tileSize = 50
+      fontRatio = 1.0
+      jumpDuration = 450
+      woundedAnimDuration = 400
+      explosionDuration = 400
+      jumpHeight = 0.05
+      movementScheme = KEYBOARD
+      viewAngle = 1.0
+      cameraSensitivity = 0.0035
+      joystickMovementDeadRange = 0.2
+      minJoystickMovement = 0.5
+      movementPower = 1.2
+      movementBase = 0.2
+      rotationPower = 1.3
+      rotationBase = 2
+      forwardKey = W HELD
+      backwardKey = S HELD
+      leftKey = A HELD
+      rightKey = D HELD
+      waitKey = SPACE HELD
+      meleeKey = B DOWN
+      shootKey = Y DOWN
+      changeLevelKey = ENTER DOWN
+      stairsMessage = {
+        fill(0 0 0)
+        frame(1, 255 255 255)
+        margins(10, text(20, 255 255 255))
+      }
   )
       position(TOP_RIGHT,
           using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})

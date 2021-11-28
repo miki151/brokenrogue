@@ -52,11 +52,55 @@ void!string parse_bracket(input_stream mutable* stream, bracket_to_parse b) {
     }
 }
 
+export template <T>
+T? getNullImpl(pretty_dummy_struct<T>) {
+  return null;
+}
+
+export template <T>
+T? getNullImpl(pretty_dummy_struct<T?>) {
+  return null;
+}
+
+export template <T> requires is_struct<T>
+T!string read_named_fields(pretty_dummy_struct<T>, input_stream mutable* stream) {
+  static mutable stmt = "";
+  static for (i = 0; i < struct_count(T); ++i)
+    stmt = stmt + "mutable elem" + to_string(i) +
+        " = getNullImpl(pretty_dummy_struct<" + to_string(get_member_type(T, i)) + ">());";
+  stmt = stmt +
+    "while (true) \{ const id = stream->read_string(); if (id == \")\") break;try stream->expect(\"=\");";
+  static for (i = 0; i < struct_count(T); ++i)
+    stmt = stmt +
+        "if (id == \"" + get_member_name(T, i) + "\") elem" + to_string(i) + " = try stream->read_data<" + 
+        to_string(get_member_type(T, i)) + ">();";
+  stmt = stmt + "\}";
+  static for (i = 0; i < struct_count(T); ++i)
+    stmt = stmt + "if (!elem" + to_string(i) + ")"  +
+        "return stream->get_error(\"Field " + get_member_name(T, i) + " is required\");";
+  stmt = stmt + "return " + to_string(T) + "(";
+  static for (i = 0; i < struct_count(T); ++i) {
+    static if (i > 0) {
+      stmt = stmt + ", ";
+    }
+    stmt = stmt + "*move(elem" + to_string(i) + ")";
+  }
+  mixin "\{" + stmt + ");\}";
+}
+
 export template <T> requires is_struct<T>
 T!string read_data(input_stream mutable* stream, pretty_dummy_struct<T>) {
   static mutable readStmt = "";
   static mutable returnStmt = "return " + to_string(T) + "(";
   try parse_bracket<T>(stream, bracket_to_parse::OPEN);
+  if (round_brackets(pretty_dummy_struct<T>())) {
+    const ind = stream->index;
+    const asdf = stream->read_string();
+    const equals = stream->peek_string() == "=";
+    stream->index = ind;
+    if (equals)
+      return read_named_fields(pretty_dummy_struct<T>(), stream);
+  }
   static for (i = 0; i < struct_count(T); ++i) {
     static if (i > 0) {
       returnStmt = returnStmt + ", ";
@@ -82,7 +126,7 @@ T!string read_data(input_stream mutable* stream, pretty_dummy_struct<T>) {
       mixin "return " + to_string(T) + "::" + altName + "(move(value));";
     }
   }
-  panic("Expected an {to_string(T)} type discriminant, got: \"{discriminant}\"");
+  return stream->get_error("Expected an {to_string(T)} type discriminant, got: \"{discriminant}\"");
 }
 
 export template <T> requires is_enum<T>
@@ -92,7 +136,7 @@ T!string read_data(input_stream mutable* stream, pretty_dummy_struct<T>) {
     if (e->asString() == s)
       return *e;
   }
-  return "Unrecognized {to_string(T)} element: \"{s}\"";
+  return stream->get_error("Unrecognized {to_string(T)} element: \"{s}\"");
 }
 
 char get_char(input_stream mutable* stream) {
