@@ -52,22 +52,11 @@ void!string parse_bracket(input_stream mutable* stream, bracket_to_parse b) {
     }
 }
 
-export template <T>
-T? getNullImpl(pretty_dummy_struct<T>) {
-  return null;
-}
-
-export template <T>
-T? getNullImpl(pretty_dummy_struct<T?>) {
-  return null;
-}
-
 export template <T> requires is_struct<T>
 T!string read_named_fields(pretty_dummy_struct<T>, input_stream mutable* stream) {
   static mutable stmt = "";
   static for (i = 0; i < struct_count(T); ++i)
-    stmt = stmt + "mutable elem" + to_string(i) +
-        " = getNullImpl(pretty_dummy_struct<" + to_string(get_member_type(T, i)) + ">());";
+    stmt = stmt + "mutable " + to_string(get_member_type(T, i)) + " ? elem" + to_string(i) + " = null;";
   stmt = stmt +
     "while (true) \{ const id = stream->read_string(); if (id == \")\") break;try stream->expect(\"=\");";
   static for (i = 0; i < struct_count(T); ++i)
