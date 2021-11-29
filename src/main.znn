@@ -52,6 +52,7 @@ box<UIElement>!string readUIFrom(string path) {
 struct Flags {
   string? font;
   bool noPanicHandler;
+  double? realTimeFlow;
 };
 
 template <Types...> requires copy<Types>...
@@ -150,6 +151,8 @@ int main(string[] args) {
     timeDiff = 0.001 * (cur_time - last_update);
     if (cur_time <= realTimeEnd)
       game.advance(timeDiff);
+    else if (flags.realTimeFlow)
+      game.advance(timeDiff * *flags.realTimeFlow);
     last_update = cur_time;
     const context = UIContext(&canvas, &uiData, &uiState, timeDiff);
     for (event : events_state.getEvents()) {
