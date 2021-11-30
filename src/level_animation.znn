@@ -3,6 +3,7 @@ export import "vec2.znn";
 
 export enum LevelAnimationType {
   BLOOD,
+  HEAL,
   EXPLOSION
 };
 

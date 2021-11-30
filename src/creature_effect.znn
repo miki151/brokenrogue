@@ -10,9 +10,12 @@ export struct HealEffect {
 
 export HealEffect copy(HealEffect*) = default;
 
-export void apply(HealEffect* effect, GameObject mutable* object, Game mutable*) {
-  if (object->health)
+export void apply(HealEffect* effect, GameObject mutable* object, Game mutable* game) {
+  if (!!object->health && *object->health < *object->attributes.maxHealth) {
     *object->health = min(object->attributes.maxHealth->as_double(), *object->health + effect->amount);
+    const curTime = current_time_milli();
+    game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::HEAL, object->pos, curTime));
+  }
 }
 
 export struct WoundEffect {

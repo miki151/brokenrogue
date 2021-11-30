@@ -264,6 +264,17 @@ void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int star
       .render(context.canvas, ui->getFontSize(), pos, 0, false, 0);
 }
 
+void drawHeartParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
+  const h = ui->getFontSize() * 2 / 3;
+  const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui->getFontSize() / 3;
+  const t = curTime - start;
+  const dur = ui->woundedAnimDuration;
+  const offset = vec2((w * t / dur).as_int(), -ui->getFontSize() / 2 -(h * t * t / (dur * dur) - h / 2).as_int());
+  const pos = origin + offset;
+  Glyph("heart", color(255, 0, 0), 0.5, GlyphLayer::EFFECT)
+      .render(context.canvas, ui->getFontSize(), pos, 0, false, 0);
+}
+
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = data->game->getPlayer();
@@ -364,6 +375,10 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         case (BLOOD) {
           if (anim->time + ui->woundedAnimDuration > curTime)
             drawBloodParticle(ui, context, coord, anim->time, curTime);
+        }
+        case (HEAL) {
+          if (anim->time + ui->woundedAnimDuration > curTime)
+            drawHeartParticle(ui, context, coord, anim->time, curTime);
         }
       }
   }
