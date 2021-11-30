@@ -77,14 +77,15 @@
       isStairs = true
       message = "Use the left mouse button to initiate an attack on the training dummy. Move or wait to advance the clock!"
   )
+Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
   "bee" (
       glyph = "b" 200 100 100 0.4 OBJECT
       name = "Killer bee"
       box = 0.2
       creature = 5
-          ("^" 230 230 230 0.2 EFFECT, 0.0 0.0, CENTER, 0.3, 0.2, 0.2, 0.1)
+          {("^" 230 230 230 0.2 EFFECT, 0.0 0.0, CENTER, 0.3, 0.2, 0.2, 0.1)}
           null
-          all { avoidMelee pathfind melee }
+          all { avoidMelee pathfindUntilMelee melee }
       maxHealth = 1
   )
   "rat" (
@@ -92,9 +93,9 @@
       name = "Giant rat"
       box = 0.5
       creature = 3
-          ("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, 0.4)
+          {("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, 0.4)}
           null
-          all { pathfind melee }
+          all { pathfindUntilMelee melee }
       maxHealth = 1
   )
   "goblin" (
@@ -102,7 +103,20 @@
       name = "Goblin"
       box = 0.7
       creature = 3
+          {(")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, 1.5)}
+          null
+          all { pathfindUntilMelee melee }
+      maxHealth = 3
+  )
+  "berserker" (
+      glyph = "o" 200 0 0 1.0 OBJECT
+      name = "Goblin berserker"
+      box = 0.7
+      creature = 2
+          {
           (")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, 1.5)
+          (")" 255 100 100 0.7 EFFECT, 0.15 0, LEFT, 1.0, 0.5, 0.4, 1.5)
+          }
           null
           all { pathfind melee }
       maxHealth = 3
@@ -112,9 +126,9 @@
       name = "Goblin fencer"
       box = 1.0
       creature = 6
-          ("(" 255 100 100 0.7 EFFECT, 0.15 0.05, LEFT, 1.0, 0.5, 0.3, 0.8)
+          {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, 0.8)}
           null
-          all { avoidMelee pathfind melee }
+          all { avoidMelee pathfindUntilMelee melee }
       maxHealth = 1
   )
   "kobold" (
@@ -122,7 +136,7 @@
       name = "Kobold"
       box = 0.8
       creature = 1
-          null
+          {}
           ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER ,1.0, 10.0, 0.2, 1.0, 0.0, null, 0)
           all { ranged 5 }
       maxHealth = 1
@@ -132,7 +146,7 @@
       name = "Dragon"
       box = 1.8
       creature = 3
-          ("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, 6.5)
+          {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, 6.5)}
           ("*" 255 0 0 0.3 EFFECT, null, 0.01, 5.0, 0.2, 0.5, 0.3, 100 5.0, 150)
           all { circle melee ranged 6 }
       maxHealth = 5
@@ -143,9 +157,9 @@
       name = "Big fat demon"
       box = 1.0
       creature = 2
-          ("battleaxe" 50 50 180 2 EFFECT, 0.33 0, RIGHT_SWING, 0.0, 1.2, 0.9, 3.5)
+          {("battleaxe" 50 50 180 2 EFFECT, 0.33 0, RIGHT_SWING, 0.0, 1.2, 0.9, 3.5)}
           null
-          all { avoidMelee pathfind melee }
+          all { avoidMelee pathfindUntilMelee melee }
       maxHealth = 6
   )
   "dummy" (
@@ -153,7 +167,7 @@
       name = "Training dummy"
       box = 1.0
       creature = 1
-          null
+          {}
           null
           all { ranged 1 }
       maxHealth = 3
@@ -164,9 +178,9 @@
       name = "Goblin chief"
       box = 0.9
       creature = 4
-          ("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, 1.0)
+          {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, 1.0)}
           null
-          all { first { adjustMelee avoidMelee pathfind } melee }
+          all { first { adjustMelee avoidMelee pathfindUntilMelee } melee }
       maxHealth = 5
   )
   "player" (
@@ -174,7 +188,7 @@
       name = "Player"
       box = 0.9
       creature = 4
-          (")" 10 155 155 0.7 EFFECT, 0.15 0.0, RIGHT, 1.0, 0.5, 0.3, 1.0)
+          {(")" 10 155 155 0.7 EFFECT, 0.15 0.0, RIGHT, 1.0, 0.5, 0.3, 1.0)}
           null
           all { avoidMelee pathfind melee }
       maxHealth = 10

@@ -92,7 +92,7 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   else if (*event == ui->shootKey)
     shoot(context);
   else if (*event == ui->meleeKey) {
-    discard player->addMeleeAttack(state->playerDir);
+    discard player->addMeleeAttack(state->playerDir, 0);
   }
   else if (*event == ui->changeLevelKey && data->game->canUseStairs()) {
     data->game->useStairs();
@@ -160,7 +160,7 @@ bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_ev
     case (LEFT_RELEASED) {
       const dir = state->leftMouseAttack->mouseOrigin - state->leftMouseAttack->lastPosition;
       if (dir != vec2(0, 0))
-        discard player->addMeleeAttack(dir.get_angle());
+        discard player->addMeleeAttack(dir.get_angle(), 0);
       state->leftMouseAttack = null;
     }
     case (RIGHT_RELEASED) {
@@ -230,7 +230,7 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
       state->rightMouseButton = null;
     }
     case (LEFT) {
-      discard player->addMeleeAttack(state->playerDir);
+      discard player->addMeleeAttack(state->playerDir, 0);
     }
     default {
       return false;

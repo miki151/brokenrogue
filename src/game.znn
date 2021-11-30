@@ -193,7 +193,7 @@ export void advance(Game mutable* g, double timeDiff) {
         if (!object->ongoingAttack->woundedObjects.contains(&it2->get()->id)) {
           const object2 = it2->get();
           if (object2 != object && !!object2->attributes.creature && 
-              object2->isPenetrated(object->getMeleeWeaponPosition(null)->pos2)) {
+              object2->isPenetrated(object->getMeleeWeaponPosition(null)[*object->lastAttackIndex].pos2)) {
             object->ongoingAttack->woundedObjects.insert(object2->id);
             if (g->woundCreature(it2.index, curTime, object->ongoingAttack->attack.damage))
               deadCreatures.push_back(it2.index);
@@ -201,8 +201,8 @@ export void advance(Game mutable* g, double timeDiff) {
           }
         }
       if (object->ongoingAttack->remainingTime <= 0.0) {
+        object->updateWeaponOrigin(*object->lastAttackIndex);
         object->ongoingAttack = null;
-        object->updateWeaponOrigin();
       }
     }
     if (object->projectile) {
