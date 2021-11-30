@@ -1,6 +1,7 @@
 
 export import "glyph.znn";
 import "pretty_input.znn";
+export import "creature_effect.znn";
 
 export struct RangedAttackExtraTimeout {
   int count;
@@ -23,7 +24,7 @@ export struct RangedAttack {
   double timeout;
   double velocity;
   double size;
-  double damage;
+  CreatureEffect effect;
   double inaccuracy;
   RangedAttackExtraTimeout? extraTimeout;
   int colorVariance;

@@ -1,0 +1,43 @@
+
+import "game_object.znn";
+import "std/math.znn";
+import "std/time.znn";
+import "game.znn";
+
+export struct HealEffect {
+  double amount;
+};
+
+export HealEffect copy(HealEffect*) = default;
+
+export void apply(HealEffect* effect, GameObject mutable* object, Game mutable*) {
+  if (object->health)
+    *object->health = min(object->attributes.maxHealth->as_double(), *object->health + effect->amount);
+}
+
+export struct WoundEffect {
+  double amount;
+};
+
+export WoundEffect copy(WoundEffect*) = default;
+
+export void apply(WoundEffect* effect, GameObject mutable* object, Game mutable* game) {
+  const curTime = current_time_milli();
+  game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object->pos, curTime));
+  if (object->health)
+    *object->health -= effect->amount;
+  if (object->health ?? 1.0 <= 0.0) {
+    for (i : range(0, 10))
+      game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object->pos, curTime + i));
+    object->isDead = true;
+  }
+}
+
+export union CreatureEffect {
+  HealEffect heal;
+  WoundEffect wound;
+};
+
+export CreatureEffect copy(CreatureEffect*) = default;
+
+export void apply(virtual CreatureEffect*, GameObject mutable*, Game mutable*);

@@ -136,12 +136,13 @@ export struct GameObject {
   bool remember;
   double lastWalkDirection;
   MeleeWeaponOrigin? currentOrigin;
+  bool isDead;
 };
 
 export GameObject(int id, vec2d pos, GameObjectAttributes attr, string? attributesId) {
   const health = attr.maxHealth.map_to(&[](int* a) { return a->as_double(); });
   return GameObject::GameObject(id, pos, GameObjectAnimation(), move(attr), attributesId, null, null, 0, 0, null,
-      null, health, false, 0, null);
+      null, health, false, 0, null, false);
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction, int index) {

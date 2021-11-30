@@ -83,7 +83,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Killer bee"
       box = 0.2
       creature = 5
-          {("^" 230 230 230 0.2 EFFECT, 0.0 0.0, CENTER, 0.3, 0.2, 0.2, 0.1)}
+          {("^" 230 230 230 0.2 EFFECT, 0.0 0.0, CENTER, 0.3, 0.2, 0.2, wound 0.1)}
           null
           all { avoidMelee pathfindUntilMelee melee }
       maxHealth = 1
@@ -93,7 +93,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Giant rat"
       box = 0.5
       creature = 3
-          {("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, 0.4)}
+          {("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, wound 0.4)}
           null
           all { pathfindUntilMelee melee }
       maxHealth = 1
@@ -103,7 +103,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Goblin"
       box = 0.7
       creature = 3
-          {(")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, 1.5)}
+          {(")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, wound 1.5)}
           null
           all { pathfindUntilMelee melee }
       maxHealth = 3
@@ -114,8 +114,8 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       box = 0.7
       creature = 2
           {
-          (")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, 1.5)
-          (")" 255 100 100 0.7 EFFECT, 0.15 0, LEFT, 1.0, 0.5, 0.4, 1.5)
+          (")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, wound 1.5)
+          (")" 255 100 100 0.7 EFFECT, 0.15 0, LEFT, 1.0, 0.5, 0.4, wound 1.5)
           }
           null
           all { pathfind melee }
@@ -126,7 +126,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Goblin fencer"
       box = 1.0
       creature = 6
-          {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, 0.8)}
+          {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, wound 0.8)}
           null
           all { avoidMelee pathfindUntilMelee melee }
       maxHealth = 1
@@ -137,7 +137,19 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       box = 0.8
       creature = 1
           {}
-          ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER ,1.0, 10.0, 0.2, 1.0, 0.0, null, 0)
+          ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER ,1.0, 10.0, 0.2, wound 1.0, 0.0,
+              null, 0)
+          all { ranged 5 }
+      maxHealth = 1
+  )
+  "nymph" (
+      glyph = "n" 250 100 100 1.0 OBJECT
+      name = "Nymph"
+      box = 0.8
+      creature = 1
+          {}
+          ("heart" 250 20 20 0.5 EFFECT, null, 5.0, 2.0, 0.2, heal 3.0, 0.0,
+              null, 0)
           all { ranged 5 }
       maxHealth = 1
   )
@@ -146,8 +158,8 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Dragon"
       box = 1.8
       creature = 3
-          {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, 6.5)}
-          ("*" 255 0 0 0.3 EFFECT, null, 0.01, 5.0, 0.2, 0.5, 0.3, 100 5.0, 150)
+          {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, wound 6.5)}
+          ("*" 255 0 0 0.3 EFFECT, null, 0.01, 5.0, 0.2, wound 0.5, 0.3, 100 5.0, 150)
           all { circle melee ranged 6 }
       maxHealth = 5
       isEndGameBoss = true
@@ -157,7 +169,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Big fat demon"
       box = 1.0
       creature = 2
-          {("battleaxe" 50 50 180 2 EFFECT, 0.33 0, RIGHT_SWING, 0.0, 1.2, 0.9, 3.5)}
+          {("battleaxe" 50 50 180 2 EFFECT, 0.33 0, RIGHT_SWING, 0.0, 1.2, 0.9, wound 3.5)}
           null
           all { avoidMelee pathfindUntilMelee melee }
       maxHealth = 6
@@ -178,7 +190,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Goblin chief"
       box = 0.9
       creature = 4
-          {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, 1.0)}
+          {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, wound 1.0)}
           null
           all { first { adjustMelee avoidMelee pathfindUntilMelee } melee }
       maxHealth = 5
@@ -188,7 +200,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Player"
       box = 0.9
       creature = 4
-          {(")" 10 155 155 0.7 EFFECT, 0.15 0.0, RIGHT, 1.0, 0.5, 0.3, 1.0)}
+          {(")" 10 155 155 0.7 EFFECT, 0.15 0.0, RIGHT, 1.0, 0.5, 0.3, wound 1.0)}
           null
           all { avoidMelee pathfind melee }
       maxHealth = 10
