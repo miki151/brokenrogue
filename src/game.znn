@@ -234,7 +234,10 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
   if (o->rangedAttackTimeout <= 0.0 && !!o->attributes.creature && !!o->attributes.creature->rangedAttack) {
     const attack = &*o->attributes.creature->rangedAttack;
     direction += (get_random_d() - 0.5) * attack->inaccuracy;
-    game->spawnProjectile(o, vec2d(sin(direction), cos(direction)) * attack->velocity,
+    mutable origin = o->pos;
+    if (const pos = o->getRangedWeaponPosition(null))
+      origin = pos->pos2;
+    game->spawnProjectile(o, origin, vec2d(sin(direction), cos(direction)) * attack->velocity,
         attack->glyph.randomizeColor(attack->colorVariance), attack->size, attack->effect.copy());
     o->rangedAttackTimeout = attack->timeout;
     if (attack->extraTimeout) {
@@ -249,12 +252,12 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
   return false;
 }
 
-export void spawnProjectile(Game mutable *g, GameObject* o, vec2d dir, Glyph glyph, double size,
+export void spawnProjectile(Game mutable *g, GameObject* o, vec2d origin, vec2d dir, Glyph glyph, double size,
     CreatureEffect effect) {
   const vdir = dir / dir.length_d();
   g->getObjects()->push_back(GameObject(
       g->gameObjectIdCounter,
-      o->pos,
+      origin,
       GameObjectAttributes(
         .glyph = move(glyph),
         .name = "projectile",

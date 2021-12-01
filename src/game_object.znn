@@ -24,11 +24,11 @@ MeleeWeaponPosition getWeaponPosition(GameObject* object, MeleeWeaponOrigin orig
   switch (origin) {
     case (LEFT) {
       offsetV = vec2d(sin(dir + 1.57), cos(dir + 1.57)) * offset;
-      dir -= atan2(offset, reach) / 2; 
+      dir -= atan2(offset, length) / 2; 
     }
     case (RIGHT) {
       offsetV = vec2d(sin(dir - 1.57), cos(dir - 1.57)) * offset;
-      dir += atan2(offset, reach) / 2;
+      dir += atan2(offset, length) / 2;
     }
     case (CENTER) {
       offsetV = vec2d(sin(dir), cos(dir)) * (offset / 2.0);
@@ -58,8 +58,8 @@ export MeleeWeaponPosition? getRangedWeaponPosition(GameObject* object, double? 
       !object->attributes.creature->rangedAttack->weaponGlyph)
     return null;
   const attack = &*object->attributes.creature->rangedAttack->weaponGlyph;
-  return getWeaponPosition(object, attack->origin, forceDir ?? object->lastWalkDirection, 0, 0, 0, &attack->glyph,
-      attack->glyphOffset);
+  return getWeaponPosition(object, attack->origin, forceDir ?? object->lastWalkDirection, 0, 0.0,
+      attack->length, &attack->glyph, attack->glyphOffset);
 }
 
 export vector<MeleeWeaponPosition> getMeleeWeaponPosition(GameObject* object, double? forceDir) {

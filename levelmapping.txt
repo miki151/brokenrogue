@@ -137,8 +137,8 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       box = 0.8
       creature = 1
           {}
-          ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER ,1.0, 10.0, 0.2, wound 1.0, 0.0,
-              null, 0)
+          ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER 0, 1.0, 10.0, 0.2,
+              wound 1.0, 0.0, null, 0)
           all { ranged 5 }
       maxHealth = 1
   )
@@ -148,7 +148,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       box = 0.8
       creature = 1
           {}
-          ("heart" 250 20 20 0.5 EFFECT, null, 5.0, 2.0, 0.2, heal 3.0, 0.0,
+          ("heart" 250 20 20 0.5 EFFECT, "|" 100 200 200 0.8 EFFECT 0.4 0 LEFT 0.6, 5.0, 2.0, 0.2, heal 3.0, 0.0,
               null, 0)
           all { ranged 5 }
       maxHealth = 1

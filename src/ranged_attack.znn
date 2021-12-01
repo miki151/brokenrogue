@@ -14,6 +14,7 @@ export struct RangedWeaponGlyph {
   Glyph glyph;
   vec2d glyphOffset;
   MeleeWeaponOrigin origin;
+  double length;
 };
 
 export RangedWeaponGlyph copy(RangedWeaponGlyph*) = default;
