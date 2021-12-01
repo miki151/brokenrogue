@@ -39,6 +39,10 @@ Def CellularAutomaton(Generator, BeginProb)
   })
 End
 
+Def SetBlocking(NAME) Set(NAME, "blocking") End
+Def ResetBlocking(NAME) Reset(NAME, "blocking") End
+Def CanSetBlocking() Not On("blocking") End
+
 {
 #10 10
 #{
@@ -71,14 +75,10 @@ End
   Filter(On("grass"), Filter(Chance(0.3), Reset("dirt")))
   Inside(3, 
   Position(RIGHT_CENTER, 1 1, {
-    Set("player")
+    Reset("grass", "tutorial1", "player")
     Inside(-3, Filter(On("tree"), Reset("grass")))
   }))
 }
-
-Def SetBlocking(NAME) Set(NAME, "blocking") End
-Def ResetBlocking(NAME) Reset(NAME, "blocking") End
-Def CanSetBlocking() Not On("blocking") End
 
 20 15
 {
