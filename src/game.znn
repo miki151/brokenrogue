@@ -165,14 +165,7 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
   return ret;
 }
 
-export void advance(Game mutable* g, double timeDiff) {
-  mutable deadCreatures = vector<int>();
-  mutable toAdd = vector<GameObject>();
-  const curTime = current_time_milli();
-  // Must iterate objects using an index as they may get killed and removed from the list.
-  for (i = 0; i < g->getObjects()->size(); ++i)
-    if (i > 0 && !!(*g->getObjects())[i]->attributes.creature)
-      discard (*g->getObjects())[i]->attributes.creature->ai.makeMove(g, (*g->getObjects())[i].get(), timeDiff);
+void updateOngoingAttacks(Game mutable* g, double timeDiff) {
   for (it : *g->getObjects()) {
     const object = it->get();
     if (object->rangedAttackTimeout > 0.0)
@@ -186,8 +179,6 @@ export void advance(Game mutable* g, double timeDiff) {
               object2->isPenetrated(object->getMeleeWeaponPosition(null)[*object->lastAttackIndex].pos2)) {
             object->ongoingAttack->woundedObjects.insert(object2->id);
             object->ongoingAttack->attack.effect.apply(object2, g);
-            if (object2->isDead)
-              deadCreatures.push_back(it2.index);
             break;
           }
         }
@@ -196,26 +187,37 @@ export void advance(Game mutable* g, double timeDiff) {
         object->ongoingAttack = null;
       }
     }
+  }
+}
+
+void updateProjectiles(Game mutable* g, double timeDiff) {
+  const curTime = current_time_milli();
+  for (it : *g->getObjects()) {
+    const object = it->get();
     if (object->projectile) {
       const prevPos = object->pos;
       if (const targetIndex = object->advance(g, object->projectile->dir * timeDiff)) {
-        deadCreatures.push_back(it.index);
+        object->isDead = true;
         const target = (*g->getObjects())[*targetIndex].get();
         if (target->attributes.creature) {
           object->projectile->effect.apply(target, g);
-          if (target->isDead)
-            deadCreatures.push_back(*targetIndex);
         } else
           g->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
       }
     }
   }
-  deadCreatures.sort(&[](int* a, int* b) { return *a > *b; });
-  for (i = 0; i < deadCreatures.size(); ++i) {
-    if (deadCreatures[i] == 0)
-      g->status = GameStatus::GAME_LOST;
-    else {
-      const deadCreature = (*g->getObjects())[deadCreatures[i]].get();
+}
+
+void updateDeadObjects(Game mutable* g) {
+  if ((*g->getObjects())[0]->isDead) {
+    g->status = GameStatus::GAME_LOST;
+    return;
+  }
+  mutable toAdd = vector<GameObject>();
+  const objects = g->getObjects();
+  for (i = objects->size() - 1; i >= 0; --i) {
+    const deadCreature = (*objects)[i].get();
+    if (deadCreature->isDead) {
       if (deadCreature->attributes.isEndGameBoss)
         g->status = GameStatus::GAME_WON;
       if (!!deadCreature->attributes.creature) {
@@ -223,11 +225,26 @@ export void advance(Game mutable* g, double timeDiff) {
             g->objectFactory->get(&"corpse")->copy(), "corpse"));
         toAdd.back()->attributes.glyph->size = deadCreature->attributes.glyph->size * 0.8;
       }
-      g->getObjects()->remove(deadCreatures[i]);
+      objects->remove(i);
     }
   }
   while (!toAdd.empty())
     g->getObjects()->push_back(toAdd.pop_back().box());
+}
+
+void updateAIMoves(Game mutable* g, double timeDiff) {
+  for (it : *g->getObjects()) {
+    const object = it->get();
+    if (it.index > 0 && !!object->attributes.creature)
+      discard object->attributes.creature->ai.makeMove(g, object, timeDiff);
+  }
+}
+
+export void advance(Game mutable* g, double timeDiff) {
+  g->updateAIMoves(timeDiff);
+  g->updateOngoingAttacks(timeDiff);
+  g->updateProjectiles(timeDiff);
+  g->updateDeadObjects();
 }
 
 export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable double direction) {
