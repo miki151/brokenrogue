@@ -40,7 +40,7 @@ export void apply(WoundEffect* effect, GameObject mutable* object, Game mutable*
 
 export struct FilterEffect {
   ObjectFilter filter;
-  box<CreatureEffect> effect;
+  box<ObjectEffect> effect;
 };
 
 export FilterEffect copy(FilterEffect*) = default;
@@ -50,12 +50,12 @@ export void apply(FilterEffect* effect, GameObject mutable* object, Game mutable
     effect->effect->apply(object, game);
 }
 
-export union CreatureEffect {
+export union ObjectEffect {
   HealEffect heal;
   WoundEffect wound;
   FilterEffect filter;
 };
 
-export CreatureEffect copy(CreatureEffect*) = default;
+export ObjectEffect copy(ObjectEffect*) = default;
 
-export void apply(virtual CreatureEffect*, GameObject mutable*, Game mutable*);
+export void apply(virtual ObjectEffect*, GameObject mutable*, Game mutable*);

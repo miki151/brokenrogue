@@ -1,7 +1,7 @@
 
 export import "glyph.znn";
 import "pretty_input.znn";
-export import "creature_effect.znn";
+export import "object_effect.znn";
 
 export enum MeleeWeaponOrigin {
   LEFT,
@@ -18,7 +18,7 @@ export struct MeleeAttack {
   double reach;
   double length;
   double duration;
-  CreatureEffect effect;
+  ObjectEffect effect;
 };
 
 export bool round_brackets(pretty_dummy_struct<MeleeAttack>) {

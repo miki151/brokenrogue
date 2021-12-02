@@ -1,11 +1,11 @@
 
 export import "vec2.znn";
 import "game_object.znn";
-export import "creature_effect.znn";
+export import "object_effect.znn";
 
 export struct Projectile {
   vec2d dir;
-  CreatureEffect effect;
+  ObjectEffect effect;
   int? attacker;
 };
 

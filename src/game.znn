@@ -15,7 +15,7 @@ export import "level_animation.znn";
 export import "game_object.znn";
 import "ai.znn";
 import "field_of_view.znn";
-import "creature_effect.znn";
+import "object_effect.znn";
 
 export struct Level {
   string name;
@@ -253,7 +253,7 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
 }
 
 export void spawnProjectile(Game mutable *g, GameObject* o, vec2d origin, vec2d dir, Glyph glyph, double size,
-    CreatureEffect effect) {
+    ObjectEffect effect) {
   const vdir = dir / dir.length_d();
   g->getObjects()->push_back(GameObject(
       g->gameObjectIdCounter,
