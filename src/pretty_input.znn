@@ -8,6 +8,7 @@ export import "std/enum.znn";
 export import "std/range.znn";
 export import "std/pair.znn";
 import "pretty_preprocess.znn";
+export import "std/box.znn";
 
 export struct input_stream_position {
   int line;
@@ -265,6 +266,11 @@ vector<T>!string read_data(input_stream mutable* stream, pretty_dummy_struct<vec
     ret.push_back(try stream->read_data<T>());
   }
   return move(ret);
+}
+
+export template <T> requires read_data_overload<T>
+box<T>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<T>>) {
+  return box(try stream->read_data<T>());
 }
 
 export template <T, U> requires read_data_overload<T>, read_data_overload<U>

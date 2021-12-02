@@ -3,6 +3,8 @@ import "game_object.znn";
 import "std/math.znn";
 import "std/time.znn";
 import "game.znn";
+export import "object_filter.znn";
+export import "std/box.znn";
 
 export struct HealEffect {
   double amount;
@@ -36,9 +38,22 @@ export void apply(WoundEffect* effect, GameObject mutable* object, Game mutable*
   }
 }
 
+export struct FilterEffect {
+  ObjectFilter filter;
+  box<CreatureEffect> effect;
+};
+
+export FilterEffect copy(FilterEffect*) = default;
+
+export void apply(FilterEffect* effect, GameObject mutable* object, Game mutable* game) {
+  if (effect->filter.apply(object))
+    effect->effect->apply(object, game);
+}
+
 export union CreatureEffect {
   HealEffect heal;
   WoundEffect wound;
+  FilterEffect filter;
 };
 
 export CreatureEffect copy(CreatureEffect*) = default;

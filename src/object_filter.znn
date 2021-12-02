@@ -1,0 +1,31 @@
+import "game_object.znn";
+export import "std/box.znn";
+
+export struct TypeFilter {
+  string value;
+};
+
+export TypeFilter copy(TypeFilter*) = default;
+
+export bool apply(TypeFilter* type, GameObject* object) {
+  return object->attributesId == type->value;
+}
+
+export struct NotFilter {
+  box<ObjectFilter> filter;
+};
+
+export NotFilter copy(NotFilter*) = default;
+
+export bool apply(NotFilter* type, GameObject* object) {
+  return !type->filter->apply(object);
+}
+
+export union ObjectFilter {
+  TypeFilter type;
+  NotFilter negate;
+};
+
+export ObjectFilter copy(ObjectFilter*) = default;
+
+export bool apply(virtual ObjectFilter*, GameObject* object);
