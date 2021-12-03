@@ -5,6 +5,8 @@ import "std/time.znn";
 import "game.znn";
 export import "object_filter.znn";
 export import "std/box.znn";
+export import "std/vector.znn";
+export import "vec2.znn";
 
 export struct HealEffect {
   double amount;
@@ -12,7 +14,7 @@ export struct HealEffect {
 
 export HealEffect copy(HealEffect*) = default;
 
-export void apply(HealEffect* effect, GameObject mutable* object, Game mutable* game) {
+export void applyImpl(HealEffect* effect, GameObject mutable* object, Game mutable* game) {
   if (!!object->health && *object->health < *object->attributes.maxHealth) {
     *object->health = min(object->attributes.maxHealth->as_double(), *object->health + effect->amount);
     const curTime = current_time_milli();
@@ -26,11 +28,12 @@ export struct WoundEffect {
 
 export WoundEffect copy(WoundEffect*) = default;
 
-export void apply(WoundEffect* effect, GameObject mutable* object, Game mutable* game) {
+export void applyImpl(WoundEffect* effect, GameObject mutable* object, Game mutable* game) {
   const curTime = current_time_milli();
-  game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object->pos, curTime));
-  if (object->health)
+  if (object->health) {
+    game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object->pos, curTime));
     *object->health -= effect->amount;
+  }
   if (object->health ?? 1.0 <= 0.0) {
     for (i : range(0, 10))
       game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object->pos, curTime + i));
@@ -45,17 +48,89 @@ export struct FilterEffect {
 
 export FilterEffect copy(FilterEffect*) = default;
 
-export void apply(FilterEffect* effect, GameObject mutable* object, Game mutable* game) {
+export void applyImpl(FilterEffect* effect, GameObject mutable* object, Game mutable* game) {
   if (effect->filter.apply(object))
-    effect->effect->apply(object, game);
+    effect->effect->applyImpl(object, game);
+}
+
+export struct RemoveEffect {
+};
+
+export RemoveEffect copy(RemoveEffect*) = default;
+
+export void applyImpl(RemoveEffect* effect, GameObject mutable* object, Game mutable* game) {
+  object->isDead = true;
+}
+
+export struct RadiusEffect {
+  double radius;
+  box<ObjectEffect> effect;
+};
+
+export RadiusEffect copy(RadiusEffect*) = default;
+
+export void applyImpl(RadiusEffect* effect, vec2d pos, Game mutable* game) {
+  for (obj : *game->getObjects())
+    if (((*obj)->pos - pos).length_d() <= effect->radius)
+      effect->effect->applyImpl(obj->get(), game);
+}
+
+export struct AllEffect {
+  vector<ObjectEffect> elems;
+};
+
+export AllEffect copy(AllEffect*) = default;
+
+export void applyImpl(AllEffect* effect, vec2d pos, Game mutable* game) {
+  for (it : effect->elems)
+    it->applyImpl(pos, game);
+}
+
+
+export concept<T> CreatureEffect {
+  void applyImpl(T*, GameObject mutable*, Game mutable*);
+};
+
+export concept<T> PositionEffect {
+  void applyImpl(T*, vec2d, Game mutable*);
+};
+
+export bool objectContains(GameObject* obj, vec2d pos) {
+  return !!obj->attributes.box && obj->attributes.box->isPenetrated(obj->pos - pos);
+}
+
+template <T> requires CreatureEffect<T>
+void applyImpl(T* t, vec2d pos, Game mutable* game) {
+  for (it : *game->getObjects()) {
+    const obj = it->get();
+    if (objectContains(obj, pos))
+      t->applyImpl(obj, game);
+  }
+}
+
+export vec2d getPos(GameObject* obj) {
+  return obj->pos;
+}
+
+template <T> requires CreatureEffect<T>
+void applyImpl(T* t, GameObject mutable* object, Game mutable* game) {
+  t->applyImpl(getPos(object), game);
 }
 
 export union ObjectEffect {
   HealEffect heal;
   WoundEffect wound;
   FilterEffect filter;
+  RemoveEffect remove;
+  RadiusEffect radius;
+  AllEffect all;
 };
 
 export ObjectEffect copy(ObjectEffect*) = default;
 
-export void apply(virtual ObjectEffect*, GameObject mutable*, Game mutable*);
+// Fix compiler bug preventing these functions from being exported.
+void applyImpl(virtual ObjectEffect*, vec2d, Game mutable*);
+void applyImpl(virtual ObjectEffect*, GameObject mutable*, Game mutable*);
+
+export void apply(ObjectEffect* e, vec2d v, Game mutable* g) { applyImpl(e, v, g); }
+export void apply(ObjectEffect* e, GameObject mutable *obj, Game mutable* g) { applyImpl(e, obj, g); }

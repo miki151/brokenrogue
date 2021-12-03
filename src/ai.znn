@@ -2,6 +2,7 @@
 import "game.znn";
 import "std/math.znn";
 import "std/io.znn";
+import "game_object.znn";
 export import "std/vector.znn";
 export import "std/box.znn";
 

@@ -60,6 +60,12 @@
       name = "Bridge" 
       canRemember = true
   )
+  "trap" (
+      glyph = "x" 210 20 20 1.0 FLOOR
+      name = "Trap" 
+      canRemember = true
+      entryEffect = all { radius 3 wound 1 radius 1 filter type "trap" remove }
+  )
   "stairs" (
       glyph = ">" 202 155 107 1.0 FLOOR
       name = "Stairs" 

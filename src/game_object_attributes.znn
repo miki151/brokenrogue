@@ -1,6 +1,7 @@
 
 export import "creature.znn";
 export import "glyph.znn";
+export import "object_effect.znn";
 
 export struct BoundingBox {
   double size;
@@ -34,6 +35,7 @@ export struct GameObjectAttributes {
   bool isStairs;
   bool isEndGameBoss;
   string? message;
+  ObjectEffect? entryEffect;
 };
 
 export GameObjectAttributes copy(GameObjectAttributes*) = default;

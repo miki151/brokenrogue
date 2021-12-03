@@ -11,6 +11,7 @@ import "ui_state.znn";
 import "std/time.znn";
 import "std/enum.znn";
 export import "glyph.znn";
+import "game_object.znn";
 
 export enum MovementScheme {
   KEYBOARD,

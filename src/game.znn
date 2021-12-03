@@ -3,8 +3,8 @@ export import "std/vector.znn";
 export import "vec2.znn";
 import "std/math.znn";
 export import "color.znn";
-export import "creature.znn";
-export import "projectile.znn";
+import "creature.znn";
+import "projectile.znn";
 export import "table.znn";
 export import "glyph.znn";
 import "std/time.znn";
@@ -12,7 +12,7 @@ import "std/io.znn";
 export import "level_generator.znn";
 export import "std/hash_map.znn";
 export import "level_animation.znn";
-export import "game_object.znn";
+import "game_object.znn";
 import "ai.znn";
 import "field_of_view.znn";
 import "object_effect.znn";
@@ -240,10 +240,26 @@ void updateAIMoves(Game mutable* g, double timeDiff) {
   }
 }
 
+void updateEntryEffects(Game mutable* g) {
+  for (it : *g->getObjects()) {
+    const object = it->get();
+    if (object->attributes.entryEffect)
+      for (it2 : *g->getObjects())
+        if (it2 != it) {
+          const object2 = it2->get();
+          if (!!object2->attributes.creature && !!object2->attributes.box &&
+              object2->attributes.box->isPenetrated(object2->pos - object->pos))
+            object->attributes.entryEffect->apply(object2->pos, g);
+        }
+
+  }
+}
+
 export void advance(Game mutable* g, double timeDiff) {
   g->updateAIMoves(timeDiff);
   g->updateOngoingAttacks(timeDiff);
   g->updateProjectiles(timeDiff);
+  g->updateEntryEffects();
   g->updateDeadObjects();
 }
 
@@ -285,7 +301,8 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d origin, vec2d 
         .canRemember = false,
         .isStairs = false,
         .isEndGameBoss = false,
-        .message = null
+        .message = null,
+        .entryEffect = null
       ),
       null
   ).box());

@@ -19,6 +19,7 @@ import "level_generator_reader.znn";
 import "std/random.znn";
 import "std/panic.znn";
 import "pretty_input.znn";
+import "game_object.znn";
 
 struct Y {
   int u;
