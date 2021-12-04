@@ -30,12 +30,14 @@ export struct GameObjectAttributes {
   BoundingBox? box;
   Creature? creature;
   bool blocksVision;
-  int? maxHealth;
+  double? maxHealth;
   bool canRemember;
   bool isStairs;
   bool isEndGameBoss;
   string? message;
   ObjectEffect? entryEffect;
+  ObjectEffect? deathEffect;
+  double? maxLifeTime;
 };
 
 export GameObjectAttributes copy(GameObjectAttributes*) = default;

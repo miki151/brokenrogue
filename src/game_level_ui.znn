@@ -370,7 +370,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       switch (anim->type) {
         case (EXPLOSION) {
           if (anim->time + ui->explosionDuration > curTime)
-            Glyph("*", color(255, 100, 0), 1.0, GlyphLayer::EFFECT)
+            Glyph("*", color(255, 100, 0), 0.5, GlyphLayer::EFFECT)
                 .render(context.canvas, ui->getFontSize(), coord, 0.0, false, 0);
         }
         case (BLOOD) {

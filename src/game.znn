@@ -134,6 +134,12 @@ export void reloadObjectAttributes(Game mutable* game, hash_map<string, GameObje
   }
 }
 
+export void addObject(Game mutable* game, vec2d pos, string id) {
+  const obj = GameObject(game->gameObjectIdCounter, pos, (*game->objectFactory->get_maybe(&id))->copy(), id);
+  ++game->gameObjectIdCounter;
+  game->getObjects()->push_back(box(move(obj)));
+}
+
 export Game(int lineOfSight, vector<pair<vec2, LevelGenerator*>> generator,
     hash_map<string, GameObjectAttributes>* mapping) {
   mutable lastId = 0;
@@ -203,12 +209,12 @@ void updateProjectiles(Game mutable* g, double timeDiff) {
           object->projectile->effect.apply(target, g);
         } else
           g->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
-      }
+      } 
     }
   }
 }
 
-void updateDeadObjects(Game mutable* g) {
+void updateDeadObjects(Game mutable* g, double timeDiff) {
   if ((*g->getObjects())[0]->isDead) {
     g->status = GameStatus::GAME_LOST;
     return;
@@ -216,14 +222,19 @@ void updateDeadObjects(Game mutable* g) {
   mutable toAdd = vector<GameObject>();
   const objects = g->getObjects();
   for (i = objects->size() - 1; i >= 0; --i) {
-    const deadCreature = (*objects)[i].get();
-    if (deadCreature->isDead) {
-      if (deadCreature->attributes.isEndGameBoss)
+    const object = (*objects)[i].get();
+    object->lifeTime += timeDiff;
+    if (!!object->attributes.maxLifeTime && object->lifeTime >= *object->attributes.maxLifeTime)
+      object->isDead = true;
+    if (object->isDead) {
+      if (object->attributes.deathEffect)
+        object->attributes.deathEffect->apply(object->pos, g);
+      if (object->attributes.isEndGameBoss)
         g->status = GameStatus::GAME_WON;
-      if (!!deadCreature->attributes.creature) {
-        toAdd.push_back(GameObject(g->gameObjectIdCounter, deadCreature->pos,
+      if (!!object->attributes.creature) {
+        toAdd.push_back(GameObject(g->gameObjectIdCounter, object->pos,
             g->objectFactory->get(&"corpse")->copy(), "corpse"));
-        toAdd.back()->attributes.glyph->size = deadCreature->attributes.glyph->size * 0.8;
+        toAdd.back()->attributes.glyph->size = object->attributes.glyph->size * 0.8;
       }
       objects->remove(i);
     }
@@ -260,7 +271,7 @@ export void advance(Game mutable* g, double timeDiff) {
   g->updateOngoingAttacks(timeDiff);
   g->updateProjectiles(timeDiff);
   g->updateEntryEffects();
-  g->updateDeadObjects();
+  g->updateDeadObjects(timeDiff);
 }
 
 export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable double direction) {
@@ -270,8 +281,8 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
     mutable origin = o->pos;
     if (const pos = o->getRangedWeaponPosition(null))
       origin = pos->pos2;
-    game->spawnProjectile(o, origin, vec2d(sin(direction), cos(direction)) * attack->velocity,
-        attack->glyph.randomizeColor(attack->colorVariance), attack->size, attack->effect.copy());
+    game->spawnProjectile(o->id, origin, vec2d(sin(direction), cos(direction)) * attack->velocity,
+        attack->glyph.randomizeColor(attack->colorVariance), attack->size, attack->effect.copy(), 10000);
     o->rangedAttackTimeout = attack->timeout;
     if (attack->extraTimeout) {
       ++o->rangedAttackProjectileCount;
@@ -285,8 +296,8 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
   return false;
 }
 
-export void spawnProjectile(Game mutable *g, GameObject* o, vec2d origin, vec2d dir, Glyph glyph, double size,
-    ObjectEffect effect) {
+export void spawnProjectile(Game mutable *g, int? attackerId, vec2d origin, vec2d dir, Glyph glyph, double size,
+    ObjectEffect effect, double lifeTime) {
   const vdir = dir / dir.length_d();
   g->getObjects()->push_back(GameObject(
       g->gameObjectIdCounter,
@@ -302,11 +313,13 @@ export void spawnProjectile(Game mutable *g, GameObject* o, vec2d origin, vec2d 
         .isStairs = false,
         .isEndGameBoss = false,
         .message = null,
-        .entryEffect = null
+        .entryEffect = null,
+        .deathEffect = null,
+        .lifeTime = lifeTime
       ),
       null
   ).box());
-  g->getObjects()->back()->get()->projectile = Projectile(dir, move(effect), o->id);
+  g->getObjects()->back()->get()->projectile = Projectile(dir, move(effect), attackerId);
 }
 
 export GameObject* getPlayer(Game* g) {

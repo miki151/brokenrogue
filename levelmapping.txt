@@ -104,6 +104,56 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
           all { pathfindUntilMelee melee }
       maxHealth = 1
   )
+  "zombie" (
+      glyph = "z" 100 200 100 0.8 OBJECT
+      name = "Zombie"
+      box = 1.0
+      creature = 1
+          {("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, wound 0.4)}
+          null
+          all { pathfind melee }
+      maxHealth = 0.1
+      deathEffect = add "dead_zombie1"
+  )
+  "dead_zombie1" (
+      glyph = "z" 200 100 100 0.9 OBJECT
+      box = 1.0
+      name = "Zombie"
+      maxLifeTime = 0.25
+      deathEffect = add "dead_zombie2"
+  )
+  "dead_zombie2" (
+      glyph = "z" 250 50 50 1.0 OBJECT
+      box = 1.0
+      name = "Zombie"
+      maxLifeTime = 0.25
+      deathEffect = add "dead_zombie3"
+  )
+  "dead_zombie3" (
+      glyph = "z" 250 0 0 1.1 OBJECT
+      box = 1.0
+      name = "Zombie"
+      maxLifeTime = 0.25
+      deathEffect = all {
+Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
+        projectile 0 Proj
+        projectile 0.39 Proj
+        projectile 0.78 Proj
+        projectile 1.17 Proj
+        projectile 1.57 Proj
+        projectile 1.96 Proj
+        projectile 2.35 Proj
+        projectile 2.74 Proj
+        projectile 3.14 Proj
+        projectile 3.53 Proj
+        projectile 3.92 Proj
+        projectile 4.29 Proj
+        projectile 4.71 Proj
+        projectile 5.1 Proj
+        projectile 5.49 Proj
+        projectile 5.86 Proj
+      }
+  )
   "goblin" (
       glyph = "o" 0 200 0 1.0 OBJECT
       name = "Goblin"
