@@ -123,7 +123,6 @@ Def CanSetBlocking() Not On("blocking") End
       (1 1, SetBlocking("bee"), 2, CanSetBlocking(), 1),
       (1 1, SetBlocking("kobold"), 2, CanSetBlocking(), 1),
       (1 1, SetBlocking("goblin"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("berserker"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("fencer"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)

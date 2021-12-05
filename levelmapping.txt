@@ -168,14 +168,14 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       glyph = "o" 200 0 0 1.0 OBJECT
       name = "Goblin berserker"
       box = 0.7
-      creature = 2
+      creature = 3
           {
           (")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, wound 1.5)
           (")" 255 100 100 0.7 EFFECT, 0.15 0, LEFT, 1.0, 0.5, 0.4, wound 1.5)
           }
           null
           all { pathfind melee }
-      maxHealth = 3
+      maxHealth = 1
   )
   "fencer" (
       glyph = "f" 255 0 255 1.0 OBJECT
@@ -199,12 +199,12 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       maxHealth = 1
   )
   "nymph" (
-      glyph = "n" 250 100 100 1.0 OBJECT
-      name = "Nymph"
+      glyph = "f" 250 100 100 1.0 OBJECT
+      name = "Fairy"
       box = 0.8
       creature = 1
           {}
-          ("heart" 250 20 20 0.5 EFFECT, "|" 100 200 200 0.8 EFFECT 0.4 0 LEFT 0.6, 5.0, 2.0, 0.2, heal 3.0, 0.0,
+          ("heart" 250 20 20 0.5 EFFECT, "|" 100 200 200 0.8 EFFECT 0.4 0 LEFT 0.6, 5.0, 2.0, 0.2, heal 30.0, 0.0,
               null, 0)
           all { ranged 5 }
       maxHealth = 1
