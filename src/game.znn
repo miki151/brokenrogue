@@ -215,12 +215,15 @@ void updateProjectiles(Game mutable* g, double timeDiff) {
 }
 
 void updateDeadObjects(Game mutable* g, double timeDiff) {
-  if ((*g->getObjects())[0]->isDead) {
+  const objects = g->getObjects();
+  if ((*objects)[0]->isDead) {
+    (*objects)[0]->isDead = false;
+    (*objects)[0]->attributes = g->objectFactory->get(&"dead_player")->copy();
+    (*objects)[0]->health = null;
     g->status = GameStatus::GAME_LOST;
     return;
   }
   mutable toAdd = vector<GameObject>();
-  const objects = g->getObjects();
   for (i = objects->size() - 1; i >= 0; --i) {
     const object = (*objects)[i].get();
     object->lifeTime += timeDiff;

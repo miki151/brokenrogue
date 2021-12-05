@@ -71,9 +71,26 @@ End
         frame(1, 255 255 255)
         margins(10, text(20, 255 255 255))
       }
+      gameOverMessage = {
+        fill(0 0 0)
+        frame(1, 255 255 255)
+        margins(20, vertical {
+          position(CENTER, label("Game over!", DeathScreenFont1, 255 255 255))
+          height 10 {}
+          label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
+        })
+      }
+      gameWonMessage = {
+        fill(0 0 0)
+        frame(1, 255 255 255)
+        margins(20, vertical {
+          position(CENTER, label("You won!", DeathScreenFont1, 255 255 255))
+          height 10 {}
+          label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
+        })
+      }
   )
-      position(TOP_RIGHT,
-          using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})
+  position(TOP_RIGHT, using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})
   position(BOTTOM_RIGHT, using "enemy_info" CreatureWidget())
   position(BOTTOM_LEFT, using "player_info" CreatureWidget())
   using "dialog_text" {
@@ -82,42 +99,5 @@ End
       frame(1, 255 255 255)
       margins(20, text(25, 255 255 255))
     })
-  }
-  using "GAME_LOST" {
-    consume_events
-    position(CENTER, {
-      fill(0 0 0)
-      frame(1, 255 255 255)
-      margins(20, vertical {
-        position(CENTER, label("Game over!", DeathScreenFont1, 255 255 255))
-        height 10 {}
-        position(CENTER, label("____", DeathScreenFont2, 255 255 255))
-        position(CENTER, label(",'   Y`.", DeathScreenFont2, 255 255 255))
-        position(CENTER, label("/        )", DeathScreenFont2, 255 255 255))
-        position(CENTER, label("\ ()  () /", DeathScreenFont2, 255 255 255))
-        position(CENTER, label("`. /) ,'", DeathScreenFont2, 255 255 255))
-        position(CENTER, label("8====| '' |====8", DeathScreenFont2, 255 255 255))
-        position(CENTER, label("`LLLU'", DeathScreenFont2, 255 255 255))
-        position(CENTER, label("/    )", DeathScreenFont2, 255 255 255))
-        height 10 {}
-        label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
-      })
-    })
-    using "restart_callback" key_handler(ENTER DOWN)
-    using "exit_callback" key_handler(ESCAPE DOWN)
-  }
-  using "GAME_WON" {
-    consume_events
-    position(CENTER, {
-      fill(0 0 0)
-      frame(1, 255 255 255)
-      margins(20, vertical {
-        position(CENTER, label("You won!", DeathScreenFont1, 255 255 255))
-        height 10 {}
-        label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
-      })
-    })
-    using "restart_callback" key_handler(ENTER DOWN)
-    using "exit_callback" key_handler(ESCAPE DOWN)
   }
 }

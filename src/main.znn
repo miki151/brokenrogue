@@ -114,13 +114,21 @@ int main(string[] args) {
   const timeSpentCallback = [&] (int time) { realTimeEnd = max(realTimeEnd, last_update + time); };
   mutable HighlightedObjectInfo? highlightedObjectInfo = null; 
   const highlightedObjectCallback = [&] (HighlightedObjectInfo? info) { highlightedObjectInfo = info.copy(); };
+  mutable uiData = UIRecord();
+  mutable uiState = UIState();
+  const restartCallback = [&] {
+    showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
+    uiData.data.erase(&game.status->asString());
+    game = getNewGame();
+    last_update = current_time_milli();
+    realTimeEnd = last_update;
+  };
   const game_data = GameLevelUIData(
       &game,
       &timeSpentCallback,
-      &highlightedObjectCallback
+      &highlightedObjectCallback,
+      &restartCallback
   );
-  mutable uiData = UIRecord();
-  mutable uiState = UIState();
   uiData.data.insert("game_level", box_as<any>(move(game_data)));
   mutable events_state = SDLEventsState();
   uiData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
@@ -128,21 +136,13 @@ int main(string[] args) {
   while (!exit) {
     fps.add_tick();
     uiData.data.insert("fps", "{fps.get_fps()}".box_as<any>());
-    if (!!game.status && !uiData.data.contains(&game.status->asString())) {
-      mutable boxData = UIRecord();
-      boxData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
-      boxData.data.insert("restart_callback", [&] {
-          showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating level...");
-          uiData.data.erase(&game.status->asString());
-          game = getNewGame();
-          last_update = current_time_milli();
-          realTimeEnd = last_update;
-      }.box_as<UICallback>().box_as<any>());
-      uiData.data.insert(game.status->asString(), move(boxData).box_as<any>());
-    }
-    insertCreatureInfo(&uiData, "player_info", 
-        max(0.0, *game.getPlayer()->health / *game.getPlayer()->attributes.maxHealth), "Player",
-            &*game.getPlayer()->attributes.glyph);
+    const player = game.getPlayer();
+    const playerDead = !player->health;
+    if (!playerDead)
+      insertCreatureInfo(&uiData, "player_info", 
+          max(0.0, *player->health / *player->attributes.maxHealth), "Player", &*player->attributes.glyph);
+    else
+      uiData.data.erase(&"player_info");
     if (highlightedObjectInfo)
       insertCreatureInfo(&uiData, "enemy_info", highlightedObjectInfo->hp, highlightedObjectInfo->name,
           &highlightedObjectInfo->glyph);
@@ -150,7 +150,7 @@ int main(string[] args) {
       uiData.data.erase(&"enemy_info");
     const cur_time = current_time_milli();
     timeDiff = 0.001 * (cur_time - last_update);
-    if (cur_time <= realTimeEnd)
+    if (cur_time <= realTimeEnd || playerDead)
       game.advance(timeDiff);
     else if (flags.realTimeFlow)
       game.advance(timeDiff * *flags.realTimeFlow);

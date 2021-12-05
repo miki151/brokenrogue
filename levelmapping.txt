@@ -261,4 +261,11 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
           all { avoidMelee pathfind melee }
       maxHealth = 10
   )
+  "dead_player" (
+      glyph = null
+      name = "player"
+      box = null
+      creature = 0 {} null all { pathfind }
+      maxHealth = null
+  )
 }

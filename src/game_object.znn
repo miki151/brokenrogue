@@ -147,7 +147,7 @@ export GameObject(int id, vec2d pos, GameObjectAttributes attr, string? attribut
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction, int index) {
-  if (!o->ongoingAttack && !!o->attributes.creature) {
+  if (!o->ongoingAttack && !!o->attributes.creature && index < o->attributes.creature->meleeAttack.size()) {
     const attack = &o->attributes.creature->meleeAttack[index];
     const duration = attack->duration;
     o->ongoingAttack = MeleeAttackInfo(attack->copy(), duration, direction, hash_set<int>());
