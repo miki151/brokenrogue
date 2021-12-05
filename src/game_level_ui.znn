@@ -85,7 +85,7 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   const state = context.state->get_state<GameLevelUIState>();
   const data = *context.data->cast_to<GameLevelUIData>();
   const player = data->game->getPlayer();
-  if (data->game->status && event->key == key_type::ENTER) {
+  if (!!data->game->status && event->key == key_type::ENTER) {
     data->restartCallback->invoke();
     return true;
   }
