@@ -216,10 +216,12 @@ void updateProjectiles(Game mutable* g, double timeDiff) {
 
 void updateDeadObjects(Game mutable* g, double timeDiff) {
   const objects = g->getObjects();
-  if ((*objects)[0]->isDead) {
-    (*objects)[0]->isDead = false;
-    (*objects)[0]->attributes = g->objectFactory->get(&"dead_player")->copy();
-    (*objects)[0]->health = null;
+  const player = (*objects)[0].get();
+  if (player->isDead) {
+    player->isDead = false;
+    player->attributes = g->objectFactory->get(&"dead_player")->copy();
+    player->health = null;
+    player->ongoingAttack = null;
     g->status = GameStatus::GAME_LOST;
     return;
   }
