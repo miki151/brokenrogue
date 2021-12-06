@@ -155,7 +155,7 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       }
   )
   "goblin" (
-      glyph = "o" 0 200 0 1.0 OBJECT
+      glyph = "g" 0 200 0 1.0 OBJECT
       name = "Goblin"
       box = 0.7
       creature = 3
@@ -165,7 +165,7 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       maxHealth = 3
   )
   "berserker" (
-      glyph = "o" 200 0 0 1.0 OBJECT
+      glyph = "g" 200 0 0 1.0 OBJECT
       name = "Goblin berserker"
       box = 0.7
       creature = 3
@@ -178,7 +178,7 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       maxHealth = 1
   )
   "fencer" (
-      glyph = "f" 255 0 255 1.0 OBJECT
+      glyph = "g" 255 0 255 1.0 OBJECT
       name = "Goblin fencer"
       box = 1.0
       creature = 6
