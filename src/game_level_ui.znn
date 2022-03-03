@@ -125,7 +125,7 @@ export struct LeftMouseAttackInfo {
 
 export struct GameLevelUIState {
   double playerDir;
-  int? rightMouseButton;
+  milliseconds_t? rightMouseButton;
   LeftMouseAttackInfo? leftMouseAttack;
   vec2d? lastWalkDirection;
 };
@@ -261,7 +261,8 @@ struct GlyphRenderElem {
   double? projectileDir;
 };
 
-void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
+void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, milliseconds_t start,
+    milliseconds_t curTime) {
   const h = ui->getFontSize() * 2 / 3;
   const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui->getFontSize() / 3;
   const t = curTime - start;
@@ -272,7 +273,8 @@ void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, int star
       .render(context.canvas, ui->getFontSize(), pos, 0, false, 0);
 }
 
-void drawHeartParticle(GameLevelUI* ui, UIContext context, vec2 origin, int start, int curTime) {
+void drawHeartParticle(GameLevelUI* ui, UIContext context, vec2 origin, milliseconds_t start,
+    milliseconds_t curTime) {
   const h = ui->getFontSize() * 2 / 3;
   const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui->getFontSize() / 3;
   const t = curTime - start;

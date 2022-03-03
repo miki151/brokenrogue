@@ -21,16 +21,6 @@ import "std/panic.znn";
 import "pretty_input.znn";
 import "game_object.znn";
 
-struct Y {
-  int u;
-};
-
-struct X {
-  int a;
-  bool b;
-  Y y;
-};
-
 vector<pair<string, string>> readGameSprites(string path) {
   mutable stream = *create_input_stream(*open_file_r(path)->read_content());
   return *stream.read_data<vector<pair<string, string>>>();

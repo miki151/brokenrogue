@@ -1,7 +1,7 @@
 export import "std/vector.znn";
 
 export struct GameObjectAnimation {
-  int? lastMovement;
+  milliseconds_t? lastMovement;
 };
 
 export GameObjectAnimation() {

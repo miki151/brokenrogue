@@ -3,7 +3,7 @@ import "std/time.znn";
 import "std/io.znn";
 
 export struct fps_meter {
-  int cur_sec;
+  milliseconds_t cur_sec;
   int num_ticks;
   int last_fps;
 };

@@ -10,5 +10,5 @@ export enum LevelAnimationType {
 export struct LevelAnimation {
   LevelAnimationType type;
   vec2d position;
-  int time;
+  milliseconds_t time;
 };
