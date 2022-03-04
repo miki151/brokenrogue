@@ -47,8 +47,8 @@ MeleeWeaponPosition getWeaponPosition(GameObject* object, MeleeWeaponOrigin orig
     }
   }
   return MeleeWeaponPosition(
-      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * reach * (1 - 2 * fabs(state - 0.5)),
-      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * (reach * (1 - 2 * fabs(state - 0.5)) + length),
+      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * reach * (1 - 2 * abs(state - 0.5)),
+      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * (reach * (1 - 2 * abs(state - 0.5)) + length),
       dir, glyph, glyphOffset
   );
 }

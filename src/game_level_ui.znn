@@ -156,7 +156,7 @@ bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_ev
           discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
           state->lastWalkDirection = (mousePos.as_double() / mousePos.length_d()) * 0.02
             + (state->lastWalkDirection ?? vec2d(0, 0)) * 0.98;
-          data->game->advance(fabs(context.timeDiff * length / 1000));
+          data->game->advance(abs(context.timeDiff * length / 1000));
         } else {
           state->leftMouseAttack->lastPosition += mousePos;
         }
@@ -204,11 +204,11 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
         mutable length = pos.length_d() * 2.5;
         length = pow(length, ui->movementPower) * ui->movementBase;
         discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
-        data->game->advance(fabs(context.timeDiff * length / 1000));
+        data->game->advance(abs(context.timeDiff * length / 1000));
       } else {
         mutable diff = context.timeDiff * ui->cameraSensitivity * event->pos.x;
         const minus = diff < 0;
-        diff = pow(fabs(diff), ui->rotationPower) * ui->rotationBase;
+        diff = pow(abs(diff), ui->rotationPower) * ui->rotationBase;
         if (minus)
           diff = -diff;
         state->playerDir -= diff;
@@ -224,7 +224,7 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
       const length = pos.length_d();
       if (length > 1000 * ui->minJoystickMovement) {
         discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
-        data->game->advance(fabs(context.timeDiff * length / 1000));
+        data->game->advance(abs(context.timeDiff * length / 1000));
       }
     }
     case (RIGHT) {
@@ -301,7 +301,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     if ((canSee || obj->remember) && !!obj->attributes.glyph) {
       const projected = ui->projectOnScreen(player, obj->pos, state->playerDir);
       if (obj != player && !!obj->attributes.creature) {
-        const angle = fabs(atan2(projected.x, -projected.y));
+        const angle = abs(atan2(projected.x, -projected.y));
         if (angle < bestAngle) {
           bestAngle = angle;
           highlightedObject = obj;
