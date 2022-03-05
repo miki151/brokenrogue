@@ -67,7 +67,7 @@ void render(T* t, mutable UIContext context, rectangle* r) {
   if (const data = t->transform_data(context.data)) {
     context.data = *data;
     for (elem : t->get_elems())
-      elem->get()->render(context, &t->get_bounds(elem.index, context, r));
+      elem^^.render(context, &t->get_bounds(elem.index, context, r));
   } else
     context.canvas->drawText(r->v1, data.get_error(), 10, &color(255, 0, 0));
 }
@@ -78,7 +78,7 @@ vec2 size(T* t, mutable UIContext context) {
     context.data = *data;
     mutable ret = vec2(0, 0);
     for (elem : t->get_elems()) {
-      const sz = elem->get()->size(context);
+      const sz = elem^^.size(context);
       ret.x = max(ret.x, sz.x);
       ret.y = max(ret.y, sz.y);
     }
@@ -132,7 +132,7 @@ struct button {
 export bool onMouseEvent(button* b, UIContext context, rectangle* r, mouse_event* event) {
   if (event->type == mouse_event_type::LEFT && r->contains(&event->pos))
     if (const callback = context.data->cast_to<box<UICallback>>()) {
-      (**callback)->invoke();
+      callback^^^.invoke();
       return true;
     }
   return false;
@@ -179,15 +179,15 @@ struct colored_text_ui {
 
 export void render(colored_text_ui* t, UIContext context, rectangle* r) {
   if (const rec = context.data->cast_to<UIRecord>())
-    if (const col = (*rec)->data.get_maybe(&"color"))
-      if (const text = (*rec)->data.get_maybe(&"text"))
-        context.canvas->drawText(r->v1, **(**text)->cast_to<string>(), t->size, *(**col)->cast_to<color>());
+    if (const col = rec^^.get_maybe(&"color"))
+      if (const text = rec^^.get_maybe(&"text"))
+        context.canvas->drawText(r->v1, **text^^^.cast_to<string>(), t->size, *col^^^.cast_to<color>());
 }
 
 export vec2 size(colored_text_ui* t, UIContext context) {
   if (const rec = context.data->cast_to<UIRecord>())
-    if (const text = (*rec)->data.get_maybe(&"text"))
-      return context.canvas->getTextSize(**(**text)->cast_to<string>(), t->size);
+    if (const text = rec^^.get_maybe(&"text"))
+      return context.canvas->getTextSize(**text^^^.cast_to<string>(), t->size);
   return vec2(40, 40);
 }
 
@@ -269,13 +269,13 @@ vector<rectangle> getElemPositions(list_ui* t, UIContext context, rectangle* r) 
   for (it : t->elems)
     switch (t->type) {
       case (VERTICAL) {
-        const height = it->get()->size(context).y;
+        const height = it^^.size(context).y;
         ret.push_back(rectangle(vec2(r->left(), r->top() + start),
             vec2(r->right(), r->top() + start + height)));
         start += height;
       }
       case (HORIZONTAL) {
-        const width = it->get()->size(context).x;
+        const width = it^^.size(context).x;
         ret.push_back(rectangle(vec2(r->left() + start, r->top()),
             vec2(r->left() + start + width, r->bottom())));
         start += width;
@@ -288,7 +288,7 @@ export bool onMouseEvent(list_ui* c, UIContext context, rectangle* rect,
     mouse_event* event) {
   const positions = getElemPositions(c, context, rect);
   for (it : c->elems)
-    if (it->get()->onMouseEvent(context, &positions[it.index], event))
+    if (it^^.onMouseEvent(context, &positions[it.index], event))
       return true;
   return false;
 }
@@ -296,13 +296,13 @@ export bool onMouseEvent(list_ui* c, UIContext context, rectangle* rect,
 export void render(list_ui* t, UIContext context, rectangle* r) {
   const positions = getElemPositions(t, context, r);
   for (it : t->elems)
-    it->get()->render(context, &positions[it.index]);
+    it^^.render(context, &positions[it.index]);
 }
 
 export vec2 size(list_ui* t, UIContext context) {
   mutable ret = vec2(0, 0);
   for (it : t->elems) {
-    const sz = it->get()->size(context);
+    const sz = it^^.size(context);
     switch (t->type) {
       case (VERTICAL) {
         ret.y += sz.y;
@@ -332,8 +332,8 @@ export rectangle get_bounds(using_ui* c, int, UIContext, rectangle* r) {
 
 export any*!string transform_data(using_ui* u, any* a) {
   if (const r = a->cast_to<UIRecord>()) {
-    if (const res = (*r)->data.get_maybe(&u->key))
-      return (*res)->get();
+    if (const res = r^^.get_maybe(&u->key))
+      return res^^.get();
     return "";
   } else
     return "Bad UI data: not a record: {a->get_type()}";
@@ -381,7 +381,7 @@ struct key_handler {
 export bool onKeyEvent(key_handler* k, UIContext context, rectangle* rect, key_event* event) {
   if (!k->event || *event == *k->event)
     if (const callback = context.data->cast_to<box<UICallback>>()) {
-      (**callback)->invoke();
+      callback^^^.invoke();
       return true;
     }
   return false;

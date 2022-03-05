@@ -8,10 +8,5 @@ export concept <Fun> UICallback {
   void destruct(Fun*);
 };
 
-export struct UIRecord {
-  hash_map<string, box<any>> data;
-};
+using UIRecord = hash_map<string, box<any>>;
 
-export UIRecord() {
-  return UIRecord::UIRecord(hash_map<string, box<any>>());
-}

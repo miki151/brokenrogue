@@ -72,7 +72,7 @@ export RadiusEffect copy(RadiusEffect*) = default;
 
 export void applyImpl(RadiusEffect* effect, vec2d pos, Game mutable* game) {
   for (obj : *game->getObjects())
-    if (((*obj)->pos - pos).length_d() <= effect->radius)
+    if ((obj^^.pos - pos).length_d() <= effect->radius)
       effect->effect->applyImpl(obj->get(), game);
 }
 

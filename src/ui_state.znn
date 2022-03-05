@@ -14,5 +14,5 @@ export template <T> requires construct<T>
 T mutable* get_state(UIState mutable* s) {
   if (!s->state)
     s->state = T().box_as<any>();
-  return *(*s->state)->cast_to<T>();
+  return *s->state^^.cast_to<T>();
 }

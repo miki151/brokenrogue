@@ -178,7 +178,7 @@ export struct LevelGeneratorChain {
 
 export bool make(LevelGeneratorChain* m, LevelCanvas* c) {
   for (it : m->elems)
-    if (!(*it)->make(c))
+    if (!it^^.make(c))
       return false;
   return true;
 }
@@ -195,7 +195,7 @@ export bool make(LevelGeneratorFilter* m, LevelCanvas* c) {
       if (!m->gen->make(&c->withArea(rectangle(*v, *v + vec2(1, 1)))))
         return false;
     } else
-    if (!!m->alt && !m->alt->get()->make(&c->withArea(rectangle(*v, *v + vec2(1, 1)))))
+    if (!!m->alt && !m->alt^^.make(&c->withArea(rectangle(*v, *v + vec2(1, 1)))))
       return false;
   return true;
 }

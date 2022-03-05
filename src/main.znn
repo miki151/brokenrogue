@@ -50,18 +50,18 @@ template <Types...> requires copy<Types>...
 UIRecord createRecord(string[] names, Types... values) {
   mutable ret = UIRecord();
   static for (i = 0; i < countof(values); ++i) {
-    ret.data.insert(names[i], values...[i].copy().box_as<any>());
+    ret.insert(names[i], values...[i].copy().box_as<any>());
   }
   return move(ret);
 }
 
 void insertCreatureInfo(UIRecord mutable* record, string field, double hp, string name, Glyph* glyph) {
   mutable creatureData = UIRecord();
-  creatureData.data.insert("hp", hp.box_as<any>());
-  creatureData.data.insert("name", name.box_as<any>());
-  creatureData.data.insert("glyph", createRecord({"text", "color"}.slice(), glyph->sym, glyph->col.copy())
+  creatureData.insert("hp", hp.box_as<any>());
+  creatureData.insert("name", name.box_as<any>());
+  creatureData.insert("glyph", createRecord({"text", "color"}.slice(), glyph->sym, glyph->col.copy())
       .box_as<any>());
-  record->data.insert(field, move(creatureData).box_as<any>());
+  record->insert(field, move(creatureData).box_as<any>());
 }
 
 void showDialog(SDLWindow* window, SDLCanvas* canvas, rectangle* rect, UIElement* ui, string message) {
@@ -108,7 +108,7 @@ int main(string[] args) {
   mutable uiState = UIState();
   const restartCallback = [&] {
     showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
-    uiData.data.erase(&game.status->asString());
+    uiData.erase(&game.status->asString());
     game = getNewGame();
     last_update = current_time_milli();
     realTimeEnd = last_update;
@@ -119,25 +119,25 @@ int main(string[] args) {
       &highlightedObjectCallback,
       &restartCallback
   );
-  uiData.data.insert("game_level", box_as<any>(move(game_data)));
+  uiData.insert("game_level", box_as<any>(move(game_data)));
   mutable events_state = SDLEventsState();
-  uiData.data.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
+  uiData.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
   mutable fps = fps_meter();
   while (!exit) {
     fps.add_tick();
-    uiData.data.insert("fps", "{fps.get_fps()}".box_as<any>());
+    uiData.insert("fps", "{fps.get_fps()}".box_as<any>());
     const player = game.getPlayer();
     const playerDead = !player->health;
     if (!playerDead)
       insertCreatureInfo(&uiData, "player_info", 
           max(0.0, *player->health / *player->attributes.maxHealth), "Player", &*player->attributes.glyph);
     else
-      uiData.data.erase(&"player_info");
+      uiData.erase(&"player_info");
     if (highlightedObjectInfo)
       insertCreatureInfo(&uiData, "enemy_info", highlightedObjectInfo->hp, highlightedObjectInfo->name,
           &highlightedObjectInfo->glyph);
     else
-      uiData.data.erase(&"enemy_info");
+      uiData.erase(&"enemy_info");
     const cur_time = current_time_milli();
     timeDiff = 0.001 * (cur_time - last_update);
     if (cur_time <= realTimeEnd || playerDead)

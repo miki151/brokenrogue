@@ -44,7 +44,7 @@ export void drawTextureRotated(SDLCanvas* canvas, rectangle* r, string id, doubl
 
 export vec2 getTextureSize(SDLCanvas* canvas, string id) {
   if (const t = canvas->textures.get_maybe(&id))
-    return *(*t)->size();
+    return *t^^.size();
   return vec2(100, 20);
 }
 

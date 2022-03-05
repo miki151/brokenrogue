@@ -203,9 +203,9 @@ vector<StreamChar>!string preprocess(vector<StreamChar>* content) {
         mutable argsPos = i;
         const args = parseArgs(&ret.second, &argsPos);
         if (const def = ret.first.defs.get_maybe(&pair(*name, args.size()))) {
-          if (args.size() != (*def)->args.size())
+          if (args.size() != def^^.args.size())
             return get_pos_error(&ret.second[argsPos].pos, "Wrong number of arguments to macro {*name}");
-          mutable body = subStream(content, (*def)->begin, (*def)->end - (*def)->begin);
+          mutable body = subStream(content, def^^.begin, def^^.end - def^^.begin);
           for (elem : body)
             append(&elem->pos, &ret.second[i].pos);
           for (argNum : args) {
@@ -215,7 +215,7 @@ vector<StreamChar>!string preprocess(vector<StreamChar>* content) {
                 bodyInQuote = !bodyInQuote;
               eatWhitespace(&body, &bodyIndex);
               const beginOccurrence = bodyIndex;
-              if (!bodyInQuote && scanWord(&body, &bodyIndex) == (*def)->args[argNum.index]) {
+              if (!bodyInQuote && scanWord(&body, &bodyIndex) == def^^.args[argNum.index]) {
                 replaceInStream(&body, beginOccurrence, bodyIndex - beginOccurrence, &args[argNum.index]);
                 bodyIndex = beginOccurrence + argNum->size();
               }

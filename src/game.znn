@@ -59,15 +59,15 @@ export bool canUseStairs(Game* g) {
   if (g->currentLevel == g->levels.size() - 1)
     return false;
   for (it : *g->getObjects())
-    if (it->get()->attributes.isStairs && (it->get()->pos - g->getPlayer()->pos).length_d() < 1.0)
+    if (it^^.attributes.isStairs && (it^^.pos - g->getPlayer()->pos).length_d() < 1.0)
       return true;
   return false;
 }
 
 export string? getMessage(Game* g, vec2d pos) {
   for (it : *g->getObjects())
-    if ((it->get()->pos - pos).length_d() < 1.0)
-      if (const m = it->get()->attributes.message)
+    if ((it^^.pos - pos).length_d() < 1.0)
+      if (const m = it^^.attributes.message)
         return m;
   return null;
 }
@@ -89,7 +89,7 @@ export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
     );
     const getObjPos = [&](GameObject* obj2) { return obj->fovInfo->data.size() / 2 + obj2->pos.as_int() - posInt; };
     for (obj2 : *game->getObjects())
-      if (obj2->get()->attributes.blocksVision) {
+      if (obj2^^.attributes.blocksVision) {
         const opos = getObjPos(obj2->get());
         if (obj->fovInfo->data.bounds().contains(&opos))
           obj->fovInfo->data[opos] = 1;
@@ -117,7 +117,7 @@ vector<box<GameObject>> generateObjects(int levelNum, int initialId, vec2 levelS
           assert(playerIndex == -1, "Player creature generated more than once");
           playerIndex = ret.size();
         }
-        ret.push_back(GameObject(initialId + ret.size(), v->as_double(), (*attr)->copy(), *token).box());
+        ret.push_back(GameObject(initialId + ret.size(), v->as_double(), attr^^.copy(), *token).box());
       }
   assert(playerIndex > -1, "Player creature wasn't generated");
   if (playerIndex > 0)
@@ -135,7 +135,7 @@ export void reloadObjectAttributes(Game mutable* game, hash_map<string, GameObje
 }
 
 export void addObject(Game mutable* game, vec2d pos, string id) {
-  const obj = GameObject(game->gameObjectIdCounter, pos, (*game->objectFactory->get_maybe(&id))->copy(), id);
+  const obj = GameObject(game->gameObjectIdCounter, pos, game->objectFactory->get_maybe(&id)^^.copy(), id);
   ++game->gameObjectIdCounter;
   game->getObjects()->push_back(box(move(obj)));
 }
@@ -146,7 +146,7 @@ export Game(int lineOfSight, vector<pair<vec2, LevelGenerator*>> generator,
   mutable levels = vector<Level>();
   for (gen : generator) {
     const objects = generateObjects(gen.index, lastId, gen->first, gen->second, mapping);
-    lastId = objects.back()->get()->id + 1;
+    lastId = objects.back()^^.id + 1;
     levels.push_back(Level("Level 1", gen->first, move(objects), vector<LevelAnimation>()));
   }
   return Game::Game(move(levels), 0, mapping, lineOfSight, null, lastId);
@@ -163,7 +163,7 @@ int? advance(GameObject mutable* c, Game* g, vec2d dir) {
     c->animation.lastMovement = current_time_milli();
   mutable int? ret = null;
   for (it : *g->getObjects())
-    if ((!c->projectile || c->projectile->attacker != it->get()->id) && it->get() != c && !it->get()->projectile)
+    if ((!c->projectile || c->projectile->attacker != it^^.id) && it->get() != c && !it^^.projectile)
       if (const v = getRebound(c, it->get())) {
         c->pos -= *v;
         ret = it.index;
@@ -179,7 +179,7 @@ void updateOngoingAttacks(Game mutable* g, double timeDiff) {
     if (object->ongoingAttack) {
       object->ongoingAttack->remainingTime -= timeDiff;
       for (it2 : *g->getObjects())
-        if (!object->ongoingAttack->woundedObjects.contains(&it2->get()->id)) {
+        if (!object->ongoingAttack->woundedObjects.contains(&it2^^.id)) {
           const object2 = it2->get();
           if (object2 != object && !!object2->attributes.creature && 
               object2->isPenetrated(object->getMeleeWeaponPosition(null)[*object->lastAttackIndex].pos2)) {
@@ -324,7 +324,7 @@ export void spawnProjectile(Game mutable *g, int? attackerId, vec2d origin, vec2
       ),
       null
   ).box());
-  g->getObjects()->back()->get()->projectile = Projectile(dir, move(effect), attackerId);
+  g->getObjects()->back()^^.projectile = Projectile(dir, move(effect), attackerId);
 }
 
 export GameObject* getPlayer(Game* g) {
