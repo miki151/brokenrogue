@@ -21,8 +21,8 @@ export struct Glyph {
 };
 
 export void switchToMemory(Glyph mutable* glyph) {
-  const avg = (glyph->col.r + glyph->col.g + glyph->col.b) / 3;
-  glyph->col = color(avg, avg, avg);
+  const avg = (glyph^.col.r + glyph^.col.g + glyph^.col.b) / 3;
+  glyph^.col = color(avg, avg, avg);
 }
 
 export Glyph(string, color, double, GlyphLayer layer) = default;
@@ -34,7 +34,7 @@ export Glyph(string c, color col, GlyphLayer layer) {
 export Glyph copy(Glyph*) = default;
 
 export Glyph randomizeColor(Glyph* g, int variance) {
-  mutable ret = g->copy();
+  mutable ret = g^.copy();
   if (variance > 0) {
     ret.col.r = max(0, min(255, ret.col.r + get_random(variance + 1) - variance / 2));
     ret.col.g = max(0, min(255, ret.col.g + get_random(variance + 1) - variance / 2));
@@ -44,8 +44,8 @@ export Glyph randomizeColor(Glyph* g, int variance) {
 }
 
 export void render(Glyph* g, UICanvas* canvas, int font_size, vec2 pos, double angle, bool creature, double dist) {
-  const size = (vec2d(font_size.as_double(), font_size.as_double()) * g->size).as_int();
-  const col = g->col.lighter((-dist / 8).as_int());
-  canvas->drawTextureRotated(&rectangle(pos - size / 2, pos + size / 2), g->sym, creature ? 0.0 : angle, &col);
+  const size = (vec2d(font_size.as_double(), font_size.as_double()) * g^.size).as_int();
+  const col = g^.col.lighter((-dist / 8).as_int());
+  canvas^.drawTextureRotated(&rectangle(pos - size / 2, pos + size / 2), g^.sym, creature ? 0.0 : angle, &col);
 }
 

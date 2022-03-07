@@ -42,30 +42,30 @@ export struct Game {
 };
 
 export Level* getLevel(Game* g) {
-  return &g->levels[g->currentLevel];
+  return &g^.levels[g^.currentLevel];
 }
 
 export Level mutable* getLevel(Game mutable* g) {
-  return &g->levels[g->currentLevel];
+  return &g^.levels[g^.currentLevel];
 }
 
 export void useStairs(Game mutable* g) {
-  const curHealth = g->getPlayer()->health;
-  ++g->currentLevel;
-  g->getPlayer()->health = curHealth;
+  const curHealth = g^.getPlayer()^.health;
+  ++g^.currentLevel;
+  g^.getPlayer()^.health = curHealth;
 }
 
 export bool canUseStairs(Game* g) {
-  if (g->currentLevel == g->levels.size() - 1)
+  if (g^.currentLevel == g^.levels.size() - 1)
     return false;
-  for (it : *g->getObjects())
-    if (it^^.attributes.isStairs && (it^^.pos - g->getPlayer()->pos).length_d() < 1.0)
+  for (it : *g^.getObjects())
+    if (it^^.attributes.isStairs && (it^^.pos - g^.getPlayer()^.pos).length_d() < 1.0)
       return true;
   return false;
 }
 
 export string? getMessage(Game* g, vec2d pos) {
-  for (it : *g->getObjects())
+  for (it : *g^.getObjects())
     if ((it^^.pos - pos).length_d() < 1.0)
       if (const m = it^^.attributes.message)
         return m;
@@ -73,31 +73,31 @@ export string? getMessage(Game* g, vec2d pos) {
 }
 
 export vector<box<GameObject>>* getObjects(Game* g) {
-  return &g->getLevel()->objects;
+  return &g^.getLevel()^.objects;
 }
 
 export vector<box<GameObject>> mutable* getObjects(Game mutable* g) {
-  return &g->getLevel()->objects;
+  return &g^.getLevel()^.objects;
 }
 
 export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
-  const posInt = (obj->pos + vec2d(0.5, 0.5)).as_int();
-  if (!obj->fovInfo || obj->fovInfo->origin != posInt) {
-    obj->fovInfo = FOVInfo(
+  const posInt = (obj^.pos + vec2d(0.5, 0.5)).as_int();
+  if (!obj^.fovInfo || obj^.fovInfo^.origin != posInt) {
+    obj^.fovInfo = FOVInfo(
         posInt,
-        table<int>(vec2(game->lineOfSight, game->lineOfSight), 0)
+        table<int>(vec2(game^.lineOfSight, game^.lineOfSight), 0)
     );
-    const getObjPos = [&](GameObject* obj2) { return obj->fovInfo->data.size() / 2 + obj2->pos.as_int() - posInt; };
-    for (obj2 : *game->getObjects())
+    const getObjPos = [&](GameObject* obj2) { return obj^.fovInfo^.data.size() / 2 + obj2^.pos.as_int() - posInt; };
+    for (obj2 : *game^.getObjects())
       if (obj2^^.attributes.blocksVision) {
-        const opos = getObjPos(obj2->get());
-        if (obj->fovInfo->data.bounds().contains(&opos))
-          obj->fovInfo->data[opos] = 1;
+        const opos = getObjPos(obj2^.get());
+        if (obj^.fovInfo^.data.bounds().contains(&opos))
+          obj^.fovInfo^.data[opos] = 1;
       }
-    obj->fovInfo->data = calculateFOV(&obj->fovInfo->data);
+    obj^.fovInfo^.data = calculateFOV(&obj^.fovInfo^.data);
   }
-  const vpos = position - posInt + obj->fovInfo->data.size() / 2;
-  return obj->fovInfo->data.bounds().contains(&vpos) && obj->fovInfo->data[vpos] == 1;
+  const vpos = position - posInt + obj^.fovInfo^.data.size() / 2;
+  return obj^.fovInfo^.data.bounds().contains(&vpos) && obj^.fovInfo^.data[vpos] == 1;
 }
 
 vector<box<GameObject>> generateObjects(int levelNum, int initialId, vec2 levelSize, LevelGenerator* generator,
@@ -105,19 +105,19 @@ vector<box<GameObject>> generateObjects(int levelNum, int initialId, vec2 levelS
   mutable ret = vector<box<GameObject>>();
   const levelTable = [&] {
     for (i = 0; i < 10; ++i)
-      if (const res = generator->generate(levelSize))
+      if (const res = generator^.generate(levelSize))
         return *move(res);
     panic("Failed to generate level {levelNum}");
   }();
   mutable playerIndex = -1;
   for (v : levelTable.bounds())
     for (token : levelTable[*v])
-      if (const attr = mapping->get_maybe(&*token)) {
+      if (const attr = mapping^.get_maybe(&*token)) {
         if (*token == "player") {
           assert(playerIndex == -1, "Player creature generated more than once");
           playerIndex = ret.size();
         }
-        ret.push_back(GameObject(initialId + ret.size(), v->as_double(), attr^^.copy(), *token).box());
+        ret.push_back(GameObject(initialId + ret.size(), v^.as_double(), attr^^.copy(), *token).box());
       }
   assert(playerIndex > -1, "Player creature wasn't generated");
   if (playerIndex > 0)
@@ -126,18 +126,18 @@ vector<box<GameObject>> generateObjects(int levelNum, int initialId, vec2 levelS
 }
 
 export void reloadObjectAttributes(Game mutable* game, hash_map<string, GameObjectAttributes>* mapping) {
-  game->objectFactory = mapping;
-  for (it : *game->getObjects()) {
-    const obj = it->get();
-    if (obj->attributesId)
-      obj->attributes = mapping->get(&*obj->attributesId)->copy();
+  game^.objectFactory = mapping;
+  for (it : *game^.getObjects()) {
+    const obj = it^.get();
+    if (obj^.attributesId)
+      obj^.attributes = mapping^.get(&*obj^.attributesId)^.copy();
   }
 }
 
 export void addObject(Game mutable* game, vec2d pos, string id) {
-  const obj = GameObject(game->gameObjectIdCounter, pos, game->objectFactory->get_maybe(&id)^^.copy(), id);
-  ++game->gameObjectIdCounter;
-  game->getObjects()->push_back(box(move(obj)));
+  const obj = GameObject(game^.gameObjectIdCounter, pos, game^.objectFactory^.get_maybe(&id)^^.copy(), id);
+  ++game^.gameObjectIdCounter;
+  game^.getObjects()^.push_back(box(move(obj)));
 }
 
 export Game(int lineOfSight, vector<pair<vec2, LevelGenerator*>> generator,
@@ -145,52 +145,52 @@ export Game(int lineOfSight, vector<pair<vec2, LevelGenerator*>> generator,
   mutable lastId = 0;
   mutable levels = vector<Level>();
   for (gen : generator) {
-    const objects = generateObjects(gen.index, lastId, gen->first, gen->second, mapping);
+    const objects = generateObjects(gen.index, lastId, gen^.first, gen^.second, mapping);
     lastId = objects.back()^^.id + 1;
-    levels.push_back(Level("Level 1", gen->first, move(objects), vector<LevelAnimation>()));
+    levels.push_back(Level("Level 1", gen^.first, move(objects), vector<LevelAnimation>()));
   }
   return Game::Game(move(levels), 0, mapping, lineOfSight, null, lastId);
 }
 
 export int? walk(GameObject mutable* c, Game* g, double amount, double angle, double? facingDir) {
-  c->lastWalkDirection = facingDir ?? angle;
-  return c->advance(g, vec2d(sin(angle), cos(angle)) * amount * c->attributes.creature->speed);
+  c^.lastWalkDirection = facingDir ?? angle;
+  return c^.advance(g, vec2d(sin(angle), cos(angle)) * amount * c^.attributes.creature^.speed);
 }
 
 int? advance(GameObject mutable* c, Game* g, vec2d dir) {
-  c->pos += dir;
-  if (c->attributes.creature)
-    c->animation.lastMovement = current_time_milli();
+  c^.pos += dir;
+  if (c^.attributes.creature)
+    c^.animation.lastMovement = current_time_milli();
   mutable int? ret = null;
-  for (it : *g->getObjects())
-    if ((!c->projectile || c->projectile->attacker != it^^.id) && it->get() != c && !it^^.projectile)
-      if (const v = getRebound(c, it->get())) {
-        c->pos -= *v;
+  for (it : *g^.getObjects())
+    if ((!c^.projectile || c^.projectile^.attacker != it^^.id) && it^.get() != c && !it^^.projectile)
+      if (const v = getRebound(c, it^.get())) {
+        c^.pos -= *v;
         ret = it.index;
       }
   return ret;
 }
 
 void updateOngoingAttacks(Game mutable* g, double timeDiff) {
-  for (it : *g->getObjects()) {
-    const object = it->get();
-    if (object->rangedAttackTimeout > 0.0)
-      object->rangedAttackTimeout -= timeDiff;
-    if (object->ongoingAttack) {
-      object->ongoingAttack->remainingTime -= timeDiff;
-      for (it2 : *g->getObjects())
-        if (!object->ongoingAttack->woundedObjects.contains(&it2^^.id)) {
-          const object2 = it2->get();
-          if (object2 != object && !!object2->attributes.creature && 
-              object2->isPenetrated(object->getMeleeWeaponPosition(null)[*object->lastAttackIndex].pos2)) {
-            object->ongoingAttack->woundedObjects.insert(object2->id);
-            object->ongoingAttack->attack.effect.apply(object2, g);
+  for (it : *g^.getObjects()) {
+    const object = it^.get();
+    if (object^.rangedAttackTimeout > 0.0)
+      object^.rangedAttackTimeout -= timeDiff;
+    if (object^.ongoingAttack) {
+      object^.ongoingAttack^.remainingTime -= timeDiff;
+      for (it2 : *g^.getObjects())
+        if (!object^.ongoingAttack^.woundedObjects.contains(&it2^^.id)) {
+          const object2 = it2^.get();
+          if (object2 != object && !!object2^.attributes.creature && 
+              object2^.isPenetrated(object^.getMeleeWeaponPosition(null)[*object^.lastAttackIndex].pos2)) {
+            object^.ongoingAttack^.woundedObjects.insert(object2^.id);
+            object^.ongoingAttack^.attack.effect.apply(object2, g);
             break;
           }
         }
-      if (object->ongoingAttack->remainingTime <= 0.0) {
-        object->updateWeaponOrigin(*object->lastAttackIndex);
-        object->ongoingAttack = null;
+      if (object^.ongoingAttack^.remainingTime <= 0.0) {
+        object^.updateWeaponOrigin(*object^.lastAttackIndex);
+        object^.ongoingAttack = null;
       }
     }
   }
@@ -198,102 +198,102 @@ void updateOngoingAttacks(Game mutable* g, double timeDiff) {
 
 void updateProjectiles(Game mutable* g, double timeDiff) {
   const curTime = current_time_milli();
-  for (it : *g->getObjects()) {
-    const object = it->get();
-    if (object->projectile) {
-      const prevPos = object->pos;
-      if (const targetIndex = object->advance(g, object->projectile->dir * timeDiff)) {
-        object->isDead = true;
-        const target = (*g->getObjects())[*targetIndex].get();
-        if (target->attributes.creature) {
-          object->projectile->effect.apply(target, g);
+  for (it : *g^.getObjects()) {
+    const object = it^.get();
+    if (object^.projectile) {
+      const prevPos = object^.pos;
+      if (const targetIndex = object^.advance(g, object^.projectile^.dir * timeDiff)) {
+        object^.isDead = true;
+        const target = (*g^.getObjects())[*targetIndex].get();
+        if (target^.attributes.creature) {
+          object^.projectile^.effect.apply(target, g);
         } else
-          g->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
+          g^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
       } 
     }
   }
 }
 
 void updateDeadObjects(Game mutable* g, double timeDiff) {
-  const objects = g->getObjects();
+  const objects = g^.getObjects();
   const player = (*objects)[0].get();
-  if (player->isDead) {
-    player->isDead = false;
-    player->attributes = g->objectFactory->get(&"dead_player")->copy();
-    player->health = null;
-    player->ongoingAttack = null;
-    g->status = GameStatus::GAME_LOST;
+  if (player^.isDead) {
+    player^.isDead = false;
+    player^.attributes = g^.objectFactory^.get(&"dead_player")^.copy();
+    player^.health = null;
+    player^.ongoingAttack = null;
+    g^.status = GameStatus::GAME_LOST;
     return;
   }
   mutable toAdd = vector<GameObject>();
-  for (i = objects->size() - 1; i >= 0; --i) {
+  for (i = objects^.size() - 1; i >= 0; --i) {
     const object = (*objects)[i].get();
-    object->lifeTime += timeDiff;
-    if (!!object->attributes.maxLifeTime && object->lifeTime >= *object->attributes.maxLifeTime)
-      object->isDead = true;
-    if (object->isDead) {
-      if (object->attributes.deathEffect)
-        object->attributes.deathEffect->apply(object->pos, g);
-      if (object->attributes.isEndGameBoss)
-        g->status = GameStatus::GAME_WON;
-      if (!!object->attributes.creature) {
-        toAdd.push_back(GameObject(g->gameObjectIdCounter, object->pos,
-            g->objectFactory->get(&"corpse")->copy(), "corpse"));
-        toAdd.back()->attributes.glyph->size = object->attributes.glyph->size * 0.8;
+    object^.lifeTime += timeDiff;
+    if (!!object^.attributes.maxLifeTime && object^.lifeTime >= *object^.attributes.maxLifeTime)
+      object^.isDead = true;
+    if (object^.isDead) {
+      if (object^.attributes.deathEffect)
+        object^.attributes.deathEffect^.apply(object^.pos, g);
+      if (object^.attributes.isEndGameBoss)
+        g^.status = GameStatus::GAME_WON;
+      if (!!object^.attributes.creature) {
+        toAdd.push_back(GameObject(g^.gameObjectIdCounter, object^.pos,
+            g^.objectFactory^.get(&"corpse")^.copy(), "corpse"));
+        toAdd.back()^.attributes.glyph^.size = object^.attributes.glyph^.size * 0.8;
       }
-      objects->remove(i);
+      objects^.remove(i);
     }
   }
   while (!toAdd.empty())
-    g->getObjects()->push_back(toAdd.pop_back().box());
+    g^.getObjects()^.push_back(toAdd.pop_back().box());
 }
 
 void updateAIMoves(Game mutable* g, double timeDiff) {
-  for (it : *g->getObjects()) {
-    const object = it->get();
-    if (it.index > 0 && !!object->attributes.creature)
-      discard object->attributes.creature->ai.makeMove(g, object, timeDiff);
+  for (it : *g^.getObjects()) {
+    const object = it^.get();
+    if (it.index > 0 && !!object^.attributes.creature)
+      discard object^.attributes.creature^.ai.makeMove(g, object, timeDiff);
   }
 }
 
 void updateEntryEffects(Game mutable* g) {
-  for (it : *g->getObjects()) {
-    const object = it->get();
-    if (object->attributes.entryEffect)
-      for (it2 : *g->getObjects())
+  for (it : *g^.getObjects()) {
+    const object = it^.get();
+    if (object^.attributes.entryEffect)
+      for (it2 : *g^.getObjects())
         if (it2 != it) {
-          const object2 = it2->get();
-          if (!!object2->attributes.creature && !!object2->attributes.box &&
-              object2->attributes.box->isPenetrated(object2->pos - object->pos))
-            object->attributes.entryEffect->apply(object2->pos, g);
+          const object2 = it2^.get();
+          if (!!object2^.attributes.creature && !!object2^.attributes.box &&
+              object2^.attributes.box^.isPenetrated(object2^.pos - object^.pos))
+            object^.attributes.entryEffect^.apply(object2^.pos, g);
         }
 
   }
 }
 
 export void advance(Game mutable* g, double timeDiff) {
-  g->updateAIMoves(timeDiff);
-  g->updateOngoingAttacks(timeDiff);
-  g->updateProjectiles(timeDiff);
-  g->updateEntryEffects();
-  g->updateDeadObjects(timeDiff);
+  g^.updateAIMoves(timeDiff);
+  g^.updateOngoingAttacks(timeDiff);
+  g^.updateProjectiles(timeDiff);
+  g^.updateEntryEffects();
+  g^.updateDeadObjects(timeDiff);
 }
 
 export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable double direction) {
-  if (o->rangedAttackTimeout <= 0.0 && !!o->attributes.creature && !!o->attributes.creature->rangedAttack) {
-    const attack = &*o->attributes.creature->rangedAttack;
-    direction += (get_random_d() - 0.5) * attack->inaccuracy;
-    mutable origin = o->pos;
-    if (const pos = o->getRangedWeaponPosition(null))
-      origin = pos->pos2;
-    game->spawnProjectile(o->id, origin, vec2d(sin(direction), cos(direction)) * attack->velocity,
-        attack->glyph.randomizeColor(attack->colorVariance), attack->size, attack->effect.copy(), 10000);
-    o->rangedAttackTimeout = attack->timeout;
-    if (attack->extraTimeout) {
-      ++o->rangedAttackProjectileCount;
-      if (o->rangedAttackProjectileCount >= attack->extraTimeout->count) {
-        o->rangedAttackTimeout = attack->extraTimeout->timeout;
-        o->rangedAttackProjectileCount = 0;
+  if (o^.rangedAttackTimeout <= 0.0 && !!o^.attributes.creature && !!o^.attributes.creature^.rangedAttack) {
+    const attack = &*o^.attributes.creature^.rangedAttack;
+    direction += (get_random_d() - 0.5) * attack^.inaccuracy;
+    mutable origin = o^.pos;
+    if (const pos = o^.getRangedWeaponPosition(null))
+      origin = pos^.pos2;
+    game^.spawnProjectile(o^.id, origin, vec2d(sin(direction), cos(direction)) * attack^.velocity,
+        attack^.glyph.randomizeColor(attack^.colorVariance), attack^.size, attack^.effect.copy(), 10000);
+    o^.rangedAttackTimeout = attack^.timeout;
+    if (attack^.extraTimeout) {
+      ++o^.rangedAttackProjectileCount;
+      if (o^.rangedAttackProjectileCount >= attack^.extraTimeout^.count) {
+        o^.rangedAttackTimeout = attack^.extraTimeout^.timeout;
+        o^.rangedAttackProjectileCount = 0;
       }
     }
     return true;
@@ -304,8 +304,8 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
 export void spawnProjectile(Game mutable *g, int? attackerId, vec2d origin, vec2d dir, Glyph glyph, double size,
     ObjectEffect effect, double lifeTime) {
   const vdir = dir / dir.length_d();
-  g->getObjects()->push_back(GameObject(
-      g->gameObjectIdCounter,
+  g^.getObjects()^.push_back(GameObject(
+      g^.gameObjectIdCounter,
       origin,
       GameObjectAttributes(
         .glyph = move(glyph),
@@ -324,14 +324,14 @@ export void spawnProjectile(Game mutable *g, int? attackerId, vec2d origin, vec2
       ),
       null
   ).box());
-  g->getObjects()->back()^^.projectile = Projectile(dir, move(effect), attackerId);
+  g^.getObjects()^.back()^^.projectile = Projectile(dir, move(effect), attackerId);
 }
 
 export GameObject* getPlayer(Game* g) {
-  return (*g->getObjects())[0].get();
+  return (*g^.getObjects())[0].get();
 }
 
 export GameObject mutable* getPlayer(Game mutable* g) {
-  return (*g->getObjects())[0].get();
+  return (*g^.getObjects())[0].get();
 }
 

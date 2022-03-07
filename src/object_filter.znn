@@ -8,7 +8,7 @@ export struct TypeFilter {
 export TypeFilter copy(TypeFilter*) = default;
 
 export bool apply(TypeFilter* type, GameObject* object) {
-  return object->attributesId == type->value;
+  return object^.attributesId == type^.value;
 }
 
 export struct NotFilter {
@@ -18,7 +18,7 @@ export struct NotFilter {
 export NotFilter copy(NotFilter*) = default;
 
 export bool apply(NotFilter* type, GameObject* object) {
-  return !type->filter->apply(object);
+  return !type^.filter^.apply(object);
 }
 
 export union ObjectFilter {

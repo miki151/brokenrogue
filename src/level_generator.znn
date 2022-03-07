@@ -15,7 +15,7 @@ export concept<T> LevelGenerator {
 
 export table<vector<string>>!string generate(LevelGenerator* generator, vec2 size) {
   mutable tokens = table(size, vector<string>());
-  if (!generator->make(&LevelCanvas(&tokens, tokens.bounds())))
+  if (!generator^.make(&LevelCanvas(&tokens, tokens.bounds())))
     return "Failed to generate level";
   return move(tokens);
 }
@@ -25,9 +25,9 @@ export struct LevelGeneratorSet {
 };
 
 export bool make(LevelGeneratorSet* s, LevelCanvas* c) {
-  for (v : c->area)
-    for (t : s->tokens)
-      (*c->tokens)[*v].push_back(*t);
+  for (v : c^.area)
+    for (t : s^.tokens)
+      (*c^.tokens)[*v].push_back(*t);
   return true;
 }
 
@@ -36,11 +36,11 @@ export struct LevelGeneratorRemove {
 };
 
 export bool make(LevelGeneratorRemove* s, LevelCanvas* c) {
-  for (v : c->area)
-    for (t : s->tokens) {
-      const tokens = &(*c->tokens)[*v];
-      if (const ind = tokens->find(&*t))
-        tokens->remove(*ind);
+  for (v : c^.area)
+    for (t : s^.tokens) {
+      const tokens = &(*c^.tokens)[*v];
+      if (const ind = tokens^.find(&*t))
+        tokens^.remove(*ind);
     }
   return true;
 }
@@ -50,8 +50,8 @@ export struct LevelGeneratorReset {
 };
 
 export bool make(LevelGeneratorReset* s, LevelCanvas* c) {
-  for (v : c->area)
-    (*c->tokens)[*v] = s->tokens.copy();
+  for (v : c^.area)
+    (*c^.tokens)[*v] = s^.tokens.copy();
   return true;
 }
 
@@ -62,13 +62,13 @@ export struct LevelGeneratorMargins {
 };
 
 export bool make(LevelGeneratorMargins* m, LevelCanvas* c) {
-  mutable ret = m->inside->make(&c->withArea(c->area.plus_margin(-m->width)));
-  ret = ret && m->border->make(&c->withArea(rectangle(c->area.v1, vec2(c->area.v1.x + m->width, c->area.v2.y))));
-  ret = ret && m->border->make(&c->withArea(rectangle(vec2(c->area.v1.x + m->width, c->area.v1.y),
-    vec2(c->area.v2.x - m->width, c->area.v1.y + m->width))));
-  ret = ret && m->border->make(&c->withArea(rectangle(vec2(c->area.v2.x - m->width, c->area.v1.y), c->area.v2)));
-  return ret && m->border->make(&c->withArea(rectangle(vec2(c->area.v1.x + m->width, c->area.v2.y - m->width),
-    vec2(c->area.v2.x - m->width, c->area.v2.y))));
+  mutable ret = m^.inside^.make(&c^.withArea(c^.area.plus_margin(-m^.width)));
+  ret = ret && m^.border^.make(&c^.withArea(rectangle(c^.area.v1, vec2(c^.area.v1.x + m^.width, c^.area.v2.y))));
+  ret = ret && m^.border^.make(&c^.withArea(rectangle(vec2(c^.area.v1.x + m^.width, c^.area.v1.y),
+    vec2(c^.area.v2.x - m^.width, c^.area.v1.y + m^.width))));
+  ret = ret && m^.border^.make(&c^.withArea(rectangle(vec2(c^.area.v2.x - m^.width, c^.area.v1.y), c^.area.v2)));
+  return ret && m^.border^.make(&c^.withArea(rectangle(vec2(c^.area.v1.x + m^.width, c^.area.v2.y - m^.width),
+    vec2(c^.area.v2.x - m^.width, c^.area.v2.y))));
 }
 
 export enum LevelGeneratorMarginType {
@@ -84,36 +84,36 @@ export struct LevelGeneratorMargin {
 
 export bool make(LevelGeneratorMargin* m, LevelCanvas* c) {
   const rect = [&]() {
-    switch (m->type) {
+    switch (m^.type) {
       case (TOP) {
         return pair(
-            rectangle(c->area.v1, vec2(c->area.v2.x, c->area.v1.y + m->width)),
-            rectangle(vec2(c->area.v1.x, c->area.v1.y + m->width), c->area.v2)
+            rectangle(c^.area.v1, vec2(c^.area.v2.x, c^.area.v1.y + m^.width)),
+            rectangle(vec2(c^.area.v1.x, c^.area.v1.y + m^.width), c^.area.v2)
         );
       }
       case (BOTTOM) {
         return pair(
-            rectangle(vec2(c->area.v1.x, c->area.v2.y - m->width), c->area.v2),
-            rectangle(c->area.v1, vec2(c->area.v2.x, c->area.v2.y - m->width))
+            rectangle(vec2(c^.area.v1.x, c^.area.v2.y - m^.width), c^.area.v2),
+            rectangle(c^.area.v1, vec2(c^.area.v2.x, c^.area.v2.y - m^.width))
         );
       }
       case (LEFT) {
         return pair(
-            rectangle(c->area.v1, vec2(c->area.v1.x + m->width, c->area.v2.y)),
-            rectangle(vec2(c->area.v1.x + m->width, c->area.v1.y), c->area.v2)
+            rectangle(c^.area.v1, vec2(c^.area.v1.x + m^.width, c^.area.v2.y)),
+            rectangle(vec2(c^.area.v1.x + m^.width, c^.area.v1.y), c^.area.v2)
         );
       }
       case (RIGHT) {
         return pair(
-            rectangle(vec2(c->area.v2.x - m->width, c->area.v1.y), c->area.v2),
-            rectangle(c->area.v1, vec2(c->area.v2.x - m->width, c->area.v2.y))
+            rectangle(vec2(c^.area.v2.x - m^.width, c^.area.v1.y), c^.area.v2),
+            rectangle(c^.area.v1, vec2(c^.area.v2.x - m^.width, c^.area.v2.y))
         );
       }
     }
   }();
-  if (!m->border->make(&c->withArea(rect.first.copy())))
+  if (!m^.border^.make(&c^.withArea(rect.first.copy())))
     return false;
-  return m->inside->make(&c->withArea(rect.second.copy()));
+  return m^.inside^.make(&c^.withArea(rect.second.copy()));
 }
 
 export struct LevelGeneratorPosition {
@@ -123,7 +123,7 @@ export struct LevelGeneratorPosition {
 };
 
 export bool make(LevelGeneratorPosition* m, LevelCanvas* c) {
-  return m->gen->make(&c->withArea(m->placement.get(m->size, &c->area)));
+  return m^.gen^.make(&c^.withArea(m^.placement.get(m^.size, &c^.area)));
 }
 
 export struct LevelGeneratorPlaceElem {
@@ -139,32 +139,32 @@ export struct LevelGeneratorPlace {
 };
 
 vec2 randomPoint(rectangle* rect) {
-  return vec2(rect->x_range().get_random(), rect->y_range().get_random());
+  return vec2(rect^.x_range().get_random(), rect^.y_range().get_random());
 }
 
 export bool make(LevelGeneratorPlace* p, LevelCanvas* c) {
-  mutable occupied = table<int>(c->area.size(), 0);
+  mutable occupied = table<int>(c^.area.size(), 0);
   const check = [&] (rectangle* rect, int spacing, LevelGenPredicate* p) {
     for (v : *rect)
-      if (!p->apply(c, *v) || occupied[*v - c->area.v1] != 0)
+      if (!p^.apply(c, *v) || occupied[*v - c^.area.v1] != 0)
         return false;
-    for (v : rect->plus_margin(spacing).intersection(&c->area))
-      occupied[*v - c->area.v1] = 1;
+    for (v : rect^.plus_margin(spacing).intersection(&c^.area))
+      occupied[*v - c^.area.v1] = 1;
     return true;
   };
-  for (generator : p->elems) {
+  for (generator : p^.elems) {
     const generate = [&] {
       const numTries = 100000;
       for (iter : range(0, numTries)) {
-        const origin = randomPoint(&rectangle(c->area.v1, c->area.v2 - generator->size + vec2(1, 1)));
-        const genArea = rectangle(origin, origin + generator->size);
-        if (!check(&genArea, generator->minSpacing, generator->predicate.get()))
+        const origin = randomPoint(&rectangle(c^.area.v1, c^.area.v2 - generator^.size + vec2(1, 1)));
+        const genArea = rectangle(origin, origin + generator^.size);
+        if (!check(&genArea, generator^.minSpacing, generator^.predicate.get()))
           continue;
-        return generator->generator->make(&c->withArea(genArea.copy()));
+        return generator^.generator^.make(&c^.withArea(genArea.copy()));
       }
       return false;
     };
-    for (j : range(0, generator->count.get_random()))
+    for (j : range(0, generator^.count.get_random()))
       if (!generate())
         return false;
   }
@@ -177,7 +177,7 @@ export struct LevelGeneratorChain {
 };
 
 export bool make(LevelGeneratorChain* m, LevelCanvas* c) {
-  for (it : m->elems)
+  for (it : m^.elems)
     if (!it^^.make(c))
       return false;
   return true;
@@ -190,12 +190,12 @@ export struct LevelGeneratorFilter {
 };
 
 export bool make(LevelGeneratorFilter* m, LevelCanvas* c) {
-  for (v : c->area)
-    if (m->pred->apply(c, *v)) {
-      if (!m->gen->make(&c->withArea(rectangle(*v, *v + vec2(1, 1)))))
+  for (v : c^.area)
+    if (m^.pred^.apply(c, *v)) {
+      if (!m^.gen^.make(&c^.withArea(rectangle(*v, *v + vec2(1, 1)))))
         return false;
     } else
-    if (!!m->alt && !m->alt^^.make(&c->withArea(rectangle(*v, *v + vec2(1, 1)))))
+    if (!!m^.alt && !m^.alt^^.make(&c^.withArea(rectangle(*v, *v + vec2(1, 1)))))
       return false;
   return true;
 }
@@ -205,7 +205,7 @@ export struct LevelGeneratorChoose {
 };
 
 export bool make(LevelGeneratorChoose* g, LevelCanvas* c) {
-  return g->elems[get_random(g->elems.size())]->make(c);
+  return g^.elems[get_random(g^.elems.size())]^.make(c);
 }
 
 export struct LevelGeneratorConnectElem {
@@ -221,27 +221,27 @@ export struct LevelGeneratorConnect {
 
 int getConnectorElem(LevelGeneratorConnect* g, LevelCanvas* c, vec2 pos) {
   mutable ret = -1;
-  for (elem : g->elems)
-    if (elem->predicate->apply(c, pos)
-        && (ret == -1 || !g->elems[ret].cost || (!!elem->cost && *elem->cost < *g->elems[ret].cost)))
+  for (elem : g^.elems)
+    if (elem^.predicate^.apply(c, pos)
+        && (ret == -1 || !g^.elems[ret].cost || (!!elem^.cost && *elem^.cost < *g^.elems[ret].cost)))
       ret = elem.index;
   return ret;
 }
 
 bool connect(LevelGeneratorConnect* g, LevelCanvas* c, vec2 p1, vec2 p2) {
-  const path = get_shortest_path(&c->area, p1, p2, &[&](vec2 v) -> double? {
-    const index = g->getConnectorElem(c, v);
+  const path = get_shortest_path(&c^.area, p1, p2, &[&](vec2 v) -> double? {
+    const index = g^.getConnectorElem(c, v);
     if (index == -1)
       return 1.0;
-    return g->elems[index].cost;
+    return g^.elems[index].cost;
   });
   if (path.empty())
     return false;
   for (v : path) {
-    const index = g->getConnectorElem(c, *v);
+    const index = g^.getConnectorElem(c, *v);
     if (index > -1) {
-      assert(!!g->elems[index].cost);
-      if (!g->elems[index].generator->make(&c->withArea(rectangle(*v, *v + vec2(1, 1)))))
+      assert(!!g^.elems[index].cost);
+      if (!g^.elems[index].generator^.make(&c^.withArea(rectangle(*v, *v + vec2(1, 1)))))
         return false;
     }
   }
@@ -250,14 +250,14 @@ bool connect(LevelGeneratorConnect* g, LevelCanvas* c, vec2 p1, vec2 p2) {
 
 export bool make(LevelGeneratorConnect* g, LevelCanvas* c) {
   mutable points = vector<vec2>();
-  for (v : c->area)
-    if (g->toConnect->apply(c, *v))
+  for (v : c^.area)
+    if (g^.toConnect^.apply(c, *v))
       points.push_back(*v);
   if (!points.empty())
     for (i : range(0, 300)) {
       const p1 = points[get_random(points.size())];
       const p2 = points[get_random(points.size())];
-      if (p1 != p2 && !g->connect(c, p1, p2))
+      if (p1 != p2 && !g^.connect(c, p1, p2))
         return false;
     }
   return true;
@@ -269,8 +269,8 @@ export struct LevelGeneratorRepeat {
 };
 
 export bool make(LevelGeneratorRepeat* g, LevelCanvas* c) {
-  for (i = 0; i < g->count; ++i)
-    if (!g->generator->make(c))
+  for (i = 0; i < g^.count; ++i)
+    if (!g^.generator^.make(c))
       return false;
   return true;
 }

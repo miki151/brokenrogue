@@ -52,16 +52,16 @@ struct GameLevelUI {
 };
 
 int getFontSize(GameLevelUI* ui) {
-  return (ui->fontRatio * ui->tileSize).as_int();
+  return (ui^.fontRatio * ui^.tileSize).as_int();
 }
 
 vec2 getScreenOrigin(MovementScheme scheme, rectangle* r) {
   switch (scheme) {
     case (KEYBOARD, MOUSE1) {
-      return vec2(r->middle().x, (r->top() + 2 * r->bottom()) / 3);
+      return vec2(r^.middle().x, (r^.top() + 2 * r^.bottom()) / 3);
     }
     case (MOUSE2) {
-      return r->middle();
+      return r^.middle();
     }
   }
 }
@@ -82,40 +82,40 @@ export struct GameLevelUIData {
 };
 
 export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event* event) {
-  const state = context.state->get_state<GameLevelUIState>();
-  const data = *context.data->cast_to<GameLevelUIData>();
-  const player = data->game->getPlayer();
-  if (!!data->game->status && event->key == key_type::ENTER) {
-    data->restartCallback->invoke();
+  const state = context.state^.get_state<GameLevelUIState>();
+  const data = *context.data^.cast_to<GameLevelUIData>();
+  const player = data^.game^.getPlayer();
+  if (!!data^.game^.status && event^.key == key_type::ENTER) {
+    data^.restartCallback^.invoke();
     return true;
   }
-  if (*event == ui->forwardKey)
-    discard player->walk(data->game, context.timeDiff, state->playerDir, null);
-  else if (*event == ui->backwardKey)
-    discard player->walk(data->game, -context.timeDiff, state->playerDir, null);
-  else if (*event == ui->leftKey)
-    discard player->walk(data->game, context.timeDiff, state->playerDir + 1.57, null);
-  else if (*event == ui->rightKey)
-    discard player->walk(data->game, context.timeDiff, state->playerDir - 1.57, null);
-  else if (*event == ui->shootKey)
+  if (*event == ui^.forwardKey)
+    discard player^.walk(data^.game, context.timeDiff, state^.playerDir, null);
+  else if (*event == ui^.backwardKey)
+    discard player^.walk(data^.game, -context.timeDiff, state^.playerDir, null);
+  else if (*event == ui^.leftKey)
+    discard player^.walk(data^.game, context.timeDiff, state^.playerDir + 1.57, null);
+  else if (*event == ui^.rightKey)
+    discard player^.walk(data^.game, context.timeDiff, state^.playerDir - 1.57, null);
+  else if (*event == ui^.shootKey)
     shoot(context);
-  else if (*event == ui->meleeKey) {
-    discard player->addMeleeAttack(state->playerDir, 0);
+  else if (*event == ui^.meleeKey) {
+    discard player^.addMeleeAttack(state^.playerDir, 0);
   }
-  else if (*event == ui->changeLevelKey && data->game->canUseStairs()) {
-    data->game->useStairs();
+  else if (*event == ui^.changeLevelKey && data^.game^.canUseStairs()) {
+    data^.game^.useStairs();
     return true;
-  } else if (*event != ui->waitKey)
+  } else if (*event != ui^.waitKey)
     return false;
-  data->game->advance(context.timeDiff);
+  data^.game^.advance(context.timeDiff);
   return true;
 }
 
 vec2 projectOnScreen(GameLevelUI* ui, GameObject* player, vec2d pos, double playerDir) {
-  const diff = pos - player->pos;
-  const dist = ui->tileSize.as_double() * diff.length_d();
+  const diff = pos - player^.pos;
+  const dist = ui^.tileSize.as_double() * diff.length_d();
   const angle = playerDir - atan2(diff.x, diff.y);
-  return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * ui->viewAngle).as_int());
+  return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * ui^.viewAngle).as_int());
 }
 
 export struct LeftMouseAttackInfo {
@@ -135,45 +135,45 @@ export GameLevelUIState() {
 }
 
 void shoot(UIContext context) {
-  const state = context.state->get_state<GameLevelUIState>();
-  const data = *context.data->cast_to<GameLevelUIData>();
-  discard data->game->addRangedAttack(data->game->getPlayer(), state->playerDir);
-  data->timeSpentCallback->invoke(30);
+  const state = context.state^.get_state<GameLevelUIState>();
+  const data = *context.data^.cast_to<GameLevelUIData>();
+  discard data^.game^.addRangedAttack(data^.game^.getPlayer(), state^.playerDir);
+  data^.timeSpentCallback^.invoke(30);
 }
 
 bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
-  const state = context.state->get_state<GameLevelUIState>();
-  const data = *context.data->cast_to<GameLevelUIData>();
-  const player = data->game->getPlayer();
-  const mousePos = event->pos;
-  switch (event->type) {
+  const state = context.state^.get_state<GameLevelUIState>();
+  const data = *context.data^.cast_to<GameLevelUIData>();
+  const player = data^.game^.getPlayer();
+  const mousePos = event^.pos;
+  switch (event^.type) {
     case (JOYSTICK_RIGHT) {
       if (mousePos != vec2(0, 0)) {
-        if (!state->leftMouseAttack) {
+        if (!state^.leftMouseAttack) {
           mutable angle = mousePos.get_angle();
           mutable length = mousePos.length_d() * 2.5;
-          length = pow(length, ui->movementPower) * ui->movementBase;
-          discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
-          state->lastWalkDirection = (mousePos.as_double() / mousePos.length_d()) * 0.02
-            + (state->lastWalkDirection ?? vec2d(0, 0)) * 0.98;
-          data->game->advance(abs(context.timeDiff * length / 1000));
+          length = pow(length, ui^.movementPower) * ui^.movementBase;
+          discard player^.walk(data^.game, -context.timeDiff * length / 1000, angle, null);
+          state^.lastWalkDirection = (mousePos.as_double() / mousePos.length_d()) * 0.02
+            + (state^.lastWalkDirection ?? vec2d(0, 0)) * 0.98;
+          data^.game^.advance(abs(context.timeDiff * length / 1000));
         } else {
-          state->leftMouseAttack->lastPosition += mousePos;
+          state^.leftMouseAttack^.lastPosition += mousePos;
         }
       }
     }
     case (LEFT) {
-      state->leftMouseAttack = LeftMouseAttackInfo(mousePos, mousePos);
+      state^.leftMouseAttack = LeftMouseAttackInfo(mousePos, mousePos);
     }
     case (LEFT_RELEASED) {
-      const dir = state->leftMouseAttack->mouseOrigin - state->leftMouseAttack->lastPosition;
+      const dir = state^.leftMouseAttack^.mouseOrigin - state^.leftMouseAttack^.lastPosition;
       if (dir != vec2(0, 0))
-        discard player->addMeleeAttack(dir.get_angle(), 0);
-      state->leftMouseAttack = null;
+        discard player^.addMeleeAttack(dir.get_angle(), 0);
+      state^.leftMouseAttack = null;
     }
     case (RIGHT_RELEASED) {
-      if (data->game->canUseStairs())
-        data->game->useStairs();
+      if (data^.game^.canUseStairs())
+        data^.game^.useStairs();
     }
     default {
       return false;
@@ -183,62 +183,62 @@ bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_ev
 }
 
 export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse_event* event) {
-  if (ui->movementScheme == MovementScheme::MOUSE2)
+  if (ui^.movementScheme == MovementScheme::MOUSE2)
     return onMouseEventMouse2(ui, move(context), r, event);
-  const state = context.state->get_state<GameLevelUIState>();
-  const data = *context.data->cast_to<GameLevelUIData>();
-  const player = data->game->getPlayer();
+  const state = context.state^.get_state<GameLevelUIState>();
+  const data = *context.data^.cast_to<GameLevelUIData>();
+  const player = data^.game^.getPlayer();
   const rightClickCutOff = 500;
   const curTime = current_time_milli();
-  switch (event->type) {
+  switch (event^.type) {
     case (JOYSTICK_RIGHT) {
-      const rightButtonHeld = !!state->rightMouseButton;
-      if (ui->movementScheme == MovementScheme::MOUSE1 &&
-          (abs(event->pos.y) > abs(event->pos.x) || rightButtonHeld)) {
-        mutable pos = event->pos;
+      const rightButtonHeld = !!state^.rightMouseButton;
+      if (ui^.movementScheme == MovementScheme::MOUSE1 &&
+          (abs(event^.pos.y) > abs(event^.pos.x) || rightButtonHeld)) {
+        mutable pos = event^.pos;
         if (!rightButtonHeld)
           pos.x = 0;
         else
           pos.y = 0;
-        mutable angle = state->playerDir + atan2(pos.x, pos.y);
+        mutable angle = state^.playerDir + atan2(pos.x, pos.y);
         mutable length = pos.length_d() * 2.5;
-        length = pow(length, ui->movementPower) * ui->movementBase;
-        discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
-        data->game->advance(abs(context.timeDiff * length / 1000));
+        length = pow(length, ui^.movementPower) * ui^.movementBase;
+        discard player^.walk(data^.game, -context.timeDiff * length / 1000, angle, null);
+        data^.game^.advance(abs(context.timeDiff * length / 1000));
       } else {
-        mutable diff = context.timeDiff * ui->cameraSensitivity * event->pos.x;
+        mutable diff = context.timeDiff * ui^.cameraSensitivity * event^.pos.x;
         const minus = diff < 0;
-        diff = pow(abs(diff), ui->rotationPower) * ui->rotationBase;
+        diff = pow(abs(diff), ui^.rotationPower) * ui^.rotationBase;
         if (minus)
           diff = -diff;
-        state->playerDir -= diff;
+        state^.playerDir -= diff;
       }
     }
     case (JOYSTICK_LEFT) {
-      mutable pos = event->pos;
-      if (abs(pos.x).as_double() < abs(pos.y) * ui->joystickMovementDeadRange)
+      mutable pos = event^.pos;
+      if (abs(pos.x).as_double() < abs(pos.y) * ui^.joystickMovementDeadRange)
         pos.x = 0;
-      if (abs(pos.y).as_double() < abs(pos.x) * ui->joystickMovementDeadRange)
+      if (abs(pos.y).as_double() < abs(pos.x) * ui^.joystickMovementDeadRange)
         pos.y = 0;
-      const angle = state->playerDir + atan2(pos.x, pos.y);
+      const angle = state^.playerDir + atan2(pos.x, pos.y);
       const length = pos.length_d();
-      if (length > 1000 * ui->minJoystickMovement) {
-        discard player->walk(data->game, -context.timeDiff * length / 1000, angle, null);
-        data->game->advance(abs(context.timeDiff * length / 1000));
+      if (length > 1000 * ui^.minJoystickMovement) {
+        discard player^.walk(data^.game, -context.timeDiff * length / 1000, angle, null);
+        data^.game^.advance(abs(context.timeDiff * length / 1000));
       }
     }
     case (RIGHT) {
-      state->rightMouseButton = curTime;
+      state^.rightMouseButton = curTime;
     }
     case (RIGHT_RELEASED) {
-      if (!!state->rightMouseButton && *state->rightMouseButton > curTime - rightClickCutOff
-          && data->game->canUseStairs())
-        data->game->useStairs();
+      if (!!state^.rightMouseButton && *state^.rightMouseButton > curTime - rightClickCutOff
+          && data^.game^.canUseStairs())
+        data^.game^.useStairs();
 //      shoot(context);
-      state->rightMouseButton = null;
+      state^.rightMouseButton = null;
     }
     case (LEFT) {
-      discard player->addMeleeAttack(state->playerDir, 0);
+      discard player^.addMeleeAttack(state^.playerDir, 0);
     }
     default {
       return false;
@@ -263,44 +263,44 @@ struct GlyphRenderElem {
 
 void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, milliseconds_t start,
     milliseconds_t curTime) {
-  const h = ui->getFontSize() * 2 / 3;
-  const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui->getFontSize() / 3;
+  const h = ui^.getFontSize() * 2 / 3;
+  const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui^.getFontSize() / 3;
   const t = curTime - start;
-  const dur = ui->woundedAnimDuration;
+  const dur = ui^.woundedAnimDuration;
   const offset = vec2((w * t / dur).as_int(), (h * t * t / (dur * dur) - h / 2).as_int());
   const pos = origin + offset;
   Glyph("*", color(255, 0, 0), 0.5, GlyphLayer::EFFECT)
-      .render(context.canvas, ui->getFontSize(), pos, 0, false, 0);
+      .render(context.canvas, ui^.getFontSize(), pos, 0, false, 0);
 }
 
 void drawHeartParticle(GameLevelUI* ui, UIContext context, vec2 origin, milliseconds_t start,
     milliseconds_t curTime) {
-  const h = ui->getFontSize() * 2 / 3;
-  const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui->getFontSize() / 3;
+  const h = ui^.getFontSize() * 2 / 3;
+  const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui^.getFontSize() / 3;
   const t = curTime - start;
-  const dur = ui->woundedAnimDuration;
-  const offset = vec2((w * t / dur).as_int(), -ui->getFontSize() / 2 -(h * t * t / (dur * dur) - h / 2).as_int());
+  const dur = ui^.woundedAnimDuration;
+  const offset = vec2((w * t / dur).as_int(), -ui^.getFontSize() / 2 -(h * t * t / (dur * dur) - h / 2).as_int());
   const pos = origin + offset;
   Glyph("heart", color(255, 0, 0), 0.5, GlyphLayer::EFFECT)
-      .render(context.canvas, ui->getFontSize(), pos, 0, false, 0);
+      .render(context.canvas, ui^.getFontSize(), pos, 0, false, 0);
 }
 
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
-  const data = *context.data->cast_to<GameLevelUIData>();
-  const player = data->game->getPlayer();
-  const origin = getScreenOrigin(ui->movementScheme, r);
-  const to_draw = r->plus_margin(ui->tileSize);
-  const state = context.state->get_state<GameLevelUIState>();
+  const data = *context.data^.cast_to<GameLevelUIData>();
+  const player = data^.game^.getPlayer();
+  const origin = getScreenOrigin(ui^.movementScheme, r);
+  const to_draw = r^.plus_margin(ui^.tileSize);
+  const state = context.state^.get_state<GameLevelUIState>();
   mutable toRender = vector<GlyphRenderElem>();
   const curTime = current_time_milli();
   mutable highlightedObject = player;
   mutable bestAngle = 100000.0;
-  for (it : *data->game->getObjects()) {
-    const obj = it->get();
-    const canSee = ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int());
-    if ((canSee || obj->remember) && !!obj->attributes.glyph) {
-      const projected = ui->projectOnScreen(player, obj->pos, state->playerDir);
-      if (obj != player && !!obj->attributes.creature) {
+  for (it : *data^.game^.getObjects()) {
+    const obj = it^.get();
+    const canSee = ui^.seeWholeMap || data^.game^.canSee(player, obj^.pos.as_int());
+    if ((canSee || obj^.remember) && !!obj^.attributes.glyph) {
+      const projected = ui^.projectOnScreen(player, obj^.pos, state^.playerDir);
+      if (obj != player && !!obj^.attributes.creature) {
         const angle = abs(atan2(projected.x, -projected.y));
         if (angle < bestAngle) {
           bestAngle = angle;
@@ -309,109 +309,109 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
       }
       const coord = origin + projected;
       if (to_draw.contains(&coord)) {
-        const jumpState = ((curTime % ui->jumpDuration + ui->jumpDuration) % ui->jumpDuration).as_double() 
-            / ui->jumpDuration;
-        const offset = !obj->animation.lastMovement
-            || *obj->animation.lastMovement < curTime - (1000 * context.timeDiff).as_int() - 10
+        const jumpState = ((curTime % ui^.jumpDuration + ui^.jumpDuration) % ui^.jumpDuration).as_double() 
+            / ui^.jumpDuration;
+        const offset = !obj^.animation.lastMovement
+            || *obj^.animation.lastMovement < curTime - (1000 * context.timeDiff).as_int() - 10
             ? 0
-            : (ui->getFontSize() * ui->jumpHeight * getJumpOffset(jumpState)).as_int();
+            : (ui^.getFontSize() * ui^.jumpHeight * getJumpOffset(jumpState)).as_int();
         mutable double? projectileDir = null;
-        if (obj->projectile)
-          projectileDir = 1.57 -obj->projectile->dir.get_angle();
+        if (obj^.projectile)
+          projectileDir = 1.57 -obj^.projectile^.dir.get_angle();
         
-        toRender.push_back(GlyphRenderElem(obj->attributes.glyph->copy(), coord - vec2(0, offset),
-            (!!obj->attributes.box && !!obj->attributes.creature ?
-                obj->attributes.box->size / 2 * ui->tileSize.as_double() : 0.0).as_int(),
+        toRender.push_back(GlyphRenderElem(obj^.attributes.glyph^.copy(), coord - vec2(0, offset),
+            (!!obj^.attributes.box && !!obj^.attributes.creature ?
+                obj^.attributes.box^.size / 2 * ui^.tileSize.as_double() : 0.0).as_int(),
             projectileDir));
-        if (!canSee && obj->remember)
-          toRender.back()->glyph.switchToMemory();
-        else if (obj->attributes.canRemember)
-          obj->remember = true;
+        if (!canSee && obj^.remember)
+          toRender.back()^.glyph.switchToMemory();
+        else if (obj^.attributes.canRemember)
+          obj^.remember = true;
       }
     }
   }
   if (highlightedObject != player)
-    data->highlightedObjectCallback->invoke(HighlightedObjectInfo(
-        highlightedObject->attributes.glyph->copy(),
-        highlightedObject->attributes.name,
-        *highlightedObject->health / *highlightedObject->attributes.maxHealth));
+    data^.highlightedObjectCallback^.invoke(HighlightedObjectInfo(
+        highlightedObject^.attributes.glyph^.copy(),
+        highlightedObject^.attributes.name,
+        *highlightedObject^.health / *highlightedObject^.attributes.maxHealth));
   else {
     const HighlightedObjectInfo? tmp = null;
-    data->highlightedObjectCallback->invoke(move(tmp));
+    data^.highlightedObjectCallback^.invoke(move(tmp));
   }
   toRender.sort(&[](GlyphRenderElem* p1, GlyphRenderElem* p2) {
-      const layer1 = p1->glyph.layer.asInt();
-      const layer2 = p2->glyph.layer.asInt();
-      return layer1 < layer2 || layer1 == layer2 && p1->pos.y < p2->pos.y;
+      const layer1 = p1^.glyph.layer.asInt();
+      const layer2 = p2^.glyph.layer.asInt();
+      return layer1 < layer2 || layer1 == layer2 && p1^.pos.y < p2^.pos.y;
   });
   for (elem : toRender) {
-    elem->glyph.render(context.canvas, ui->getFontSize(), elem->pos,
-        state->playerDir + elem->projectileDir ?? 0.0, elem->glyph.layer == GlyphLayer::OBJECT, 
-        (elem->pos - origin).length_d());
-    if (ui->showOutlines && elem->radius > 0)
-      context.canvas->drawCircle(elem->pos, elem->radius, &color(150, 0, 0));
+    elem^.glyph.render(context.canvas, ui^.getFontSize(), elem^.pos,
+        state^.playerDir + elem^.projectileDir ?? 0.0, elem^.glyph.layer == GlyphLayer::OBJECT, 
+        (elem^.pos - origin).length_d());
+    if (ui^.showOutlines && elem^.radius > 0)
+      context.canvas^.drawCircle(elem^.pos, elem^.radius, &color(150, 0, 0));
   }
-  for (it : *data->game->getObjects()) {
-    const obj = it->get();
+  for (it : *data^.game^.getObjects()) {
+    const obj = it^.get();
     mutable double? forceDir = null;
-    if (obj == player && !obj->ongoingAttack) {
-      forceDir = state->playerDir;
-      if (!!state->leftMouseAttack)
-        forceDir = (state->leftMouseAttack->mouseOrigin - state->leftMouseAttack->lastPosition).get_angle();
+    if (obj == player && !obj^.ongoingAttack) {
+      forceDir = state^.playerDir;
+      if (!!state^.leftMouseAttack)
+        forceDir = (state^.leftMouseAttack^.mouseOrigin - state^.leftMouseAttack^.lastPosition).get_angle();
     }
-    for (weapon : obj->getAllWeaponPositions(forceDir))
-      if (ui->seeWholeMap || data->game->canSee(player, obj->pos.as_int())) {
-        const coord1 = origin + ui->projectOnScreen(player, weapon->pos1, state->playerDir);
-        const coord2 = origin + ui->projectOnScreen(player, weapon->pos2, state->playerDir);
-        const glyphCoord = origin + ui->projectOnScreen(player,
-            weapon->pos1 + weapon->glyphOffset.rotate(-weapon->dir), state->playerDir);
+    for (weapon : obj^.getAllWeaponPositions(forceDir))
+      if (ui^.seeWholeMap || data^.game^.canSee(player, obj^.pos.as_int())) {
+        const coord1 = origin + ui^.projectOnScreen(player, weapon^.pos1, state^.playerDir);
+        const coord2 = origin + ui^.projectOnScreen(player, weapon^.pos2, state^.playerDir);
+        const glyphCoord = origin + ui^.projectOnScreen(player,
+            weapon^.pos1 + weapon^.glyphOffset.rotate(-weapon^.dir), state^.playerDir);
         if (to_draw.contains(&coord1)) {
-          weapon->glyph->render(
-              context.canvas, ui->getFontSize(), glyphCoord, state->playerDir - weapon->dir - 3.14 / 4, false, 0);
-          if (ui->showOutlines)
-            context.canvas->drawLine(coord1, coord2, &color(255, 255, 255));
+          weapon^.glyph^.render(
+              context.canvas, ui^.getFontSize(), glyphCoord, state^.playerDir - weapon^.dir - 3.14 / 4, false, 0);
+          if (ui^.showOutlines)
+            context.canvas^.drawLine(coord1, coord2, &color(255, 255, 255));
         }
       }
   }
-  for (anim : data->game->getLevel()->animations) {
-    const coord = origin + ui->projectOnScreen(player, anim->position, state->playerDir);
+  for (anim : data^.game^.getLevel()^.animations) {
+    const coord = origin + ui^.projectOnScreen(player, anim^.position, state^.playerDir);
     if (to_draw.contains(&coord))
-      switch (anim->type) {
+      switch (anim^.type) {
         case (EXPLOSION) {
-          if (anim->time + ui->explosionDuration > curTime)
+          if (anim^.time + ui^.explosionDuration > curTime)
             Glyph("*", color(255, 100, 0), 0.5, GlyphLayer::EFFECT)
-                .render(context.canvas, ui->getFontSize(), coord, 0.0, false, 0);
+                .render(context.canvas, ui^.getFontSize(), coord, 0.0, false, 0);
         }
         case (BLOOD) {
-          if (anim->time + ui->woundedAnimDuration > curTime)
-            drawBloodParticle(ui, context, coord, anim->time, curTime);
+          if (anim^.time + ui^.woundedAnimDuration > curTime)
+            drawBloodParticle(ui, context, coord, anim^.time, curTime);
         }
         case (HEAL) {
-          if (anim->time + ui->woundedAnimDuration > curTime)
-            drawHeartParticle(ui, context, coord, anim->time, curTime);
+          if (anim^.time + ui^.woundedAnimDuration > curTime)
+            drawHeartParticle(ui, context, coord, anim^.time, curTime);
         }
       }
   }
-  if (!player->ongoingAttack && !!state->leftMouseAttack) {
-    const dir = state->leftMouseAttack->mouseOrigin - state->leftMouseAttack->lastPosition;
-    const coord = origin + ui->projectOnScreen(player, player->getMaxMeleeAttackPosition(dir.get_angle()),
-        state->playerDir);
-    context.canvas->fillRectangle(&centered_rect(coord, 5), &color(0, 0, 255));
+  if (!player^.ongoingAttack && !!state^.leftMouseAttack) {
+    const dir = state^.leftMouseAttack^.mouseOrigin - state^.leftMouseAttack^.lastPosition;
+    const coord = origin + ui^.projectOnScreen(player, player^.getMaxMeleeAttackPosition(dir.get_angle()),
+        state^.playerDir);
+    context.canvas^.fillRectangle(&centered_rect(coord, 5), &color(0, 0, 255));
   }
-  if (const message = data->game->getMessage(player->pos)) {
+  if (const message = data^.game^.getMessage(player^.pos)) {
     const messagePos = origin + vec2(0, 60);
     const ctx = UIContext(context.canvas, &*message, context.state, context.timeDiff);
-    const size = ui->stairsMessage->size(ctx);
-    ui->stairsMessage->render(ctx, &rectangle(messagePos - size / 2, messagePos + size / 2));
+    const size = ui^.stairsMessage^.size(ctx);
+    ui^.stairsMessage^.render(ctx, &rectangle(messagePos - size / 2, messagePos + size / 2));
   }
-  if (!!data->game->status) {
+  if (!!data^.game^.status) {
     const ctx = UIContext(context.canvas, &"pok", context.state, context.timeDiff);
-    const dialog = data->game->status == GameStatus::GAME_WON 
-        ? ui->gameWonMessage.get()
-        : ui->gameOverMessage.get();
-    const size = dialog->size(ctx);
+    const dialog = data^.game^.status == GameStatus::GAME_WON 
+        ? ui^.gameWonMessage.get()
+        : ui^.gameOverMessage.get();
+    const size = dialog^.size(ctx);
     const messagePos = origin - vec2(0, 100 + size.y);
-    dialog->render(ctx, &rectangle(messagePos - size / 2, messagePos + size / 2));
+    dialog^.render(ctx, &rectangle(messagePos - size / 2, messagePos + size / 2));
   }
 }
 

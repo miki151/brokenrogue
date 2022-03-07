@@ -15,7 +15,7 @@ export struct LevelGenPredicateOn {
 };
 
 export bool apply(LevelGenPredicateOn* on, LevelCanvas* canvas, vec2 v) {
-  return !!(*canvas->tokens)[v].find(&on->token);
+  return !!(*canvas^.tokens)[v].find(&on^.token);
 }
 
 export struct LevelGenPredicateNot {
@@ -23,7 +23,7 @@ export struct LevelGenPredicateNot {
 };
 
 export bool apply(LevelGenPredicateNot* n, LevelCanvas* canvas, vec2 v) {
-  return !n->pred->apply(canvas, v);
+  return !n^.pred^.apply(canvas, v);
 }
 
 export struct LevelGenPredicateAnd {
@@ -31,8 +31,8 @@ export struct LevelGenPredicateAnd {
 };
 
 export bool apply(LevelGenPredicateAnd* a, LevelCanvas* canvas, vec2 v) {
-  for (p : a->pred)
-    if (!p->get()->apply(canvas, v))
+  for (p : a^.pred)
+    if (!p^.get()^.apply(canvas, v))
       return false;
   return true;
 }
@@ -42,8 +42,8 @@ export struct LevelGenPredicateOr {
 };
 
 export bool apply(LevelGenPredicateOr* o, LevelCanvas* canvas, vec2 v) {
-  for (p : o->pred)
-    if (p->get()->apply(canvas, v))
+  for (p : o^.pred)
+    if (p^.get()^.apply(canvas, v))
       return true;
   return false;
 }
@@ -53,7 +53,7 @@ export struct LevelGenPredicateChance {
 };
 
 export bool apply(LevelGenPredicateChance* c, LevelCanvas* canvas, vec2 v) {
-  return get_random_d() <= c->value;
+  return get_random_d() <= c^.value;
 }
 
 export struct LevelGenPredicateArea {
@@ -64,8 +64,8 @@ export struct LevelGenPredicateArea {
 
 export bool apply(LevelGenPredicateArea* p, LevelCanvas* canvas, vec2 v) {
   mutable count = 0;
-  for (w : centered_rect(v, p->radius))
-    if (canvas->area.contains(&*w) && p->predicate->apply(canvas, *w))
+  for (w : centered_rect(v, p^.radius))
+    if (canvas^.area.contains(&*w) && p^.predicate^.apply(canvas, *w))
       ++count;
-  return count >= p->minCount;
+  return count >= p^.minCount;
 }

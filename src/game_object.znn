@@ -20,7 +20,7 @@ export struct MeleeWeaponPosition {
 MeleeWeaponPosition getWeaponPosition(GameObject* object, MeleeWeaponOrigin origin, mutable double dir,
     double state, double reach, double length, Glyph* glyph, vec2d glyphOffset) {
   mutable offsetV = vec2d(0, 0);
-  const offset = object->attributes.box->size / 2.2;
+  const offset = object^.attributes.box^.size / 2.2;
   switch (origin) {
     case (LEFT) {
       offsetV = vec2d(sin(dir + 1.57), cos(dir + 1.57)) * offset;
@@ -47,65 +47,65 @@ MeleeWeaponPosition getWeaponPosition(GameObject* object, MeleeWeaponOrigin orig
     }
   }
   return MeleeWeaponPosition(
-      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * reach * (1 - 2 * abs(state - 0.5)),
-      object->pos + offsetV + vec2d(sin(dir), cos(dir)) * (reach * (1 - 2 * abs(state - 0.5)) + length),
+      object^.pos + offsetV + vec2d(sin(dir), cos(dir)) * reach * (1 - 2 * abs(state - 0.5)),
+      object^.pos + offsetV + vec2d(sin(dir), cos(dir)) * (reach * (1 - 2 * abs(state - 0.5)) + length),
       dir, glyph, glyphOffset
   );
 }
 
 export MeleeWeaponPosition? getRangedWeaponPosition(GameObject* object, double? forceDir) {
-  if (!object->attributes.creature || !object->attributes.creature->rangedAttack ||
-      !object->attributes.creature->rangedAttack->weaponGlyph)
+  if (!object^.attributes.creature || !object^.attributes.creature^.rangedAttack ||
+      !object^.attributes.creature^.rangedAttack^.weaponGlyph)
     return null;
-  const attack = &*object->attributes.creature->rangedAttack->weaponGlyph;
-  return getWeaponPosition(object, attack->origin, forceDir ?? object->lastWalkDirection, 0, 0.0,
-      attack->length, &attack->glyph, attack->glyphOffset);
+  const attack = &*object^.attributes.creature^.rangedAttack^.weaponGlyph;
+  return getWeaponPosition(object, attack^.origin, forceDir ?? object^.lastWalkDirection, 0, 0.0,
+      attack^.length, &attack^.glyph, attack^.glyphOffset);
 }
 
 export vector<MeleeWeaponPosition> getMeleeWeaponPosition(GameObject* object, double? forceDir) {
   mutable ret = vector<MeleeWeaponPosition>();
-  if (!object->attributes.creature)
+  if (!object^.attributes.creature)
     return move(ret);
-  for (attack : object->attributes.creature->meleeAttack) {
-    const state = (!object->ongoingAttack || object->lastAttackIndex != attack.index) ? 0
-      : 1 - object->ongoingAttack->remainingTime / object->ongoingAttack->attack.duration;
-    mutable dir = (forceDir ?? (!object->ongoingAttack ? object->lastWalkDirection : object->ongoingAttack->dir));
-    ret.push_back(getWeaponPosition(object, object->currentOrigin ?? attack->origin, dir, state, attack->reach,
-      attack->length, &attack->glyph, attack->glyphOffset));
+  for (attack : object^.attributes.creature^.meleeAttack) {
+    const state = (!object^.ongoingAttack || object^.lastAttackIndex != attack.index) ? 0
+      : 1 - object^.ongoingAttack^.remainingTime / object^.ongoingAttack^.attack.duration;
+    mutable dir = (forceDir ?? (!object^.ongoingAttack ? object^.lastWalkDirection : object^.ongoingAttack^.dir));
+    ret.push_back(getWeaponPosition(object, object^.currentOrigin ?? attack^.origin, dir, state, attack^.reach,
+      attack^.length, &attack^.glyph, attack^.glyphOffset));
   }
   return move(ret);
 }
 
 export void updateWeaponOrigin(GameObject mutable* object, int index) {
-  const current = object->currentOrigin ?? object->attributes.creature->meleeAttack[index].origin;
+  const current = object^.currentOrigin ?? object^.attributes.creature^.meleeAttack[index].origin;
   switch (current) {
-    case (LEFT_SWING) { object->currentOrigin = MeleeWeaponOrigin::RIGHT_SWING; }
-    case (RIGHT_SWING) { object->currentOrigin = MeleeWeaponOrigin::LEFT_SWING; }
+    case (LEFT_SWING) { object^.currentOrigin = MeleeWeaponOrigin::RIGHT_SWING; }
+    case (RIGHT_SWING) { object^.currentOrigin = MeleeWeaponOrigin::LEFT_SWING; }
     default {}
   }
 }
 
 export vector<MeleeWeaponPosition> getAllWeaponPositions(GameObject* object, double? forceDir) {
-  mutable ret = object->getMeleeWeaponPosition(forceDir);
-  if (const r = object->getRangedWeaponPosition(forceDir))
+  mutable ret = object^.getMeleeWeaponPosition(forceDir);
+  if (const r = object^.getRangedWeaponPosition(forceDir))
     ret.push_back(*move(r));
   return move(ret);
 }
 
 export vec2d getMaxMeleeAttackPosition(GameObject* object, int index, double dir) {
-  const attack = &object->attributes.creature->meleeAttack[index];
-  return object->pos + vec2d(sin(dir), cos(dir)) * (attack->reach + attack->length);
+  const attack = &object^.attributes.creature^.meleeAttack[index];
+  return object^.pos + vec2d(sin(dir), cos(dir)) * (attack^.reach + attack^.length);
 }
 
 export vec2d getMaxMeleeAttackPosition(GameObject* object, double dir) {
   mutable ret = 0.0;
-  for (attack : object->attributes.creature->meleeAttack)
-    ret = max(ret, attack->reach + attack->length);
-  return object->pos + vec2d(sin(dir), cos(dir)) * ret;
+  for (attack : object^.attributes.creature^.meleeAttack)
+    ret = max(ret, attack^.reach + attack^.length);
+  return object^.pos + vec2d(sin(dir), cos(dir)) * ret;
 }
 
 export bool isPenetrated(GameObject* object, vec2d pos) {
-  return !!object->attributes.box && object->attributes.box->isPenetrated(pos - object->pos);
+  return !!object^.attributes.box && object^.attributes.box^.isPenetrated(pos - object^.pos);
 }
 
 export struct MeleeAttackInfo {
@@ -147,19 +147,19 @@ export GameObject(int id, vec2d pos, GameObjectAttributes attr, string? attribut
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction, int index) {
-  if (!o->ongoingAttack && !!o->attributes.creature && index < o->attributes.creature->meleeAttack.size()) {
-    const attack = &o->attributes.creature->meleeAttack[index];
-    const duration = attack->duration;
-    o->ongoingAttack = MeleeAttackInfo(attack->copy(), duration, direction, hash_set<int>());
-    o->lastAttackIndex = index;
+  if (!o^.ongoingAttack && !!o^.attributes.creature && index < o^.attributes.creature^.meleeAttack.size()) {
+    const attack = &o^.attributes.creature^.meleeAttack[index];
+    const duration = attack^.duration;
+    o^.ongoingAttack = MeleeAttackInfo(attack^.copy(), duration, direction, hash_set<int>());
+    o^.lastAttackIndex = index;
     return true;
   }
   return false;
 }
 
 export vec2d? getRebound(GameObject* o1, GameObject* o2) {
-  if (!!o1->attributes.box && !!o2->attributes.box)
-    return getRebound(&*o1->attributes.box, &*o2->attributes.box, o1->pos - o2->pos);
+  if (!!o1^.attributes.box && !!o2^.attributes.box)
+    return getRebound(&*o1^.attributes.box, &*o2^.attributes.box, o1^.pos - o2^.pos);
   return null;
 }
 

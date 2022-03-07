@@ -16,10 +16,10 @@ export struct HealEffect {
 export HealEffect copy(HealEffect*) = default;
 
 export void applyImpl(HealEffect* effect, GameObject mutable* object, Game mutable* game) {
-  if (!!object->health && *object->health < *object->attributes.maxHealth) {
-    *object->health = min(*object->attributes.maxHealth, *object->health + effect->amount);
+  if (!!object^.health && *object^.health < *object^.attributes.maxHealth) {
+    *object^.health = min(*object^.attributes.maxHealth, *object^.health + effect^.amount);
     const curTime = current_time_milli();
-    game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::HEAL, object->pos, curTime));
+    game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::HEAL, object^.pos, curTime));
   }
 }
 
@@ -31,14 +31,14 @@ export WoundEffect copy(WoundEffect*) = default;
 
 export void applyImpl(WoundEffect* effect, GameObject mutable* object, Game mutable* game) {
   const curTime = current_time_milli();
-  if (object->health) {
-    game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object->pos, curTime));
-    *object->health -= effect->amount;
+  if (object^.health) {
+    game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object^.pos, curTime));
+    *object^.health -= effect^.amount;
   }
-  if (object->health ?? 1.0 <= 0.0) {
+  if (object^.health ?? 1.0 <= 0.0) {
     for (i : range(0, 10))
-      game->getLevel()->animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object->pos, curTime + i));
-    object->isDead = true;
+      game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object^.pos, curTime + i));
+    object^.isDead = true;
   }
 }
 
@@ -50,8 +50,8 @@ export struct FilterEffect {
 export FilterEffect copy(FilterEffect*) = default;
 
 export void applyImpl(FilterEffect* effect, GameObject mutable* object, Game mutable* game) {
-  if (effect->filter.apply(object))
-    effect->effect->applyImpl(object, game);
+  if (effect^.filter.apply(object))
+    effect^.effect^.applyImpl(object, game);
 }
 
 export struct RemoveEffect {
@@ -60,7 +60,7 @@ export struct RemoveEffect {
 export RemoveEffect copy(RemoveEffect*) = default;
 
 export void applyImpl(RemoveEffect* effect, GameObject mutable* object, Game mutable* game) {
-  object->isDead = true;
+  object^.isDead = true;
 }
 
 export struct RadiusEffect {
@@ -71,9 +71,9 @@ export struct RadiusEffect {
 export RadiusEffect copy(RadiusEffect*) = default;
 
 export void applyImpl(RadiusEffect* effect, vec2d pos, Game mutable* game) {
-  for (obj : *game->getObjects())
-    if ((obj^^.pos - pos).length_d() <= effect->radius)
-      effect->effect->applyImpl(obj->get(), game);
+  for (obj : *game^.getObjects())
+    if ((obj^^.pos - pos).length_d() <= effect^.radius)
+      effect^.effect^.applyImpl(obj^.get(), game);
 }
 
 export struct AllEffect {
@@ -83,8 +83,8 @@ export struct AllEffect {
 export AllEffect copy(AllEffect*) = default;
 
 export void applyImpl(AllEffect* effect, vec2d pos, Game mutable* game) {
-  for (it : effect->elems)
-    it->applyImpl(pos, game);
+  for (it : effect^.elems)
+    it^.applyImpl(pos, game);
 }
 
 export struct ProjectileEffect {
@@ -99,8 +99,8 @@ export struct ProjectileEffect {
 export ProjectileEffect copy(ProjectileEffect*) = default;
 
 export void applyImpl(ProjectileEffect* effect, vec2d pos, Game mutable* game) {
-  game->spawnProjectile(null, pos, from_polar(effect->dir, effect->speed), effect->glyph.copy(), effect->size,
-      effect->effect->copy(), effect->lifeTime);
+  game^.spawnProjectile(null, pos, from_polar(effect^.dir, effect^.speed), effect^.glyph.copy(), effect^.size,
+      effect^.effect^.copy(), effect^.lifeTime);
 }
 
 export struct AddEffect {
@@ -110,7 +110,7 @@ export struct AddEffect {
 export AddEffect copy(AddEffect*) = default;
 
 export void applyImpl(AddEffect* effect, vec2d pos, Game mutable* game) {
-  game->addObject(pos, effect->id);
+  game^.addObject(pos, effect^.id);
 }
 
 concept<T> CreatureEffect {
@@ -122,25 +122,25 @@ concept<T> PositionEffect {
 };
 
 export bool objectContains(GameObject* obj, vec2d pos) {
-  return !!obj->attributes.box && obj->attributes.box->isPenetrated(obj->pos - pos);
+  return !!obj^.attributes.box && obj^.attributes.box^.isPenetrated(obj^.pos - pos);
 }
 
 template <T> requires CreatureEffect<T>
 void applyImpl(T* t, vec2d pos, Game mutable* game) {
-  for (it : *game->getObjects()) {
-    const obj = it->get();
+  for (it : *game^.getObjects()) {
+    const obj = it^.get();
     if (objectContains(obj, pos))
-      t->applyImpl(obj, game);
+      t^.applyImpl(obj, game);
   }
 }
 
 export vec2d getPos(GameObject* obj) {
-  return obj->pos;
+  return obj^.pos;
 }
 
 template <T> requires CreatureEffect<T>
 void applyImpl(T* t, GameObject mutable* object, Game mutable* game) {
-  t->applyImpl(getPos(object), game);
+  t^.applyImpl(getPos(object), game);
 }
 
 export union ObjectEffect {

@@ -10,5 +10,5 @@ export struct LevelCanvas {
 };
 
 export LevelCanvas withArea(LevelCanvas* c, rectangle area) {
-  return LevelCanvas(c->tokens, move(area));
+  return LevelCanvas(c^.tokens, move(area));
 }

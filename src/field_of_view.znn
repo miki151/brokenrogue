@@ -3,9 +3,9 @@ export import "table.znn";
 import "std/math.znn";
 
 export table<int> calculateFOV(table<int>* t) {
-  const origin = t->size() / 2;
-  const viewRange = t->size().x / 2 - 1;
-  mutable ret = table<int>(t->size(), 0);
+  const origin = t^.size() / 2;
+  const viewRange = t^.size().x / 2 - 1;
+  mutable ret = table<int>(t^.size(), 0);
   ret[origin] = 1;
   calculate(2 * viewRange, 2 * viewRange, 2 * viewRange, 2, -1, 1, 1, 1,
       &[&](vec2 v) { return (*t)[v + origin] == 1; },
@@ -42,7 +42,7 @@ void calculate(int left, int right, int up, int h, int x1, int y1, int x2, int y
     ++left_b;
   if (right_b % 2 != 0)
     --right_b;
-  if (left_b >= -left && left_b <= right && isBlocking->invoke(vec2(left_b / 2, h / 2))) {
+  if (left_b >= -left && left_b <= right && isBlocking^.invoke(vec2(left_b / 2, h / 2))) {
     leftx = left_b + 1;
     lefty = h + (left_b >= 0 ? -1 : 1);
   }
@@ -52,8 +52,8 @@ void calculate(int left, int right, int up, int h, int x1, int y1, int x2, int y
     right_v = right;
   mutable prevBlocking = false;
   for (i = left_v / 2; i <= right_v / 2; ++i) {
-    setVisible->invoke(vec2(i, h / 2));
-    const blocking = isBlocking->invoke(vec2(i, h / 2));
+    setVisible^.invoke(vec2(i, h / 2));
+    const blocking = isBlocking^.invoke(vec2(i, h / 2));
     if (i > left_v / 2 && blocking && !prevBlocking)
       calculate(left, right, up, h + 2, leftx, lefty, i * 2 - 1, h + (i <= 0 ? -1 : 1), isBlocking, setVisible);
     if (blocking) {

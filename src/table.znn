@@ -17,24 +17,24 @@ table(vec2 size, T elem) {
 
 export template <T>
 T* operator [](table<T>* t, vec2 v) {
-//  assert(t->bounds().contains(&v));
-  return &t->cells[v.x + v.y * t->sz.x];
+//  assert(t^.bounds().contains(&v));
+  return &t^.cells[v.x + v.y * t^.sz.x];
 }
 
 export template <T>
 T mutable* operator [](table<T> mutable* t, vec2 v) {
-  //assert(t->bounds().contains(&v));
-  return &t->cells[v.x + v.y * t->sz.x];
+  //assert(t^.bounds().contains(&v));
+  return &t^.cells[v.x + v.y * t^.sz.x];
 }
 
 export template <T>
 vec2 size(table<T>* t) {
-  return t->sz;
+  return t^.sz;
 }
 
 export template <T>
 rectangle bounds(table<T>* t) {
-  return rectangle(vec2(0, 0), t->sz);
+  return rectangle(vec2(0, 0), t^.sz);
 }
 
 
