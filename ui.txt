@@ -7,8 +7,8 @@ Def Button(Text) {
 }
 End
 
-Def horizontal list_ui HORIZONTAL End
-Def vertical list_ui VERTICAL End
+Def horizontal list HORIZONTAL End
+Def vertical list VERTICAL End
 
 Def DeathScreenFont1 40 End
 Def DeathScreenFont2 30 End

@@ -22,7 +22,7 @@ import "pretty_input.znn";
 import "game_object.znn";
 
 vector<pair<string, string>> readGameSprites(string path) {
-  mutable stream = *create_input_stream(*open_file_r(path)->read_content());
+  mutable stream = *create_input_stream(*open_file_r(path)^.read_content());
   return *stream.read_data<vector<pair<string, string>>>();
 
 }
@@ -31,13 +31,21 @@ hash_map<string, sdl_texture> loadTextures(SDLWindow* window, string spriteDir,
     vector<pair<string, string>> spriteMap) {
   mutable ret = hash_map<string, sdl_texture>();
   for (elem : spriteMap)
-    ret.insert(elem->first, *sdlLoadBMP(spriteDir + "/" + elem->second + ".bmp")->to_texture(window));
-//  ret.insert("tex1", *sdlLoadBMP("texture1.bmp")->to_texture(window));
+    ret.insert(elem^.first, *sdlLoadBMP(spriteDir + "/" + elem^.second + ".bmp")^.to_texture(window));
+//  ret.insert("tex1", *sdlLoadBMP("texture1.bmp")^.to_texture(window));
   return move(ret);
 }
 
+export bool round_brackets(pretty_dummy_struct<GameLevelUI>) {
+  return true;
+}
+
 box<UIElement>!string readUIFrom(string path) {
-  return read_ui(*open_file_r(path)->read_content());
+  const content = *open_file_r(path)^.read_content();
+  mutable stream = try create_input_stream(content);
+  stream.add_concept_mapping<UIElement, GameLevelUI>("game_level");
+  stream.register_ui_elems();
+  return stream.read_data<box<UIElement>>();
 }
 
 struct Flags {
@@ -59,16 +67,16 @@ void insertCreatureInfo(UIRecord mutable* record, string field, double hp, strin
   mutable creatureData = UIRecord();
   creatureData.insert("hp", hp.box_as<any>());
   creatureData.insert("name", name.box_as<any>());
-  creatureData.insert("glyph", createRecord({"text", "color"}.slice(), glyph->sym, glyph->col.copy())
+  creatureData.insert("glyph", createRecord({"text", "color"}.slice(), glyph^.sym, glyph^.col.copy())
       .box_as<any>());
-  record->insert(field, move(creatureData).box_as<any>());
+  record^.insert(field, move(creatureData).box_as<any>());
 }
 
 void showDialog(SDLWindow* window, SDLCanvas* canvas, rectangle* rect, UIElement* ui, string message) {
   mutable uiData = UIRecord();
   mutable uiState = UIState();
-  ui->render(UIContext(canvas, &createRecord({"dialog_text"}.slice(), message), &uiState, 0.0), rect);
-  window->update();
+  ui^.render(UIContext(canvas, &createRecord({"dialog_text"}.slice(), message), &uiState, 0.0), rect);
+  window^.update();
 }
 
 int main(string[] args) {
@@ -89,12 +97,12 @@ int main(string[] args) {
   };
   mutable canvas = getCanvas();
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
-  const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")->read_content());
-  mutable levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")->read_content());
+  const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")^.read_content());
+  mutable levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")^.read_content());
   showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
   const getNewGame = [&] {
     return Game(20, levelGen.transform([](pair<vec2, box<LevelGenerator>>* g) {
-          return pair(g->first, g->second.get()); }), &levelMapping);
+          return pair(g^.first, g^.second.get()); }), &levelMapping);
   };
   mutable game = getNewGame();
   mutable exit = false;
@@ -108,7 +116,7 @@ int main(string[] args) {
   mutable uiState = UIState();
   const restartCallback = [&] {
     showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
-    uiData.erase(&game.status->asString());
+    uiData.erase(&game.status^.asString());
     game = getNewGame();
     last_update = current_time_milli();
     realTimeEnd = last_update;
@@ -127,15 +135,15 @@ int main(string[] args) {
     fps.add_tick();
     uiData.insert("fps", "{fps.get_fps()}".box_as<any>());
     const player = game.getPlayer();
-    const playerDead = !player->health;
+    const playerDead = !player^.health;
     if (!playerDead)
       insertCreatureInfo(&uiData, "player_info", 
-          max(0.0, *player->health / *player->attributes.maxHealth), "Player", &*player->attributes.glyph);
+          max(0.0, *player^.health / *player^.attributes.maxHealth), "Player", &*player^.attributes.glyph);
     else
       uiData.erase(&"player_info");
     if (highlightedObjectInfo)
-      insertCreatureInfo(&uiData, "enemy_info", highlightedObjectInfo->hp, highlightedObjectInfo->name,
-          &highlightedObjectInfo->glyph);
+      insertCreatureInfo(&uiData, "enemy_info", highlightedObjectInfo^.hp, highlightedObjectInfo^.name,
+          &highlightedObjectInfo^.glyph);
     else
       uiData.erase(&"enemy_info");
     const cur_time = current_time_milli();
@@ -158,21 +166,21 @@ int main(string[] args) {
               ui = *move(res);
             else
               printf(res.get_error());
-            if (const res2 = readLevelMapping(*open_file_r("levelmapping.txt")->read_content())) {
+            if (const res2 = readLevelMapping(*open_file_r("levelmapping.txt")^.read_content())) {
               levelMapping = *move(res2);
               game.reloadObjectAttributes(&levelMapping);
             } else
               printf(res2.get_error());
           } else
-            discard ui->onKeyEvent(context, &ui_rectangle, &key);
+            discard ui^.onKeyEvent(context, &ui_rectangle, &key);
         }
         case (mouse) {
-          discard ui->onMouseEvent(context, &ui_rectangle, &mouse);
+          discard ui^.onMouseEvent(context, &ui_rectangle, &mouse);
         }
         default {}
       }
     }
-    ui->render(context, &ui_rectangle);
+    ui^.render(context, &ui_rectangle);
     window.update();
   }
   return 0;
