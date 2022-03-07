@@ -88,60 +88,26 @@ LevelGeneratorConnect!string read_data(input_stream mutable* stream, pretty_dumm
   return move(ret);
 }
 
-box<LevelGenerator>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<LevelGenerator>>) {
-  const last_index = stream^.index;
-  const s = stream^.read_string();
-  if (s == "Set")
-    return (try stream^.read_data<LevelGeneratorSet>()).box_as<LevelGenerator>();
-  if (s == "Reset")
-    return (try stream^.read_data<LevelGeneratorReset>()).box_as<LevelGenerator>();
-  if (s == "Remove")
-    return (try stream^.read_data<LevelGeneratorRemove>()).box_as<LevelGenerator>();
-  if (s == "Margins")
-    return (try stream^.read_data<LevelGeneratorMargins>()).box_as<LevelGenerator>();
-  if (s == "MarginImpl")
-    return (try stream^.read_data<LevelGeneratorMargin>()).box_as<LevelGenerator>();
-  if (s == "Position")
-    return (try stream^.read_data<LevelGeneratorPosition>()).box_as<LevelGenerator>();
-  if (s == "Filter")
-    return (try stream^.read_data<LevelGeneratorFilter>()).box_as<LevelGenerator>();
-  if (s == "Place")
-    return (try stream^.read_data<LevelGeneratorPlace>()).box_as<LevelGenerator>();
-  if (s == "Choose")
-    return (try stream^.read_data<LevelGeneratorChoose>()).box_as<LevelGenerator>();
-  if (s == "Connect")
-    return (try stream^.read_data<LevelGeneratorConnect>()).box_as<LevelGenerator>();
-  if (s == "Repeat")
-    return (try stream^.read_data<LevelGeneratorRepeat>()).box_as<LevelGenerator>();
-  if (s == "\{") {
-    stream^.index = last_index;
-    return (try stream^.read_data<LevelGeneratorChain>()).box_as<LevelGenerator>();
-  }
-  stream^.index = last_index;
-  return stream^.get_error("Not an level generator type: \"{s}\"");
-}
-
-box<LevelGenPredicate>!string read_data(input_stream mutable* stream, pretty_dummy_struct<box<LevelGenPredicate>>) {
-  const last_index = stream^.index;
-  const s = stream^.read_string();
-  if (s == "On")
-    return (try stream^.read_data<LevelGenPredicateOn>()).box_as<LevelGenPredicate>();
-  if (s == "Not")
-    return (try stream^.read_data<LevelGenPredicateNot>()).box_as<LevelGenPredicate>();
-  if (s == "And")
-    return (try stream^.read_data<LevelGenPredicateAnd>()).box_as<LevelGenPredicate>();
-  if (s == "Or")
-    return (try stream^.read_data<LevelGenPredicateOr>()).box_as<LevelGenPredicate>();
-  if (s == "Chance")
-    return (try stream^.read_data<LevelGenPredicateChance>()).box_as<LevelGenPredicate>();
-  if (s == "Area")
-    return (try stream^.read_data<LevelGenPredicateArea>()).box_as<LevelGenPredicate>();
-  stream^.index = last_index;
-  return stream^.get_error("Not an level generator predicate type: \"{s}\"");
-}
-
 export vector<pair<vec2, box<LevelGenerator>>>!string readLevelGenerator(string content) {
   mutable stream = try create_input_stream(content);
+  stream.add_concept_mapping<LevelGenPredicate, LevelGenPredicateOn>("On");
+  stream.add_concept_mapping<LevelGenPredicate, LevelGenPredicateNot>("Not");
+  stream.add_concept_mapping<LevelGenPredicate, LevelGenPredicateAnd>("And");
+  stream.add_concept_mapping<LevelGenPredicate, LevelGenPredicateOr>("Or");
+  stream.add_concept_mapping<LevelGenPredicate, LevelGenPredicateChance>("Chance");
+  stream.add_concept_mapping<LevelGenPredicate, LevelGenPredicateArea>("Area");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorSet>("Set");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorReset>("Reset");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorRemove>("Remove");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorMargins>("Margins");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorMargin>("MarginImpl");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorPosition>("Position");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorFilter>("Filter");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorPlace>("Place");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorChoose>("Choose");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorConnect>("Connect");
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorRepeat>("Repeat");
+  stream.add_concept_default_mapping<LevelGenerator, LevelGeneratorChain>();
   return stream.read_data<vector<pair<vec2, box<LevelGenerator>>>>();
 }
 
