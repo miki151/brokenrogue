@@ -107,7 +107,7 @@ export vector<pair<vec2, box<LevelGenerator>>>!string readLevelGenerator(string 
   stream.add_concept_mapping<LevelGenerator, LevelGeneratorChoose>("Choose");
   stream.add_concept_mapping<LevelGenerator, LevelGeneratorConnect>("Connect");
   stream.add_concept_mapping<LevelGenerator, LevelGeneratorRepeat>("Repeat");
-  stream.add_concept_default_mapping<LevelGenerator, LevelGeneratorChain>();
+  stream.add_concept_mapping<LevelGenerator, LevelGeneratorChain>("\{", true);
   return stream.read_data<vector<pair<vec2, box<LevelGenerator>>>>();
 }
 
