@@ -160,7 +160,7 @@ int main(string[] args) {
       switch (*event) {
         case (quit) { return 0; }
         case (key) {
-          if (key == key_event(key_type::F1, key_event_type::DOWN)) {
+          if (key.key == key_type::F1 && key.type == key_event_type::DOWN) {
             canvas = getCanvas();
             if (const res = readUIFrom("ui.txt"))
               ui = *move(res);

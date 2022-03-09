@@ -89,23 +89,23 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
     data^.restartCallback^.invoke();
     return true;
   }
-  if (*event == ui^.forwardKey)
+  if (ui^.forwardKey.covers(event))
     discard player^.walk(data^.game, context.timeDiff, state^.playerDir, null);
-  else if (*event == ui^.backwardKey)
+  else if (ui^.backwardKey.covers(event))
     discard player^.walk(data^.game, -context.timeDiff, state^.playerDir, null);
-  else if (*event == ui^.leftKey)
+  else if (ui^.leftKey.covers(event))
     discard player^.walk(data^.game, context.timeDiff, state^.playerDir + 1.57, null);
-  else if (*event == ui^.rightKey)
+  else if (ui^.rightKey.covers(event))
     discard player^.walk(data^.game, context.timeDiff, state^.playerDir - 1.57, null);
-  else if (*event == ui^.shootKey)
+  else if (ui^.shootKey.covers(event))
     shoot(context);
-  else if (*event == ui^.meleeKey) {
+  else if (ui^.meleeKey.covers(event)) {
     discard player^.addMeleeAttack(state^.playerDir, 0);
   }
-  else if (*event == ui^.changeLevelKey && data^.game^.canUseStairs()) {
+  else if (ui^.changeLevelKey.covers(event) && data^.game^.canUseStairs()) {
     data^.game^.useStairs();
     return true;
-  } else if (*event != ui^.waitKey)
+  } else if (!ui^.waitKey.covers(event))
     return false;
   data^.game^.advance(context.timeDiff);
   return true;
