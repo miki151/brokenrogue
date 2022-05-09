@@ -1,5 +1,5 @@
 
-export import "vec2.znn";
+export import "ui/vec2.znn";
 export import "std/box.znn";
 export import "std/vector.znn";
 export import "std/random.znn";

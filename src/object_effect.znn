@@ -6,7 +6,7 @@ import "game.znn";
 export import "object_filter.znn";
 export import "std/box.znn";
 export import "std/vector.znn";
-export import "vec2.znn";
+export import "ui/vec2.znn";
 export import "glyph.znn";
 
 export struct HealEffect {

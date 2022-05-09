@@ -3,7 +3,7 @@ export import "level_generator.znn";
 import "pretty_input.znn";
 import "std/io.znn";
 import "game_object_attributes.znn";
-import "vec2.znn";
+import "ui/vec2.znn";
 
 template <T> requires (T == LevelGeneratorMargins || T == LevelGenPredicateOn || T == LevelGenPredicateChance
     || T == LevelGeneratorMargin || T == LevelGeneratorPosition || T == LevelGeneratorFilter

@@ -1,8 +1,8 @@
 
 export import "std/vector.znn";
 export import "std/priority_queue.znn";
-export import "vec2.znn";
-export import "rectangle.znn";
+export import "ui/vec2.znn";
+export import "ui/rectangle.znn";
 export import "table.znn";
 
 export template <EntryFun> requires invoke<EntryFun, double?, vec2>

@@ -1,6 +1,6 @@
 
-export import "color.znn";
-export import "ui_canvas.znn";
+export import "ui/color.znn";
+export import "ui/canvas.znn";
 import "std/range.znn";
 import "std/math.znn";
 import "std/io.znn";

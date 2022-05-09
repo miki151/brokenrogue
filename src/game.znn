@@ -1,8 +1,8 @@
 
 export import "std/vector.znn";
-export import "vec2.znn";
+export import "ui/vec2.znn";
 import "std/math.znn";
-export import "color.znn";
+export import "ui/color.znn";
 import "creature.znn";
 import "projectile.znn";
 export import "table.znn";

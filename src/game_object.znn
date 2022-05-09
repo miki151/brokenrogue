@@ -1,7 +1,7 @@
 
 export import "game_object_attributes.znn";
 export import "game_object_animation.znn";
-export import "vec2.znn";
+export import "ui/vec2.znn";
 export import "std/range.znn";
 export import "melee_attack.znn";
 import "std/math.znn";

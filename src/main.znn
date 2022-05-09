@@ -1,13 +1,13 @@
 
 import "ai.znn";
-import "sdl.znn";
-import "sdl_surface.znn";
-import "sdl_canvas.znn";
-import "ui.znn";
+import "sdl/sdl.znn";
+import "sdl/surface.znn";
+import "sdl/canvas.znn";
+import "ui/ui.znn";
 import "std/io.znn";
-import "ui_reader.znn";
-import "sdl_ttf.znn";
-import "ui_data.znn";
+import "ui/reader.znn";
+import "sdl/ttf.znn";
+import "ui/data.znn";
 import "game.znn";
 import "std/enum_set.znn";
 import "std/enum.znn";
@@ -87,7 +87,7 @@ int main(string[] args) {
   *sdl_init();
   init_random();
   mutable ui = *readUIFrom("ui.txt");
-  const window = *sdl_create_window(vec2(1280, 720), "Broken Rogue");
+  const window = *sdl_create_window(vec2(1280, 720), "Broken Rogue", "icon.png", false);
   *sdlSetRelativeMouseMode(true);
   mutable font = *window.loadSDLFont(flags.font ?? "font.ttf", 10, 100);
   const getCanvas = [&] {

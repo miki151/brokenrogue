@@ -1,13 +1,13 @@
 
-export import "ui_canvas.znn";
-import "rectangle.znn";
-import "ui_event.znn";
+export import "ui/canvas.znn";
+import "ui/rectangle.znn";
+import "ui/event.znn";
 import "game.znn";
 export import "std/any.znn";
 import "std/io.znn";
-export import "ui.znn";
-import "rectangle.znn";
-import "ui_state.znn";
+export import "ui/ui.znn";
+import "ui/rectangle.znn";
+import "ui/state.znn";
 import "std/time.znn";
 import "std/enum.znn";
 export import "glyph.znn";
