@@ -1,0 +1,10 @@
+{
+  "output": "brokenrogue",
+  "input": "src/main.znn",
+  "debug" : true,
+  "zenon_libs" : [
+    "/home/michal/zenon_ui",
+    "/home/michal/zenon_pretty_archive",
+    "/home/michal/zenon_sdl"
+  ]
+}
