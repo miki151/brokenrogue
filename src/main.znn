@@ -88,7 +88,6 @@ int main(string[] args) {
   init_random();
   mutable ui = *readUIFrom("ui.txt");
   const window = *sdl_create_window(vec2(1280, 720), "Broken Rogue", "icon.png", false);
-  *sdlSetRelativeMouseMode(true);
   mutable font = *window.loadSDLFont(flags.font ?? "font.ttf", 10, 100);
   const getCanvas = [&] {
     const textTexture = *window.make_target_texture(vec2(100, 100));
@@ -129,6 +128,7 @@ int main(string[] args) {
   );
   uiData.insert("game_level", box_as<any>(move(game_data)));
   mutable events_state = SDLEventsState();
+  *events_state.setRelativeMouseMode(true);
   uiData.insert("exit_callback", [&exit] { exit = true; }.box_as<UICallback>().box_as<any>());
   mutable fps = fps_meter();
   while (!exit) {

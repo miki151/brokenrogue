@@ -124,15 +124,11 @@ export struct LeftMouseAttackInfo {
 };
 
 export struct GameLevelUIState {
-  double playerDir;
-  milliseconds_t? rightMouseButton;
-  LeftMouseAttackInfo? leftMouseAttack;
-  vec2d? lastWalkDirection;
+  double playerDir = 0.0;
+  milliseconds_t? rightMouseButton = null;
+  LeftMouseAttackInfo? leftMouseAttack = null;
+  vec2d? lastWalkDirection = null;
 };
-
-export GameLevelUIState() {
-  return GameLevelUIState::GameLevelUIState(0.0, null, null, null);
-}
 
 void shoot(UIContext context) {
   const state = context.state^.get_state<GameLevelUIState>();
@@ -191,7 +187,7 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
   const rightClickCutOff = 500;
   const curTime = current_time_milli();
   switch (event^.type) {
-    case (JOYSTICK_RIGHT) {
+    case (MOUSE_MOVEMENT) {
       const rightButtonHeld = !!state^.rightMouseButton;
       if (ui^.movementScheme == MovementScheme::MOUSE1 &&
           (abs(event^.pos.y) > abs(event^.pos.x) || rightButtonHeld)) {
@@ -206,11 +202,7 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
         discard player^.walk(data^.game, -context.timeDiff * length / 1000, angle, null);
         data^.game^.advance(abs(context.timeDiff * length / 1000));
       } else {
-        mutable diff = context.timeDiff * ui^.cameraSensitivity * event^.pos.x;
-        const minus = diff < 0;
-        diff = pow(abs(diff), ui^.rotationPower) * ui^.rotationBase;
-        if (minus)
-          diff = -diff;
+        mutable diff = ui^.cameraSensitivity * event^.pos.x;
         state^.playerDir -= diff;
       }
     }

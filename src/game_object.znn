@@ -123,27 +123,32 @@ export struct FOVInfo {
 export struct GameObject {
   int id;
   vec2d pos;
-  GameObjectAnimation animation;
+  GameObjectAnimation animation = GameObjectAnimation();
   GameObjectAttributes attributes;
   string? attributesId;
-  MeleeAttackInfo? ongoingAttack;
-  int? lastAttackIndex;
-  double rangedAttackTimeout;
-  int rangedAttackProjectileCount;
-  FOVInfo? fovInfo;
-  Projectile? projectile;
+  MeleeAttackInfo? ongoingAttack = null;
+  int? lastAttackIndex = null;
+  double rangedAttackTimeout = 0;
+  int rangedAttackProjectileCount = 0;
+  FOVInfo? fovInfo = null;
+  Projectile? projectile = null;
   double? health;
-  bool remember;
-  double lastWalkDirection;
-  MeleeWeaponOrigin? currentOrigin;
-  bool isDead;
-  double lifeTime;
+  bool remember = false;
+  double lastWalkDirection = 0;
+  MeleeWeaponOrigin? currentOrigin = null;
+  bool isDead = false;
+  double lifeTime = 0.0;
 };
 
 export GameObject(int id, vec2d pos, GameObjectAttributes attr, string? attributesId) {
   const health = attr.maxHealth;
-  return GameObject::GameObject(id, pos, GameObjectAnimation(), move(attr), attributesId, null, null, 0, 0, null,
-      null, health, false, 0, null, false, 0.0);
+  return GameObject::GameObject(
+      .id = id,
+      .pos = pos,
+      .attributes = move(attr),
+      .attributesId = attributesId,
+      .health = health
+  );
 }
 
 export bool addMeleeAttack(GameObject mutable* o, double direction, int index) {

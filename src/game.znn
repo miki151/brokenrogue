@@ -311,16 +311,7 @@ export void spawnProjectile(Game mutable *g, int? attackerId, vec2d origin, vec2
         .glyph = move(glyph),
         .name = "projectile",
         .box = BoundingBox(size),
-        .creature = null,
-        .blocksVision = false,
-        .maxHealth = null,
-        .canRemember = false,
-        .isStairs = false,
-        .isEndGameBoss = false,
-        .message = null,
-        .entryEffect = null,
-        .deathEffect = null,
-        .lifeTime = lifeTime
+        .maxLifeTime = lifeTime
       ),
       null
   ).box());
