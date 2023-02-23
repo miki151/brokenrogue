@@ -1,11 +1,4 @@
 
-Def Button(Text) {
-  fill(0 0 0)
-  frame(1, 255 255 255)
-  position(CENTER, margins(10, label(Text, 255 255 255)))
-  button()
-}
-End
 
 Def horizontal static_list HORIZONTAL End
 Def vertical static_list VERTICAL End
@@ -20,12 +13,12 @@ Def CreatureWidget() {
       width 10 {}
       width 20 using "glyph" texture()
       width 7 {}
-      using "name" text(20, 255 255 255)
+      using "name" label(20, 255 255 255)
     }
     height 10 {}
     horizontal {
       width 10 {}
-      label("HP:", 20, 255 255 255)
+      label(20, 255 255 255, "HP:")
       width 10 {}
       width 300 height 15 {
         fill(0 0 0)
@@ -69,35 +62,35 @@ End
       stairsMessage = {
         fill(0 0 0)
         frame(1, 255 255 255)
-        margins(10, text(20, 255 255 255))
+        margins(10, label(20, 255 255 255))
       }
       gameOverMessage = {
         fill(0 0 0)
         frame(1, 255 255 255)
         margins(20, vertical {
-          position(CENTER, label("Game over!", DeathScreenFont1, 255 255 255))
+          position(CENTER, label(DeathScreenFont1, 255 255 255, "Game over!"))
           height 10 {}
-          label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
+          label(DeathScreenFont2, 255 255 255, "Press [ENTER] to restart or [ESC] to quit.")
         })
       }
       gameWonMessage = {
         fill(0 0 0)
         frame(1, 255 255 255)
         margins(20, vertical {
-          position(CENTER, label("You won!", DeathScreenFont1, 255 255 255))
+          position(CENTER, label(DeathScreenFont1, 255 255 255, "You won!"))
           height 10 {}
-          label("Press [ENTER] to restart or [ESC] to quit.", DeathScreenFont2, 255 255 255) 
+          label(DeathScreenFont2, 255 255 255, "Press [ENTER] to restart or [ESC] to quit.")
         })
       }
   )
-  position(TOP_RIGHT, using "fps" horizontal { label("FPS: ", 20, 255 255 255) text(20, 255 255 255)})
+  position(TOP_RIGHT, using "fps" horizontal { label(20, 255 255 255, "FPS: ") label(20, 255 255 255)})
   position(BOTTOM_RIGHT, using "enemy_info" CreatureWidget())
   position(BOTTOM_LEFT, using "player_info" CreatureWidget())
   using "dialog_text" {
     position(CENTER, {
       fill(0 0 0)
       frame(1, 255 255 255)
-      margins(20, text(25, 255 255 255))
+      margins(20, label(25, 255 255 255))
     })
   }
 }
