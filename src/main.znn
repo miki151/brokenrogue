@@ -67,7 +67,7 @@ void insertCreatureInfo(UIRecord mutable* record, string field, double hp, strin
   mutable creatureData = UIRecord();
   creatureData.insert("hp", hp.box_as<any>());
   creatureData.insert("name", name.box_as<any>());
-  creatureData.insert("glyph", createRecord({"text", "color"}.slice(), glyph^.sym, glyph^.col.copy())
+  creatureData.insert("glyph", createRecord({"id", "color"}.slice(), glyph^.sym, glyph^.col.copy())
       .box_as<any>());
   record^.insert(field, move(creatureData).box_as<any>());
 }
