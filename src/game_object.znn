@@ -17,14 +17,23 @@ export struct MeleeWeaponPosition {
   vec2d glyphOffset;
 };
 
+double transformWeaponState(double state){
+  const peak = 0.2;
+  if (state <= peak)
+    return 0.5 * state / peak;
+  else
+    return 0.5 * (1 + (state - peak) / (1 - peak));
+}
+
 MeleeWeaponPosition getWeaponPosition(GameObject* object, MeleeWeaponOrigin origin, mutable double dir,
-    double state, double reach, double length, Glyph* glyph, vec2d glyphOffset) {
+    double state1, double reach, double length, Glyph* glyph, vec2d glyphOffset) {
+  const state = transformWeaponState(state1);
   mutable offsetV = vec2d(0, 0);
   const offset = object^.attributes.box^.size / 2.2;
   switch (origin) {
     case (LEFT) {
       offsetV = vec2d(sin(dir + 1.57), cos(dir + 1.57)) * offset;
-      dir -= atan2(offset, length) / 2; 
+      dir -= atan2(offset, length) / 2;
     }
     case (RIGHT) {
       offsetV = vec2d(sin(dir - 1.57), cos(dir - 1.57)) * offset;

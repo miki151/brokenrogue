@@ -259,7 +259,7 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
           {(")" 10 155 155 0.7 EFFECT, 0.15 0.0, RIGHT, 1.0, 0.5, 0.3, wound 1.0)}
           null
           all { avoidMelee pathfind melee }
-      maxHealth = 10
+      maxHealth = 25
   )
   "dead_player" (
       name = "Player"
