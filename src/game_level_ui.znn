@@ -310,7 +310,6 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         mutable double? projectileDir = null;
         if (obj^.projectile)
           projectileDir = 1.57 -obj^.projectile^.dir.get_angle();
-        
         toRender.push_back(GlyphRenderElem(obj^.attributes.glyph^.copy(), coord - vec2(0, offset),
             (!!obj^.attributes.box && !!obj^.attributes.creature ?
                 obj^.attributes.box^.size / 2 * ui^.tileSize.as_double() : 0.0).as_int(),

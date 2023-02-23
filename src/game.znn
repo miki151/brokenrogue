@@ -23,10 +23,6 @@ export struct Level {
   vector<LevelAnimation> animations;
 };
 
-export Level(string name, vec2 size, vector<box<GameObject>> objects, vector<LevelAnimation> animations) {
-  return Level::Level(name, move(objects), move(animations));
-}
-
 export enum GameStatus {
   GAME_LOST,
   GAME_WON
@@ -50,9 +46,13 @@ export Level mutable* getLevel(Game mutable* g) {
 }
 
 export void useStairs(Game mutable* g) {
-  const curHealth = g^.getPlayer()^.health;
+  mutable oldObjects = vector<box<GameObject>>();
+  swap(&oldObjects, g^.getObjects());
+  mutable player = move(oldObjects)[0];
   ++g^.currentLevel;
-  g^.getPlayer()^.health = curHealth;
+  player^.pos = g^.getObjects()^[0]^.pos;
+  player^.fovInfo = null;
+  g^.getObjects()^[0] = move(player);
 }
 
 export bool canUseStairs(Game* g) {
@@ -113,13 +113,13 @@ vector<box<GameObject>> generateObjects(int levelNum, int initialId, vec2 levelS
   for (v : levelTable.bounds())
     for (token : levelTable[*v])
       if (const attr = mapping^.get_maybe(&*token)) {
-        if (*token == "player") {
-          assert(playerIndex == -1, "Player creature generated more than once");
+        if (*token == "player_spawn") {
+          assert(playerIndex == -1, "Player spawn position generated more than once");
           playerIndex = ret.size();
         }
         ret.push_back(GameObject(initialId + ret.size(), v^.as_double(), attr^^.copy(), *token).box());
       }
-  assert(playerIndex > -1, "Player creature wasn't generated");
+  assert(playerIndex > -1, "Player spawn position wasn't generated");
   if (playerIndex > 0)
     swap(&ret[playerIndex], &ret[0]);
   return move(ret);
@@ -147,7 +147,9 @@ export Game(int lineOfSight, vector<pair<vec2, LevelGenerator*>> generator,
   for (gen : generator) {
     const objects = generateObjects(gen.index, lastId, gen^.first, gen^.second, mapping);
     lastId = objects.back()^^.id + 1;
-    levels.push_back(Level("Level 1", gen^.first, move(objects), vector<LevelAnimation>()));
+    levels.push_back(Level("Level 1", move(objects), vector<LevelAnimation>()));
+    const playerPos = levels[0].objects[0]^.pos;
+    levels[0].objects[0] = GameObject(lastId, playerPos, mapping^.get(&"player")^.copy(), "player").box();
   }
   return Game::Game(move(levels), 0, mapping, lineOfSight, null, lastId);
 }
@@ -181,7 +183,7 @@ void updateOngoingAttacks(Game mutable* g, double timeDiff) {
       for (it2 : *g^.getObjects())
         if (!object^.ongoingAttack^.woundedObjects.contains(&it2^^.id)) {
           const object2 = it2^.get();
-          if (object2 != object && !!object2^.attributes.creature && 
+          if (object2 != object && !!object2^.attributes.creature &&
               object2^.isPenetrated(object^.getMeleeWeaponPosition(null)[*object^.lastAttackIndex].pos2)) {
             object^.ongoingAttack^.woundedObjects.insert(object2^.id);
             object^.ongoingAttack^.attack.effect.apply(object2, g);
@@ -209,7 +211,7 @@ void updateProjectiles(Game mutable* g, double timeDiff) {
           object^.projectile^.effect.apply(target, g);
         } else
           g^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
-      } 
+      }
     }
   }
 }
@@ -319,10 +321,10 @@ export void spawnProjectile(Game mutable *g, int? attackerId, vec2d origin, vec2
 }
 
 export GameObject* getPlayer(Game* g) {
-  return (*g^.getObjects())[0].get();
+  return g^.getObjects()^[0].get();
 }
 
 export GameObject mutable* getPlayer(Game mutable* g) {
-  return (*g^.getObjects())[0].get();
+  return g^.getObjects()^[0].get();
 }
 

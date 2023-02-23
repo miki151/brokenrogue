@@ -47,7 +47,7 @@ Def CanSetBlocking() Not On("blocking") End
 #10 10
 #{
 #  Set("floor")
-#  Position(LEFT_CENTER, 1 1, Set("player"))
+#  Position(LEFT_CENTER, 1 1, Set("player_spawn"))
 #  Position(RIGHT_CENTER, 1 1, Set("zombie"))
 #}
 #}
@@ -73,9 +73,9 @@ Def CanSetBlocking() Not On("blocking") End
   Filter(On("grass"), Filter(Chance(0.1), Reset("tree")))
   Filter(On("grass"), Filter(Chance(0.1), Reset("bush")))
   Filter(On("grass"), Filter(Chance(0.3), Reset("dirt")))
-  Inside(3, 
+  Inside(3,
   Position(RIGHT_CENTER, 1 1, {
-    Reset("grass", "tutorial1", "player")
+    Reset("grass", "tutorial1", "player_spawn")
     Inside(-3, Filter(On("tree"), Reset("grass")))
   }))
 }
@@ -87,7 +87,7 @@ Def CanSetBlocking() Not On("blocking") End
   CellularAutomaton(Reset("floor"), 0.45)
   Margins(1, {}, Place(4 4, Reset("floor", "room"), {3 5}, On("wall"), 2))
   Inside(1, {
-    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player"))})
+    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player_spawn"))})
     Position(RIGHT_CENTER, 5 5, {
         Reset("floor")
         Position(CENTER, 1 1, ResetBlocking("stairs"))
@@ -110,7 +110,7 @@ Def CanSetBlocking() Not On("blocking") End
   CellularAutomaton(Reset("floor"), 0.45)
   Margins(1, {}, Place(4 4, Reset("floor", "room"), {6 10}, On("wall"), 2))
   Inside(1, {
-    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player"))})
+    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player_spawn"))})
     Position(RIGHT_CENTER, 5 5, {
         Reset("floor")
         Position(CENTER, 1 1, ResetBlocking("stairs"))
@@ -136,7 +136,7 @@ Def CanSetBlocking() Not On("blocking") End
   CellularAutomaton(Reset("floor"), 0.45)
   Margins(1, {}, Place(4 4, Reset("floor", "room"), {3 5}, On("wall"), 2))
   Inside(1, {
-      Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player"))})
+      Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player_spawn"))})
       Position(RIGHT_CENTER, 8 8, {
           Reset("floor")
           Position(RIGHT_CENTER, 1 1, ResetBlocking("stairs"))
@@ -160,7 +160,7 @@ Def CanSetBlocking() Not On("blocking") End
   CellularAutomaton(Reset("floor"), 0.45)
   Margins(1, {}, Place(4 4, Reset("floor", "room"), {6 10}, On("wall"), 2))
   Inside(1, {
-    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player"))})
+    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player_spawn"))})
     Position(RIGHT_CENTER, 8 8, {
         Reset("floor")
         Position(CENTER, 1 1, SetBlocking("dragon"))

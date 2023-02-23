@@ -10,65 +10,65 @@
   "tree" (
       glyph = "tree" 0 69 42 1.0 OBJECT
       name = "Tree"
-      box = 1.0 
-      blocksVision = true 
+      box = 1.0
+      blocksVision = true
       canRemember = true
   )
   "bush" (
       glyph = "bush" 26 136 44 1.0 OBJECT
-      name = "Bush" 
+      name = "Bush"
       canRemember = true
   )
   "statue" (
       glyph = "statue" 95 87 79 1.0 OBJECT
       name = "Statue"
-      box = 1.0 
+      box = 1.0
       canRemember = true
   )
   "water" (
       glyph = "_" 50 105 255 1.0 FLOOR
-      name = "Water" 
+      name = "Water"
       canRemember = true
   )
   "grass" (
       glyph = "," 73 86 20 1.0 FLOOR
-      name = "Grass" 
+      name = "Grass"
       canRemember = true
   )
   "dirt" (
       glyph = "dirt" 93 69 59 1.0 FLOOR
-      name = "Dirt" 
+      name = "Dirt"
       canRemember = true
   )
   "lava" (
       glyph = "_" 255 105 50 1.0 FLOOR
-      name = "Lava" 
+      name = "Lava"
       canRemember = true
   )
   "floor" (
       glyph = "." 40 40 40 1.0 FLOOR
-      name = "Floor" 
+      name = "Floor"
       canRemember = true
   )
   "corpse" (
       glyph = "%" 255 10 10 1.0 ITEM
-      name = "Corpse" 
+      name = "Corpse"
       canRemember = true
   )
   "bridge" (
       glyph = "_" 210 105 50 1.0 FLOOR
-      name = "Bridge" 
+      name = "Bridge"
       canRemember = true
   )
   "trap" (
       glyph = "x" 210 20 20 1.0 FLOOR
-      name = "Trap" 
+      name = "Trap"
       canRemember = true
       entryEffect = all { radius 3 wound 1 radius 1 filter type "trap" remove }
   )
   "stairs" (
       glyph = ">" 202 155 107 1.0 FLOOR
-      name = "Stairs" 
+      name = "Stairs"
       canRemember = true
       isStairs = true
       message = "Click the right mouse button to descend to the next level."
@@ -242,7 +242,7 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       canRemember = true
   )
   "adventurer" (
-      glyph = "o" 255 255 0 1.0 OBJECT
+      glyph = "g" 255 255 0 1.0 OBJECT
       name = "Goblin chief"
       box = 0.9
       creature = 4
@@ -262,10 +262,10 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       maxHealth = 10
   )
   "dead_player" (
-      glyph = null
-      name = "player"
-      box = null
+      name = "Player"
       creature = 0 {} null all { pathfind }
-      maxHealth = null
+  )
+  "player_spawn" (
+      name = "Player spawn"
   )
 }
