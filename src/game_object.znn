@@ -142,11 +142,15 @@ export struct GameObject {
 
 export GameObject(int id, vec2d pos, GameObjectAttributes attr, string? attributesId) {
   const health = attr.maxHealth;
+  mutable rangedTimeout = 0.0;
+  if (!!attr.creature && !!attr.creature^.rangedAttack)
+    rangedTimeout = attr.creature^.rangedAttack^.timeout;
   return GameObject::GameObject(
       .id = id,
       .pos = pos,
       .attributes = move(attr),
       .attributesId = attributesId,
+      .rangedAttackTimeout = rangedTimeout,
       .health = health
   );
 }
