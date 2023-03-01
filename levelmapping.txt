@@ -135,7 +135,7 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       name = "Zombie"
       maxLifeTime = 0.25
       deathEffect = all {
-Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
+Def Proj 5 1 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
         projectile 0 Proj
         projectile 0.39 Proj
         projectile 0.78 Proj
@@ -193,8 +193,8 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       box = 0.8
       creature = 1
           {}
-          ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER 0, 1.0, 10.0, 0.2,
-              wound 1.0, 0.0, null, 0)
+          ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER 0, 2.0, 10.0, 0.2,
+              wound 1.5, 0.0, null, 0)
           all { ranged 5 }
       maxHealth = 1
   )
@@ -214,7 +214,7 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       name = "Dragon"
       box = 1.8
       creature = 3
-          {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, wound 6.5)}
+          {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, wound 5.5)}
           ("*" 255 0 0 0.3 EFFECT, null, 0.01, 5.0, 0.2, wound 0.5, 0.3, 100 5.0, 150)
           all { circle melee ranged 6 }
       maxHealth = 5
@@ -259,7 +259,7 @@ Def Proj 5 1 0.5 wound 1 "*" 40 160 40 0.4 EFFECT End
           {(")" 10 155 155 0.7 EFFECT, 0.15 0.0, RIGHT, 1.0, 0.5, 0.3, wound 1.0)}
           null
           all { avoidMelee pathfind melee }
-      maxHealth = 25
+      maxHealth = 20
   )
   "dead_player" (
       name = "Player"
