@@ -47,10 +47,6 @@ End
       cameraSensitivity = 0.001
       joystickMovementDeadRange = 0.2
       minJoystickMovement = 0.5
-      movementPower = 1.2
-      movementBase = 0.2
-      rotationPower = 1
-      rotationBase = 1.5
       forwardKey = W HELD {}
       backwardKey = S HELD {}
       leftKey = A HELD {}

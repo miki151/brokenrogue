@@ -81,7 +81,7 @@
   "tutorial2" (
       name = "Tutorial message"
       isStairs = true
-      message = "Use the left mouse button to initiate an attack on the training dummy. Move or wait to advance the clock!"
+      message = "Use the left mouse button to initiate an attack on the training dummy."
   )
 Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
   "bee" (

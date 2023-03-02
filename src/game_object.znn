@@ -17,8 +17,13 @@ export struct MeleeWeaponPosition {
   vec2d glyphOffset;
 };
 
-double transformWeaponState(double state){
-  const peak = 0.2;
+double transformWeaponState(double state, MeleeWeaponOrigin origin){
+  const peak = [origin] {
+    switch (origin) {
+      case (LEFT, RIGHT, CENTER) { return 0.2; }
+      case (LEFT_SWING, RIGHT_SWING) { return 0.5; }
+    }
+  }();
   if (state <= peak)
     return 0.5 * state / peak;
   else
@@ -27,7 +32,7 @@ double transformWeaponState(double state){
 
 MeleeWeaponPosition getWeaponPosition(GameObject* object, MeleeWeaponOrigin origin, mutable double dir,
     double state1, double reach, double length, Glyph* glyph, vec2d glyphOffset) {
-  const state = transformWeaponState(state1);
+  const state = transformWeaponState(state1, origin);
   mutable offsetV = vec2d(0, 0);
   const offset = object^.attributes.box^.size / 2.2;
   switch (origin) {
@@ -101,16 +106,16 @@ export vector<MeleeWeaponPosition> getAllWeaponPositions(GameObject* object, dou
   return move(ret);
 }
 
-export vec2d getMaxMeleeAttackPosition(GameObject* object, int index, double dir) {
+export vec2d calculateMeleeAttackPosition(GameObject* object, int index, double dir, double state) {
   const attack = &object^.attributes.creature^.meleeAttack[index];
-  return object^.pos + vec2d(sin(dir), cos(dir)) * (attack^.reach + attack^.length);
+  return getWeaponPosition(object, attack^.origin, dir, state, attack^.reach, attack^.length,
+      &attack^.glyph, attack^.glyphOffset).pos2;
 }
 
-export vec2d getMaxMeleeAttackPosition(GameObject* object, double dir) {
-  mutable ret = 0.0;
-  for (attack : object^.attributes.creature^.meleeAttack)
-    ret = max(ret, attack^.reach + attack^.length);
-  return object^.pos + vec2d(sin(dir), cos(dir)) * ret;
+export vec2d calculateMeleeAttackPosition(GameObject* object, double dir, double state) {
+  if (object^.attributes.creature^.meleeAttack.empty())
+    return object^.pos;
+  return object^.calculateMeleeAttackPosition(0, dir, state);
 }
 
 export bool isPenetrated(GameObject* object, vec2d pos) {

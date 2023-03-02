@@ -15,7 +15,6 @@ import "game_object.znn";
 
 export enum MovementScheme {
   KEYBOARD,
-  MOUSE1,
   MOUSE2
 };
 
@@ -34,10 +33,6 @@ struct GameLevelUI {
   double cameraSensitivity;
   double joystickMovementDeadRange;
   double minJoystickMovement;
-  double movementPower;
-  double movementBase;
-  double rotationPower;
-  double rotationBase;
   key_event forwardKey;
   key_event backwardKey;
   key_event leftKey;
@@ -57,7 +52,7 @@ int getFontSize(GameLevelUI* ui) {
 
 vec2 getScreenOrigin(MovementScheme scheme, rectangle* r) {
   switch (scheme) {
-    case (KEYBOARD, MOUSE1) {
+    case (KEYBOARD) {
       return vec2(r^.middle().x, (r^.top() + 2 * r^.bottom()) / 3);
     }
     case (MOUSE2) {
@@ -89,14 +84,15 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
     data^.restartCallback^.invoke();
     return true;
   }
+  const timeDiff = context.timeDiff * 0.7;
   if (ui^.forwardKey.covers(event))
-    discard player^.walk(data^.game, context.timeDiff, state^.playerDir, null);
+    discard player^.walk(data^.game, timeDiff, state^.playerDir, null);
   else if (ui^.backwardKey.covers(event))
-    discard player^.walk(data^.game, -context.timeDiff, state^.playerDir, null);
+    discard player^.walk(data^.game, -timeDiff, state^.playerDir, null);
   else if (ui^.leftKey.covers(event))
-    discard player^.walk(data^.game, context.timeDiff, state^.playerDir + 1.57, null);
+    discard player^.walk(data^.game, timeDiff, state^.playerDir + 1.57, null);
   else if (ui^.rightKey.covers(event))
-    discard player^.walk(data^.game, context.timeDiff, state^.playerDir - 1.57, null);
+    discard player^.walk(data^.game, timeDiff, state^.playerDir - 1.57, null);
   else if (ui^.shootKey.covers(event))
     shoot(context);
   else if (ui^.meleeKey.covers(event)) {
@@ -107,7 +103,7 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
     return true;
   } else if (!ui^.waitKey.covers(event))
     return false;
-  data^.game^.advance(context.timeDiff);
+  data^.game^.advance(timeDiff);
   return true;
 }
 
@@ -118,16 +114,9 @@ vec2 projectOnScreen(GameLevelUI* ui, GameObject* player, vec2d pos, double play
   return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * ui^.viewAngle).as_int());
 }
 
-export struct LeftMouseAttackInfo {
-  vec2 mouseOrigin;
-  vec2 lastPosition;
-};
-
 export struct GameLevelUIState {
   double playerDir = 0.0;
-  milliseconds_t? rightMouseButton = null;
-  LeftMouseAttackInfo? leftMouseAttack = null;
-  vec2d? lastWalkDirection = null;
+  double? targetAngle = null;
 };
 
 void shoot(UIContext context) {
@@ -144,28 +133,29 @@ bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_ev
   const mousePos = event^.pos;
   switch (event^.type) {
     case (JOYSTICK_RIGHT) {
-      if (mousePos != vec2(0, 0)) {
-        if (!state^.leftMouseAttack) {
-          mutable angle = mousePos.get_angle();
-          mutable length = mousePos.length_d() * 2.5;
-          length = pow(length, ui^.movementPower) * ui^.movementBase;
-          discard player^.walk(data^.game, -context.timeDiff * length / 1000, angle, null);
-          state^.lastWalkDirection = (mousePos.as_double() / mousePos.length_d()) * 0.02
-            + (state^.lastWalkDirection ?? vec2d(0, 0)) * 0.98;
-          data^.game^.advance(abs(context.timeDiff * length / 1000));
-        } else {
-          state^.leftMouseAttack^.lastPosition += mousePos;
-        }
+      if (mousePos.length_d() > 200)
+        state^.targetAngle = mousePos.get_angle();
+      else
+        state^.targetAngle = null;
+    }
+    case (JOYSTICK_LEFT) {
+      mutable pos = mousePos;
+      if (abs(pos.x).as_double() < abs(pos.y) * ui^.joystickMovementDeadRange)
+        pos.x = 0;
+      if (abs(pos.y).as_double() < abs(pos.x) * ui^.joystickMovementDeadRange)
+        pos.y = 0;
+      const angle = state^.playerDir + pos.get_angle();
+      const length = pos.length_d();
+      if (length > 1000 * ui^.minJoystickMovement) {
+        discard player^.walk(data^.game, -context.timeDiff * length / 1000, angle, null);
+        data^.game^.advance(abs(context.timeDiff * length / 1000));
       }
     }
     case (LEFT) {
-      state^.leftMouseAttack = LeftMouseAttackInfo(mousePos, mousePos);
-    }
-    case (LEFT_RELEASED) {
-      const dir = state^.leftMouseAttack^.mouseOrigin - state^.leftMouseAttack^.lastPosition;
-      if (dir != vec2(0, 0))
-        discard player^.addMeleeAttack(dir.get_angle(), 0);
-      state^.leftMouseAttack = null;
+      if (!!state^.targetAngle) {
+        discard player^.addMeleeAttack(*state^.targetAngle, 0);
+        data^.timeSpentCallback^.invoke(as_int(1000 * player^.attributes.creature^.meleeAttack[0].duration));
+      }
     }
     case (RIGHT_RELEASED) {
       if (data^.game^.canUseStairs())
@@ -184,27 +174,10 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
   const state = context.state^.get_state<GameLevelUIState>();
   const data = *context.data^.cast_to<GameLevelUIData>();
   const player = data^.game^.getPlayer();
-  const rightClickCutOff = 500;
-  const curTime = current_time_milli();
   switch (event^.type) {
     case (MOUSE_MOVEMENT) {
-      const rightButtonHeld = !!state^.rightMouseButton;
-      if (ui^.movementScheme == MovementScheme::MOUSE1 &&
-          (abs(event^.pos.y) > abs(event^.pos.x) || rightButtonHeld)) {
-        mutable pos = event^.pos;
-        if (!rightButtonHeld)
-          pos.x = 0;
-        else
-          pos.y = 0;
-        mutable angle = state^.playerDir + atan2(pos.x, pos.y);
-        mutable length = pos.length_d() * 2.5;
-        length = pow(length, ui^.movementPower) * ui^.movementBase;
-        discard player^.walk(data^.game, -context.timeDiff * length / 1000, angle, null);
-        data^.game^.advance(abs(context.timeDiff * length / 1000));
-      } else {
-        mutable diff = ui^.cameraSensitivity * event^.pos.x;
-        state^.playerDir -= diff;
-      }
+      mutable diff = ui^.cameraSensitivity * event^.pos.x;
+      state^.playerDir -= diff;
     }
     case (JOYSTICK_LEFT) {
       mutable pos = event^.pos;
@@ -220,17 +193,13 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
       }
     }
     case (RIGHT) {
-      state^.rightMouseButton = curTime;
-    }
-    case (RIGHT_RELEASED) {
-      if (!!state^.rightMouseButton && *state^.rightMouseButton > curTime - rightClickCutOff
-          && data^.game^.canUseStairs())
+      if (data^.game^.canUseStairs())
         data^.game^.useStairs();
 //      shoot(context);
-      state^.rightMouseButton = null;
     }
     case (LEFT) {
       discard player^.addMeleeAttack(state^.playerDir, 0);
+      data^.timeSpentCallback^.invoke(as_int(1000 * player^.attributes.creature^.meleeAttack[0].duration));
     }
     default {
       return false;
@@ -277,6 +246,25 @@ void drawHeartParticle(GameLevelUI* ui, UIContext context, vec2 origin, millisec
       .render(context.canvas, ui^.getFontSize(), pos, 0, false, 0);
 }
 
+bool canReachMelee(GameObject* obj, GameObject* target, double dir) {
+  // Test some intermediate points in case we can reach beyond the target.
+  for (i = 0.0; i <= 1.0; i += 0.1) {
+    const pos = obj^.calculateMeleeAttackPosition(dir, i);
+    if (target^.isPenetrated(pos))
+      return true;
+  }
+  return false;
+}
+
+export double getAngleDifferenceAbs(double a1, double a2) {
+  mutable angle = abs(a1 - a2);
+  while (angle > 2 * 3.1415)
+    angle -= 2 * 3.1415;
+  if (angle > 3.1415)
+    angle = 2 * 3.1415 - angle;
+  return angle;
+}
+
 export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   const data = *context.data^.cast_to<GameLevelUIData>();
   const player = data^.game^.getPlayer();
@@ -291,17 +279,20 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     const obj = it^.get();
     const canSee = ui^.seeWholeMap || data^.game^.canSee(player, obj^.pos.as_int());
     if ((canSee || obj^.remember) && !!obj^.attributes.glyph) {
-      const projected = ui^.projectOnScreen(player, obj^.pos, state^.playerDir);
-      if (obj != player && !!obj^.attributes.creature) {
-        const angle = abs(atan2(projected.x, -projected.y));
-        if (angle < bestAngle) {
-          bestAngle = angle;
-          highlightedObject = obj;
+      if (!!state^.targetAngle || ui^.movementScheme == MovementScheme::KEYBOARD) {
+        if (obj != player && !!obj^.attributes.creature) {
+          const angle = getAngleDifferenceAbs(atan2(obj^.pos.x - player^.pos.x, obj^.pos.y - player^.pos.y),
+              state^.targetAngle ?? state^.playerDir);
+          if (angle < bestAngle) {
+            bestAngle = angle;
+            highlightedObject = obj;
+          }
         }
       }
+      const projected = ui^.projectOnScreen(player, obj^.pos, state^.playerDir);
       const coord = origin + projected;
       if (to_draw.contains(&coord)) {
-        const jumpState = ((curTime % ui^.jumpDuration + ui^.jumpDuration) % ui^.jumpDuration).as_double() 
+        const jumpState = ((curTime % ui^.jumpDuration + ui^.jumpDuration) % ui^.jumpDuration).as_double()
             / ui^.jumpDuration;
         const offset = !obj^.animation.lastMovement
             || *obj^.animation.lastMovement < curTime - (1000 * context.timeDiff).as_int() - 10
@@ -310,7 +301,12 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         mutable double? projectileDir = null;
         if (obj^.projectile)
           projectileDir = 1.57 -obj^.projectile^.dir.get_angle();
-        toRender.push_back(GlyphRenderElem(obj^.attributes.glyph^.copy(), coord - vec2(0, offset),
+        mutable glyph = obj^.attributes.glyph^.copy();
+        if (obj != player && !!obj^.attributes.creature && (
+            !!state^.targetAngle && player^.canReachMelee(obj, *state^.targetAngle) ||
+            ui^.movementScheme == MovementScheme::KEYBOARD && player^.canReachMelee(obj, state^.playerDir)))
+          glyph.col = color(255, 255, 255);
+        toRender.push_back(GlyphRenderElem(move(glyph), coord - vec2(0, offset),
             (!!obj^.attributes.box && !!obj^.attributes.creature ?
                 obj^.attributes.box^.size / 2 * ui^.tileSize.as_double() : 0.0).as_int(),
             projectileDir));
@@ -347,8 +343,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     mutable double? forceDir = null;
     if (obj == player && !obj^.ongoingAttack) {
       forceDir = state^.playerDir;
-      if (!!state^.leftMouseAttack)
-        forceDir = (state^.leftMouseAttack^.mouseOrigin - state^.leftMouseAttack^.lastPosition).get_angle();
+      if (!!state^.targetAngle)
+        forceDir = *state^.targetAngle;
     }
     for (weapon : obj^.getAllWeaponPositions(forceDir))
       if (ui^.seeWholeMap || data^.game^.canSee(player, obj^.pos.as_int())) {
@@ -362,6 +358,13 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
           if (ui^.showOutlines)
             context.canvas^.drawLine(coord1, coord2, &color(255, 255, 255));
         }
+        const dir = obj^.lastWalkDirection;
+        if (ui^.showOutlines)
+          for (i = 0.0; i < 1.0; i += 0.1) {
+            const coord = origin + ui^.projectOnScreen(player, obj^.calculateMeleeAttackPosition(dir, i),
+                state^.playerDir);
+            context.canvas^.fillRectangle(&centered_rect(coord, 5), &color(0, 0, 255));
+          }
       }
   }
   for (anim : data^.game^.getLevel()^.animations) {
@@ -383,9 +386,9 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
         }
       }
   }
-  if (!player^.ongoingAttack && !!state^.leftMouseAttack) {
-    const dir = state^.leftMouseAttack^.mouseOrigin - state^.leftMouseAttack^.lastPosition;
-    const coord = origin + ui^.projectOnScreen(player, player^.getMaxMeleeAttackPosition(dir.get_angle()),
+  if (!player^.ongoingAttack && !!state^.targetAngle) {
+    const dir = *state^.targetAngle;
+    const coord = origin + ui^.projectOnScreen(player, player^.calculateMeleeAttackPosition(dir, 0.2),
         state^.playerDir);
     context.canvas^.fillRectangle(&centered_rect(coord, 5), &color(0, 0, 255));
   }
@@ -397,7 +400,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   }
   if (!!data^.game^.status) {
     const ctx = UIContext(context.canvas, &"pok", context.state, context.timeDiff);
-    const dialog = data^.game^.status == GameStatus::GAME_WON 
+    const dialog = data^.game^.status == GameStatus::GAME_WON
         ? ui^.gameWonMessage.get()
         : ui^.gameOverMessage.get();
     const size = dialog^.size(ctx);

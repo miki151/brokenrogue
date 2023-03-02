@@ -9,11 +9,11 @@ export import "std/box.znn";
 bool canReachMelee(GameObject* obj, GameObject* target, int? attackIndex) {
   const dir = (target^.pos - obj^.pos).get_angle();
   // Test some intermediate points in case we can reach beyond the target.
-  for (i = 0.0; i <= 1.0; i += 0.1) {
+  for (i = 0.0; i <= 1.0; i += 0.03) {
     const pos = !!attackIndex
-        ? obj^.getMaxMeleeAttackPosition(*attackIndex, dir)
-        : obj^.getMaxMeleeAttackPosition(dir);
-    if (target^.isPenetrated(pos * i + obj^.pos * (1.0 - i)))
+        ? obj^.calculateMeleeAttackPosition(*attackIndex, dir, i)
+        : obj^.calculateMeleeAttackPosition(dir, i);
+    if (target^.isPenetrated(pos))
       return true;
   }
   return false;
