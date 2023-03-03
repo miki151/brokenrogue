@@ -21,9 +21,9 @@ import "std/panic.znn";
 import "pretty_input.znn";
 import "game_object.znn";
 
-vector<pair<string, string>> readGameSprites(string path) {
-  mutable stream = *create_input_stream(*open_file_r(path)^.read_content());
-  return *stream.read_data<vector<pair<string, string>>>();
+vector<pair<string, string>>!string readGameSprites(string path) {
+  mutable stream = try create_input_stream(try (try open_file_r(path)).read_content());
+  return stream.read_data<vector<pair<string, string>>>();
 
 }
 
@@ -50,7 +50,6 @@ box<UIElement>!string readUIFrom(string path) {
 
 struct Flags {
   string? font;
-  bool noPanicHandler;
   double? realTimeFlow;
 };
 
@@ -79,29 +78,35 @@ void showDialog(SDLWindow* window, SDLCanvas* canvas, rectangle* rect, UIElement
   window^.update();
 }
 
+template <T>
+T orExit(expected<T, string> elem) {
+  if (!elem) {
+    printf("{elem.get_error()}\n");
+    exit(0);
+  }
+  return *move(elem);
+}
+
 int main(string[] args) {
-  const flags = *read_flags<Flags>(args);
-  const panic_handler = [](string s) { printf("{s}\n"); exit(0); };
-  if (!flags.noPanicHandler)
-    set_panic_handler(&panic_handler);
-  *sdl_init();
+  const flags = read_flags<Flags>(args).orExit();
+  sdl_init().orExit();
   init_random();
-  mutable ui = *readUIFrom("ui.txt");
-  const window = *sdl_create_window(vec2(1280, 720), "Broken Rogue", "icon.png", false);
-  mutable font = *window.loadSDLFont(flags.font ?? "font.ttf", 10, 100);
+  mutable ui = readUIFrom("ui.txt").orExit();
+  const window = sdl_create_window(vec2(1280, 720), "Broken Rogue", "icon.png", false).orExit();
+  mutable font = window.loadSDLFont(flags.font ?? "font.ttf", 10, 100).orExit();
   const getCanvas = [&] {
-    const textTexture = *window.make_target_texture(vec2(100, 100));
-    const gameSprites = readGameSprites("sprites.txt");
+    const textTexture = window.make_target_texture(vec2(100, 100)).orExit();
+    const gameSprites = readGameSprites("sprites.txt").orExit();
     return SDLCanvas(&window, &font, loadTextures(&window, "sprites", move(gameSprites)), move(textTexture));
   };
   mutable canvas = getCanvas();
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
-  const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")^.read_content()).map_error([](string err) {
+  const levelGen = readLevelGenerator(*open_file_r("levelgen.txt")^.read_content()).map_error([](string err) {
     return "Error reading levelgen.txt: " + err;
-  });
-  mutable levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")^.read_content()).map_error([](string err) {
+  }).orExit();
+  mutable levelMapping = readLevelMapping(*open_file_r("levelmapping.txt")^.read_content()).map_error([](string err) {
     return "Error reading levelmapping.txt: " + err;
-  });
+  }).orExit();
   showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
   const getNewGame = [&] {
     return Game(20, levelGen.transform([](pair<vec2, box<LevelGenerator>>* g) {
@@ -113,7 +118,7 @@ int main(string[] args) {
   mutable last_update = current_time_milli();
   mutable realTimeEnd = last_update;
   const timeSpentCallback = [&] (int time) { realTimeEnd = max(realTimeEnd, last_update + time); };
-  mutable HighlightedObjectInfo? highlightedObjectInfo = null; 
+  mutable HighlightedObjectInfo? highlightedObjectInfo = null;
   const highlightedObjectCallback = [&] (HighlightedObjectInfo? info) { highlightedObjectInfo = info.copy(); };
   mutable uiData = UIRecord();
   mutable uiState = UIState();
