@@ -223,14 +223,14 @@ struct GlyphRenderElem {
 };
 
 void drawBloodParticle(GameLevelUI* ui, UIContext context, vec2 origin, milliseconds_t start,
-    milliseconds_t curTime) {
+    milliseconds_t curTime, color col) {
   const h = ui^.getFontSize() * 2 / 3;
   const w = (((abs(start) % 100 * 67) % 100) / 50.0 - 1) * ui^.getFontSize() / 3;
   const t = curTime - start;
   const dur = ui^.woundedAnimDuration;
   const offset = vec2((w * t / dur).as_int(), (h * t * t / (dur * dur) - h / 2).as_int());
   const pos = origin + offset;
-  Glyph("*", color(255, 0, 0), 0.5, GlyphLayer::EFFECT)
+  Glyph("*", col, 0.5, GlyphLayer::EFFECT)
       .render(context.canvas, ui^.getFontSize(), pos, 0, false, 0);
 }
 
@@ -371,16 +371,16 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     const coord = origin + ui^.projectOnScreen(player, anim^.position, state^.playerDir);
     if (to_draw.contains(&coord))
       switch (anim^.type) {
-        case (EXPLOSION) {
+        case (explosion) {
           if (anim^.time + ui^.explosionDuration > curTime)
             Glyph("*", color(255, 100, 0), 0.5, GlyphLayer::EFFECT)
                 .render(context.canvas, ui^.getFontSize(), coord, 0.0, false, 0);
         }
-        case (BLOOD) {
+        case (blood) {
           if (anim^.time + ui^.woundedAnimDuration > curTime)
-            drawBloodParticle(ui, context, coord, anim^.time, curTime);
+            drawBloodParticle(ui, context, coord, anim^.time, curTime, blood.col);
         }
-        case (HEAL) {
+        case (heal) {
           if (anim^.time + ui^.woundedAnimDuration > curTime)
             drawHeartParticle(ui, context, coord, anim^.time, curTime);
         }

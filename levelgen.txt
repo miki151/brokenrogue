@@ -47,8 +47,9 @@ Def CanSetBlocking() Not On("blocking") End
 #10 10
 #{
 #  Set("floor")
-#  Position(LEFT_CENTER, 1 1, Set("player_spawn"))
-#  Position(RIGHT_CENTER, 1 1, Set("zombie"))
+#  Position(RIGHT_CENTER, 1 1, Set("player_spawn"))
+#  Position(TOP_CENTER, 1 1, Reset("trap"))
+#  Position(CENTER, 1 1, Set("boulder"))
 #}
 #}
 20 20
@@ -80,6 +81,10 @@ Def CanSetBlocking() Not On("blocking") End
   }))
 }
 
+Def BOULDERTRAP
+  Place(5 1, {Position(LEFT_CENTER, 1 1, Set("trap")) Position(RIGHT_CENTER, 1 1, SetBlocking("boulder"))}, 1, CanSetBlocking(), 1)
+End
+
 20 15
 {
   Border(1, SetBlocking("border"))
@@ -102,6 +107,7 @@ Def CanSetBlocking() Not On("blocking") End
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
+  BOULDERTRAP()
 }
 30 20
 {
@@ -128,6 +134,7 @@ Def CanSetBlocking() Not On("blocking") End
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
+  BOULDERTRAP()
 }
 20 15
 {
@@ -152,6 +159,7 @@ Def CanSetBlocking() Not On("blocking") End
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
+  BOULDERTRAP()
 }
 35 30
 {
@@ -178,5 +186,6 @@ Def CanSetBlocking() Not On("blocking") End
       (3 3, { Reset("floor") SetBlocking("bee")}, 1, CanSetBlocking(), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
+  BOULDERTRAP()
 }
 }

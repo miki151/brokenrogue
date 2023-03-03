@@ -8,6 +8,7 @@ export struct Creature {
   vector<MeleeAttack> meleeAttack;
   RangedAttack? rangedAttack;
   AI ai;
+  string? corpseId = "corpse";
 };
 
 export Creature copy(Creature*) = default;

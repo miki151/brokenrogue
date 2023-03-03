@@ -1,10 +1,18 @@
 
 export import "ui/vec2.znn";
+export import "ui/color.znn";
 
-export enum LevelAnimationType {
-  BLOOD,
-  HEAL,
-  EXPLOSION
+export struct BloodAnimation {
+  color col;
+};
+
+export struct HealAnimation {};
+export struct ExplosionAnimation {};
+
+export union LevelAnimationType {
+  BloodAnimation blood;
+  HealAnimation heal;
+  ExplosionAnimation explosion;
 };
 
 export struct LevelAnimation {

@@ -19,7 +19,8 @@ export void applyImpl(HealEffect* effect, GameObject mutable* object, Game mutab
   if (!!object^.health && *object^.health < *object^.attributes.maxHealth) {
     *object^.health = min(*object^.attributes.maxHealth, *object^.health + effect^.amount);
     const curTime = current_time_milli();
-    game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::HEAL, object^.pos, curTime));
+    game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::heal(HealAnimation()),
+        object^.pos, curTime));
   }
 }
 
@@ -31,13 +32,14 @@ export WoundEffect copy(WoundEffect*) = default;
 
 export void applyImpl(WoundEffect* effect, GameObject mutable* object, Game mutable* game) {
   const curTime = current_time_milli();
+  const bloodAnim = [&] { return LevelAnimationType::blood(BloodAnimation(object^.attributes.bloodColor)); };
   if (object^.health) {
-    game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object^.pos, curTime));
+    game^.getLevel()^.animations.push_back(LevelAnimation(bloodAnim(), object^.pos, curTime));
     *object^.health -= effect^.amount;
   }
   if (object^.health ?? 1.0 <= 0.0) {
     for (i : range(0, 10))
-      game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::BLOOD, object^.pos, curTime + i));
+      game^.getLevel()^.animations.push_back(LevelAnimation(bloodAnim(), object^.pos, curTime + i));
     object^.isDead = true;
   }
 }
@@ -113,6 +115,17 @@ export void applyImpl(AddEffect* effect, vec2d pos, Game mutable* game) {
   game^.addObject(pos, effect^.id);
 }
 
+export struct OffsetEffect {
+  vec2d offset;
+  box<ObjectEffect> effect;
+};
+
+export OffsetEffect copy(OffsetEffect*) = default;
+
+export void applyImpl(OffsetEffect* effect, vec2d pos, Game mutable* game) {
+  effect^.effect^.apply(pos + effect^.offset, game);
+}
+
 concept<T> CreatureEffect {
   void applyImpl(T*, GameObject mutable*, Game mutable*);
 };
@@ -152,6 +165,7 @@ export union ObjectEffect {
   ProjectileEffect projectile;
   AddEffect add;
   AllEffect all;
+  OffsetEffect offset;
 };
 
 export ObjectEffect copy(ObjectEffect*) = default;

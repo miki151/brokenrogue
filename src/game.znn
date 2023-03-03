@@ -210,7 +210,10 @@ void updateProjectiles(Game mutable* g, double timeDiff) {
         if (target^.attributes.creature) {
           object^.projectile^.effect.apply(target, g);
         } else
-          g^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::EXPLOSION, prevPos, curTime));
+          g^.getLevel()^.animations.push_back(LevelAnimation(
+              LevelAnimationType::explosion(ExplosionAnimation()),
+              prevPos,
+              curTime));
       }
     }
   }
@@ -238,9 +241,9 @@ void updateDeadObjects(Game mutable* g, double timeDiff) {
         object^.attributes.deathEffect^.apply(object^.pos, g);
       if (object^.attributes.isEndGameBoss)
         g^.status = GameStatus::GAME_WON;
-      if (!!object^.attributes.creature) {
-        toAdd.push_back(GameObject(g^.gameObjectIdCounter, object^.pos,
-            g^.objectFactory^.get(&"corpse")^.copy(), "corpse"));
+      if (!!object^.attributes.creature && !!object^.attributes.creature^.corpseId) {
+        const id = *object^.attributes.creature^.corpseId;
+        toAdd.push_back(GameObject(g^.gameObjectIdCounter, object^.pos, g^.objectFactory^.get(&id)^.copy(), id));
         toAdd.back()^.attributes.glyph^.size = object^.attributes.glyph^.size * 0.8;
       }
       objects^.remove(i);
@@ -267,7 +270,7 @@ void updateEntryEffects(Game mutable* g) {
           const object2 = it2^.get();
           if (!!object2^.attributes.creature && !!object2^.attributes.box &&
               object2^.attributes.box^.isPenetrated(object2^.pos - object^.pos))
-            object^.attributes.entryEffect^.apply(object2^.pos, g);
+            object^.attributes.entryEffect^.apply(object^.pos, g);
         }
 
   }

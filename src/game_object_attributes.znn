@@ -38,6 +38,7 @@ export struct GameObjectAttributes {
   ObjectEffect? entryEffect = null;
   ObjectEffect? deathEffect = null;
   double? maxLifeTime = null;
+  color bloodColor = color(255, 0, 0);
 };
 
 export GameObjectAttributes copy(GameObjectAttributes*) = default;

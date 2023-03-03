@@ -111,6 +111,10 @@ export vector<pair<vec2, box<LevelGenerator>>>!string readLevelGenerator(string 
   return stream.read_data<vector<pair<vec2, box<LevelGenerator>>>>();
 }
 
+color getDefaultValue(pretty_member_dummy<GameObjectAttributes, color, 13>) {
+  return color(255, 0, 0);
+}
+
 bool getDefaultValue(pretty_member_dummy<GameObjectAttributes, bool, 8>) {
   return false;
 }
@@ -128,6 +132,14 @@ bool getDefaultValue(pretty_member_dummy<GameObjectAttributes, bool, 4>) {
 }
 
 bool round_brackets(pretty_dummy_struct<GameObjectAttributes>) {
+  return true;
+}
+
+vector<MeleeAttack> getDefaultValue(pretty_member_dummy<Creature, vector<MeleeAttack>, 1>) {
+  return vector<MeleeAttack>();
+}
+
+bool round_brackets(pretty_dummy_struct<Creature>) {
   return true;
 }
 

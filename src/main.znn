@@ -96,8 +96,12 @@ int main(string[] args) {
   };
   mutable canvas = getCanvas();
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
-  const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")^.read_content());
-  mutable levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")^.read_content());
+  const levelGen = *readLevelGenerator(*open_file_r("levelgen.txt")^.read_content()).map_error([](string err) {
+    return "Error reading levelgen.txt: " + err;
+  });
+  mutable levelMapping = *readLevelMapping(*open_file_r("levelmapping.txt")^.read_content()).map_error([](string err) {
+    return "Error reading levelmapping.txt: " + err;
+  });
   showDialog(&window, &canvas, &ui_rectangle, ui.get(), "Generating levels...");
   const getNewGame = [&] {
     return Game(20, levelGen.transform([](pair<vec2, box<LevelGenerator>>* g) {

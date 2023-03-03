@@ -60,11 +60,30 @@
       name = "Bridge"
       canRemember = true
   )
-  "trap" (
-      glyph = "x" 210 20 20 1.0 FLOOR
-      name = "Trap"
+Def BOULDERGLYPH()
+  "boulder" 100 100 100 1.5
+End
+  "boulder" (
+      glyph = BOULDERGLYPH ITEM
+      name = "Boulder"
+      box = 1
       canRemember = true
-      entryEffect = all { radius 3 wound 1 radius 1 filter type "trap" remove }
+      creature = (
+          speed = 1
+          ai = all { ranged 1 }
+          corpseId = null
+      )
+      maxHealth = 10
+      bloodColor = 100 100 100
+  )
+  "trap" (
+      glyph = "x" 70 40 40 0.8 ITEM
+      name = "Floor"
+      canRemember = true
+      entryEffect = filter type "player" offset 4 0 filter type "boulder" all {
+        filter type "boulder" remove
+        projectile 3.14 6 0.95 10 wound 1000 BOULDERGLYPH EFFECT
+      }
   )
   "stairs" (
       glyph = ">" 202 155 107 1.0 FLOOR
@@ -88,30 +107,33 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       glyph = "b" 200 100 100 0.4 OBJECT
       name = "Killer bee"
       box = 0.2
-      creature = 5
-          {("^" 230 230 230 0.2 EFFECT, 0.0 0.0, CENTER, 0.3, 0.2, 0.2, wound 0.1)}
-          null
-          all { avoidMelee pathfindUntilMelee melee }
+      creature = (
+          speed = 5
+          meleeAttack = {("^" 230 230 230 0.2 EFFECT, 0.0 0.0, CENTER, 0.3, 0.2, 0.2, wound 0.1)}
+          ai = all { avoidMelee pathfindUntilMelee melee }
+      )
       maxHealth = 1
   )
   "rat" (
       glyph = "r" 200 100 100 0.8 OBJECT
       name = "Giant rat"
       box = 0.5
-      creature = 3
-          {("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, wound 0.4)}
-          null
-          all { pathfindUntilMelee melee }
+      creature = (
+          speed = 3
+          meleeAttack = {("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, wound 0.4)}
+          ai = all { pathfindUntilMelee melee }
+      )
       maxHealth = 1
   )
   "zombie" (
       glyph = "z" 100 200 100 0.8 OBJECT
       name = "Zombie"
       box = 1.0
-      creature = 1
-          {("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, wound 0.4)}
-          null
-          all { pathfind melee }
+      creature = (
+          speed = 1
+          meleeAttack = {("^" 230 230 230 0.4 EFFECT, 0.0 -0.05, CENTER, 0.4, 0.3, 0.3, wound 0.4)}
+          ai = all { pathfind melee }
+      )
       maxHealth = 0.1
       deathEffect = add "dead_zombie1"
   )
@@ -158,65 +180,72 @@ Def Proj 5 1 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       glyph = "g" 0 200 0 1.0 OBJECT
       name = "Goblin"
       box = 0.7
-      creature = 3
-          {(")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, wound 1.5)}
-          null
-          all { pathfindUntilMelee melee }
+      creature = (
+          speed = 3
+          meleeAttack = {(")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, wound 1.5)}
+          ai = all { pathfindUntilMelee melee }
+      )
       maxHealth = 3
   )
   "berserker" (
       glyph = "g" 200 0 0 1.0 OBJECT
       name = "Goblin berserker"
       box = 0.7
-      creature = 3
-          {
-          (")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, wound 1.5)
-          (")" 255 100 100 0.7 EFFECT, 0.15 0, LEFT, 1.0, 0.5, 0.4, wound 1.5)
+      creature = (
+          speed = 3
+          meleeAttack = {
+            (")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 0.4, wound 1.5)
+            (")" 255 100 100 0.7 EFFECT, 0.15 0, LEFT, 1.0, 0.5, 0.4, wound 1.5)
           }
-          null
-          all { pathfind melee }
+          ai = all { pathfind melee }
+      )
       maxHealth = 1
   )
   "fencer" (
       glyph = "g" 255 0 255 1.0 OBJECT
       name = "Goblin fencer"
       box = 1.0
-      creature = 6
-          {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, wound 0.8)}
-          null
-          all { avoidMelee pathfindUntilMelee melee }
+      creature = (
+          speed = 6
+          meleeAttack = {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, wound 0.8)}
+          ai = all { avoidMelee pathfindUntilMelee melee }
+      )
       maxHealth = 1
   )
   "kobold" (
       glyph = "k" 0 100 250 1.0 OBJECT
       name = "Kobold"
       box = 0.8
-      creature = 1
-          {}
-          ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER 0, 2.0, 10.0, 0.2,
+      creature = (
+          speed = 1
+          rangedAttack = ("arrow" 250 100 100 0.5 EFFECT, "bow" 200 200 200 0.5 EFFECT 0 0 CENTER 0, 2.0, 10.0, 0.2,
               wound 1.5, 0.0, null, 0)
-          all { ranged 5 }
+          ai = all { ranged 5 }
+      )
       maxHealth = 1
   )
   "nymph" (
       glyph = "f" 250 100 100 1.0 OBJECT
       name = "Fairy"
       box = 0.8
-      creature = 1
-          {}
-          ("heart" 250 20 20 0.5 EFFECT, "|" 100 200 200 0.8 EFFECT 0.4 0 LEFT 0.6, 5.0, 2.0, 0.2, heal 30.0, 0.0,
-              null, 0)
-          all { ranged 5 }
+      creature = (
+          speed = 1
+          rangedAttack = ("heart" 250 20 20 0.5 EFFECT, "|" 100 200 200 0.8 EFFECT 0.4 0 LEFT 0.6, 5.0, 2.0, 0.2,
+              heal 30.0, 0.0, null, 0)
+          ai = all { ranged 5 }
+      )
       maxHealth = 1
   )
   "dragon" (
       glyph = "D" 255 0 0 2.2 OBJECT
       name = "Dragon"
       box = 1.8
-      creature = 3
-          {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, wound 5.5)}
-          ("*" 255 0 0 0.3 EFFECT, null, 0.01, 5.0, 0.2, wound 0.5, 0.3, 100 5.0, 150)
-          all { circle melee ranged 6 }
+      creature = (
+          speed = 3
+          meleeAttack = {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, wound 5.5)}
+          rangedAttack = ("*" 255 0 0 0.3 EFFECT, null, 0.01, 5.0, 0.2, wound 0.5, 0.3, 100 5.0, 150)
+          ai = all { circle melee ranged 6 }
+      )
       maxHealth = 5
       isEndGameBoss = true
   )
@@ -224,20 +253,21 @@ Def Proj 5 1 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       glyph = "&" 200 0 100 2 OBJECT
       name = "Big fat demon"
       box = 1.0
-      creature = 2
-          {("battleaxe" 50 50 180 2 EFFECT, 0.33 0, RIGHT_SWING, 0.0, 1.2, 0.9, wound 3.5)}
-          null
-          all { avoidMelee pathfindUntilMelee melee }
+      creature = (
+          speed = 2
+          meleeAttack = {("battleaxe" 50 50 180 2 EFFECT, 0.33 0, RIGHT_SWING, 0.0, 1.2, 0.9, wound 3.5)}
+          ai = all { avoidMelee pathfindUntilMelee melee }
+      )
       maxHealth = 6
   )
   "dummy" (
       glyph = "T" 0 100 250 1.0 OBJECT
       name = "Training dummy"
       box = 1.0
-      creature = 1
-          {}
-          null
-          all { ranged 1 }
+      creature = (
+          speed = 1
+          ai = all { ranged 1 }
+      )
       maxHealth = 3
       canRemember = true
   )
@@ -245,25 +275,30 @@ Def Proj 5 1 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       glyph = "g" 255 255 0 1.0 OBJECT
       name = "Goblin chief"
       box = 0.9
-      creature = 4
-          {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, wound 1.0)}
-          null
-          all { first { adjustMelee avoidMelee pathfindUntilMelee } melee }
+      creature = (
+          speed = 4
+          meleeAttack = {("(" 255 100 100 0.7 EFFECT, 0.15 0.0, LEFT, 1.0, 0.5, 0.3, wound 1.0)}
+          ai = all { first { adjustMelee avoidMelee pathfindUntilMelee } melee }
+      )
       maxHealth = 5
   )
   "player" (
       glyph = "@" 200 200 200 1.0 OBJECT
       name = "Player"
       box = 0.9
-      creature = 4
-          {(")" 10 155 155 0.7 EFFECT, 0.15 0.0, RIGHT, 1.0, 0.5, 0.3, wound 1.0)}
-          null
-          all { avoidMelee pathfind melee }
+      creature = (
+          speed = 4
+          meleeAttack = {(")" 10 155 155 0.7 EFFECT, 0.15 0.0, RIGHT, 1.0, 0.5, 0.3, wound 1.0)}
+          ai = all { avoidMelee pathfind melee }
+      )
       maxHealth = 20
   )
   "dead_player" (
       name = "Player"
-      creature = 0 {} null all { pathfind }
+      creature = (
+          speed = 0
+          ai = all { pathfind }
+      )
   )
   "player_spawn" (
       name = "Player spawn"
