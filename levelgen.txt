@@ -96,18 +96,16 @@ End
     Position(RIGHT_CENTER, 5 5, {
         Reset("floor")
         Position(CENTER, 1 1, ResetBlocking("stairs"))
-        Place(1 1, SetBlocking("goblin"), 1, CanSetBlocking(), 1)
+        #Place(1 1, SetBlocking("goblin"), 1, CanSetBlocking(), 1)
     })
   })
   Place(
       (1 1, SetBlocking("rat"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("zombie"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("kobold"), 2, CanSetBlocking(), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
-  BOULDERTRAP()
 }
 30 20
 {
@@ -120,7 +118,7 @@ End
     Position(RIGHT_CENTER, 5 5, {
         Reset("floor")
         Position(CENTER, 1 1, ResetBlocking("stairs"))
-        Place(1 1, SetBlocking("boss1"), 1, CanSetBlocking(), 1)
+        Place(1 1, SetBlocking("zombie"), 1, CanSetBlocking(), 1)
     })
   })
   Place(
@@ -129,7 +127,7 @@ End
       (1 1, SetBlocking("bee"), 2, CanSetBlocking(), 1),
       (1 1, SetBlocking("kobold"), 2, CanSetBlocking(), 1),
       (1 1, SetBlocking("goblin"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("pikeman"), 1, CanSetBlocking(), 1),
+      (1 1, SetBlocking("fencer"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )
@@ -154,14 +152,14 @@ End
       (1 1, SetBlocking("rat"), 2, CanSetBlocking(), 1),
       (1 1, SetBlocking("zombie"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("goblin"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("pikeman"), 1, CanSetBlocking(), 1),
+      (1 1, SetBlocking("berserker"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
   BOULDERTRAP()
 }
-35 30
+30 20
 {
   Border(1, SetBlocking("border"))
   SetBlocking("wall")
@@ -169,23 +167,38 @@ End
   Margins(1, {}, Place(4 4, Reset("floor", "room"), {6 10}, On("wall"), 2))
   Inside(1, {
     Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player_spawn"))})
-    Position(RIGHT_CENTER, 8 8, {
+    Position(RIGHT_CENTER, 5 5, {
         Reset("floor")
-        Position(CENTER, 1 1, SetBlocking("dragon"))
+        Position(CENTER, 1 1, ResetBlocking("stairs"))
+        Place(1 1, SetBlocking("boss1"), 1, CanSetBlocking(), 1)
     })
   })
   Place(
       (1 1, SetBlocking("rat"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("zombie"), 1, CanSetBlocking(), 1),
+      (1 1, SetBlocking("zombie"), 3, CanSetBlocking(), 1),
       (1 1, SetBlocking("kobold"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("goblin"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("pikeman"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("adventurer"), 2, CanSetBlocking(), 1),
+      (1 1, SetBlocking("adventurer"), 3, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1),
       (3 3, { Reset("floor") SetBlocking("bee")}, 1, CanSetBlocking(), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
   BOULDERTRAP()
 }
+50 40
+{
+  Border(1, SetBlocking("border"))
+  Set("lava")
+  Position(CENTER, 20 20, {
+    CellularAutomaton(Reset("floor"), 0.75)
+    CellularAutomaton(Reset("lava"), 0.45)
+    Position(TOP_CENTER, 1 1, {Reset("floor") Set("player_spawn")})
+    Connect(On("floor"), 10, On("lava"), Reset("floor"))
+    Place(
+       (1 1, SetBlocking("salamander"), 5, CanSetBlocking(), 1)
+    )
+    Position(BOTTOM_CENTER, 1 1, Set("dragon"))
+  })
+}
+
 }

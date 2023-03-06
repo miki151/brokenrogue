@@ -41,9 +41,10 @@
       canRemember = true
   )
   "lava" (
-      glyph = "_" 255 105 50 1.0 FLOOR
+      glyph = "water" 255 105 50 1.0 FLOOR
       name = "Lava"
       canRemember = true
+      entryEffect = filter chance 0.1 filter negate type "dragon" filter negate type "salamander" wound 0.2
   )
   "floor" (
       glyph = "." 40 40 40 1.0 FLOOR
@@ -212,16 +213,16 @@ Def Proj 5 1 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       )
       maxHealth = 1
   )
-  "pikeman" (
-      glyph = "g" 0 255 255 1.0 OBJECT
-      name = "Goblin pikeman"
+  "salamander" (
+      glyph = "s" 0 255 255 1.0 OBJECT
+      name = "Salamander"
       box = 1.0
       creature = (
           speed = 3
           meleeAttack = {("pike" 255 100 100 1.2 EFFECT, 0.5 0.0, LEFT, 1.0, 1.1, 1.0, wound 4.8)}
           ai = all { avoidMelee pathfindUntilMelee melee }
       )
-      maxHealth = 2
+      maxHealth = 1
   )
   "kobold" (
       glyph = "k" 0 100 250 1.0 OBJECT
@@ -248,12 +249,12 @@ Def Proj 5 1 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       maxHealth = 1
   )
   "dragon" (
-      glyph = "D" 255 0 0 2.2 OBJECT
+      glyph = "d" 255 0 0 2.2 OBJECT
       name = "Dragon"
       box = 1.8
       creature = (
           speed = 3
-          meleeAttack = {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 1.1, 0.4, 0.5, wound 4.5)}
+          meleeAttack = {("^" 230 230 230 0.7 EFFECT, 0.0 -0.0, CENTER, 0.9, 0.4, 0.6, wound 7.5)}
           rangedAttack = ("*" 255 0 0 0.3 EFFECT, null, 0.01, 5.0, 0.2, wound 0.5, 0.3, 100 5.0, 150)
           ai = all { circle melee ranged 6 }
       )

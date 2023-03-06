@@ -1,5 +1,7 @@
-import "game_object.znn";
 export import "std/box.znn";
+export import "std/random.znn";
+
+import "game_object.znn";
 
 export struct TypeFilter {
   string value;
@@ -9,6 +11,16 @@ export TypeFilter copy(TypeFilter*) = default;
 
 export bool apply(TypeFilter* type, GameObject* object) {
   return object^.attributesId == type^.value;
+}
+
+export struct ChanceFilter {
+  double value;
+};
+
+export ChanceFilter copy(ChanceFilter*) = default;
+
+export bool apply(ChanceFilter* type, GameObject* object) {
+  return get_random_d() <= type^.value;
 }
 
 export struct NotFilter {
@@ -23,6 +35,7 @@ export bool apply(NotFilter* type, GameObject* object) {
 
 export union ObjectFilter {
   TypeFilter type;
+  ChanceFilter chance;
   NotFilter negate;
 };
 
