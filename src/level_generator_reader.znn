@@ -139,6 +139,10 @@ vector<MeleeAttack> getDefaultValue(pretty_member_dummy<Creature, vector<MeleeAt
   return vector<MeleeAttack>();
 }
 
+string? getDefaultValue(pretty_member_dummy<Creature, string?, 4>) {
+  return "corpse";
+}
+
 bool round_brackets(pretty_dummy_struct<Creature>) {
   return true;
 }
