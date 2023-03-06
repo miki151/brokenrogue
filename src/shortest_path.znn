@@ -25,7 +25,7 @@ vector<vec2> get_shortest_path(rectangle* area, mutable vec2 from, mutable vec2 
     const curCost = *cost[pos];
     for (v : pos.neighbors4())
       if (rectangle(vec2(0, 0), area^.size()).contains(&*v)) {
-        const entryCost = entryFun^.invoke(*v - area^.v1);
+        const entryCost = entryFun^.invoke(*v + area^.v1);
         if (!!entryCost && (!cost[*v] || curCost + *entryCost < *cost[*v])) {
           cost[*v] = curCost + *entryCost;
           queue.push(*v);
