@@ -22,7 +22,7 @@ import "pretty_input.znn";
 import "game_object.znn";
 
 vector<pair<string, string>>!string readGameSprites(string path) {
-  mutable stream = try create_input_stream(try (try open_file_r(path)).read_content());
+  mutable stream = try create_input_stream(try read_content(&try open_file_r(path)));
   return stream.read_data<vector<pair<string, string>>>();
 
 }
@@ -41,8 +41,7 @@ export bool round_brackets(pretty_dummy_struct<GameLevelUI>) {
 }
 
 box<UIElement>!string readUIFrom(string path) {
-  const content = *open_file_r(path)^.read_content();
-  mutable stream = try create_input_stream(content);
+  mutable stream = try create_input_stream(try read_content(&try open_file_r(path)));
   stream.add_concept_mapping<UIElement, GameLevelUI>("game_level");
   stream.register_ui_elems();
   return stream.read_data<box<UIElement>>();
@@ -101,7 +100,8 @@ int main(string[] args) {
   };
   mutable canvas = getCanvas();
   const ui_rectangle = rectangle(vec2(0, 0), window.size());
-  const levelGen = readLevelGenerator(*open_file_r("levelgen.txt")^.read_content()).map_error([](string err) {
+  const content = read_content(&open_file_r("levelgen.txt").orExit()).orExit();
+  const levelGen = readLevelGenerator(move(content)).map_error([](string err) {
     return "Error reading levelgen.txt: " + err;
   }).orExit();
   mutable levelMapping = readLevelMapping(*open_file_r("levelmapping.txt")^.read_content()).map_error([](string err) {
