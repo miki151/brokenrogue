@@ -82,6 +82,8 @@ export vector<box<GameObject>> mutable* getObjects(Game mutable* g) {
 
 export bool canSee(Game* game, GameObject mutable* obj, vec2 position) {
   const posInt = (obj^.pos + vec2d(0.5, 0.5)).as_int();
+  if ((posInt - position).length_d() > game^.lineOfSight / 2)
+    return false;
   if (!obj^.fovInfo || obj^.fovInfo^.origin != posInt) {
     obj^.fovInfo = FOVInfo(
         posInt,
