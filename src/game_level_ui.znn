@@ -359,13 +359,13 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
             context.canvas^.drawLine(coord1, coord2, &color(255, 255, 255));
         }
         const dir = obj^.lastWalkDirection;
-        if (ui^.showOutlines)
+/*        if (ui^.showOutlines)
           for (i = 0.0; i < 1.0; i += 0.1) {
             const coord = origin + ui^.projectOnScreen(player, obj^.calculateMeleeAttackPosition(dir, i),
                 state^.playerDir);
             context.canvas^.fillRectangle(&centered_rect(coord, 5), &color(0, 0, 255));
           }
-      }
+*/      }
   }
   for (anim : data^.game^.getLevel()^.animations) {
     const coord = origin + ui^.projectOnScreen(player, anim^.position, state^.playerDir);
