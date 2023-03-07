@@ -90,7 +90,7 @@ int main(string[] args) {
   const flags = read_flags<Flags>(args).orExit();
   sdl_init().orExit();
   init_random();
-  mutable ui = readUIFrom("ui.txt").orExit();
+  mutable ui = readUIFrom("ui.txt").map_error([](string err) { return "Error reading ui.txt: " + err;}).orExit();
   const window = sdl_create_window(vec2(1280, 720), "Broken Rogue", "icon.png", false).orExit();
   mutable font = window.loadSDLFont(flags.font ?? "font.ttf", 10, 100).orExit();
   const getCanvas = [&] {
