@@ -5,8 +5,8 @@ export import "ai.znn";
 
 export struct Creature {
   double speed;
-  vector<MeleeAttack> meleeAttack;
-  RangedAttack? rangedAttack;
+  vector<MeleeAttack> meleeAttack = vector<MeleeAttack>();
+  RangedAttack? rangedAttack = null;
   AI ai;
   string? corpseId = "corpse";
 };
