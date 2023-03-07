@@ -158,7 +158,7 @@ export GameObject(int id, vec2d pos, GameObjectAttributes attr, string? attribut
   const health = attr.maxHealth;
   mutable rangedTimeout = 0.0;
   if (!!attr.creature && !!attr.creature^.rangedAttack)
-    rangedTimeout = attr.creature^.rangedAttack^.timeout;
+    rangedTimeout = attr.creature^.rangedAttack^.timeout / 2;
   return GameObject::GameObject(
       .id = id,
       .pos = pos,
