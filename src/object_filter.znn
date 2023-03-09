@@ -7,9 +7,9 @@ export struct TypeFilter {
   string value;
 };
 
-export TypeFilter copy(TypeFilter*) = default;
+TypeFilter copy(TypeFilter*) = default;
 
-export bool apply(TypeFilter* type, GameObject* object) {
+bool apply(TypeFilter* type, GameObject* object) {
   return object^.attributesId == type^.value;
 }
 
@@ -17,9 +17,9 @@ export struct ChanceFilter {
   double value;
 };
 
-export ChanceFilter copy(ChanceFilter*) = default;
+ChanceFilter copy(ChanceFilter*) = default;
 
-export bool apply(ChanceFilter* type, GameObject* object) {
+bool apply(ChanceFilter* type, GameObject* object) {
   return get_random_d() <= type^.value;
 }
 
@@ -27,9 +27,9 @@ export struct NotFilter {
   box<ObjectFilter> filter;
 };
 
-export NotFilter copy(NotFilter*) = default;
+NotFilter copy(NotFilter*) = default;
 
-export bool apply(NotFilter* type, GameObject* object) {
+bool apply(NotFilter* type, GameObject* object) {
   return !type^.filter^.apply(object);
 }
 

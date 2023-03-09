@@ -13,9 +13,9 @@ export struct HealEffect {
   double amount;
 };
 
-export HealEffect copy(HealEffect*) = default;
+HealEffect copy(HealEffect*) = default;
 
-export void applyImpl(HealEffect* effect, GameObject mutable* object, Game mutable* game) {
+void apply(HealEffect* effect, GameObject mutable* object, Game mutable* game) {
   if (!!object^.health && *object^.health < *object^.attributes.maxHealth) {
     *object^.health = min(*object^.attributes.maxHealth, *object^.health + effect^.amount);
     const curTime = current_time_milli();
@@ -28,9 +28,9 @@ export struct WoundEffect {
   double amount;
 };
 
-export WoundEffect copy(WoundEffect*) = default;
+WoundEffect copy(WoundEffect*) = default;
 
-export void applyImpl(WoundEffect* effect, GameObject mutable* object, Game mutable* game) {
+void apply(WoundEffect* effect, GameObject mutable* object, Game mutable* game) {
   const curTime = current_time_milli();
   const bloodAnim = [&] { return LevelAnimationType::blood(BloodAnimation(object^.attributes.bloodColor)); };
   if (object^.health) {
@@ -49,19 +49,19 @@ export struct FilterEffect {
   box<ObjectEffect> effect;
 };
 
-export FilterEffect copy(FilterEffect*) = default;
+FilterEffect copy(FilterEffect*) = default;
 
-export void applyImpl(FilterEffect* effect, GameObject mutable* object, Game mutable* game) {
+void apply(FilterEffect* effect, GameObject mutable* object, Game mutable* game) {
   if (effect^.filter.apply(object))
-    effect^.effect^.applyImpl(object, game);
+    effect^.effect^.apply(object, game);
 }
 
 export struct RemoveEffect {
 };
 
-export RemoveEffect copy(RemoveEffect*) = default;
+RemoveEffect copy(RemoveEffect*) = default;
 
-export void applyImpl(RemoveEffect* effect, GameObject mutable* object, Game mutable* game) {
+void apply(RemoveEffect* effect, GameObject mutable* object, Game mutable* game) {
   object^.isDead = true;
 }
 
@@ -70,23 +70,23 @@ export struct RadiusEffect {
   box<ObjectEffect> effect;
 };
 
-export RadiusEffect copy(RadiusEffect*) = default;
+RadiusEffect copy(RadiusEffect*) = default;
 
-export void applyImpl(RadiusEffect* effect, vec2d pos, Game mutable* game) {
+void apply(RadiusEffect* effect, vec2d pos, Game mutable* game) {
   for (obj : *game^.getObjects())
     if ((obj^^.pos - pos).length_d() <= effect^.radius)
-      effect^.effect^.applyImpl(obj^.get(), game);
+      effect^.effect^.apply(obj^.get(), game);
 }
 
 export struct AllEffect {
   vector<ObjectEffect> elems;
 };
 
-export AllEffect copy(AllEffect*) = default;
+AllEffect copy(AllEffect*) = default;
 
-export void applyImpl(AllEffect* effect, vec2d pos, Game mutable* game) {
+void apply(AllEffect* effect, vec2d pos, Game mutable* game) {
   for (it : effect^.elems)
-    it^.applyImpl(pos, game);
+    it^.apply(pos, game);
 }
 
 export struct ProjectileEffect {
@@ -98,9 +98,9 @@ export struct ProjectileEffect {
   Glyph glyph;
 };
 
-export ProjectileEffect copy(ProjectileEffect*) = default;
+ProjectileEffect copy(ProjectileEffect*) = default;
 
-export void applyImpl(ProjectileEffect* effect, vec2d pos, Game mutable* game) {
+void apply(ProjectileEffect* effect, vec2d pos, Game mutable* game) {
   game^.spawnProjectile(null, pos, from_polar(effect^.dir, effect^.speed), effect^.glyph.copy(), effect^.size,
       effect^.effect^.copy(), effect^.lifeTime);
 }
@@ -109,9 +109,9 @@ export struct AddEffect {
   string id;
 };
 
-export AddEffect copy(AddEffect*) = default;
+AddEffect copy(AddEffect*) = default;
 
-export void applyImpl(AddEffect* effect, vec2d pos, Game mutable* game) {
+void apply(AddEffect* effect, vec2d pos, Game mutable* game) {
   game^.addObject(pos, effect^.id);
 }
 
@@ -120,40 +120,40 @@ export struct OffsetEffect {
   box<ObjectEffect> effect;
 };
 
-export OffsetEffect copy(OffsetEffect*) = default;
+OffsetEffect copy(OffsetEffect*) = default;
 
-export void applyImpl(OffsetEffect* effect, vec2d pos, Game mutable* game) {
+void apply(OffsetEffect* effect, vec2d pos, Game mutable* game) {
   effect^.effect^.apply(pos + effect^.offset, game);
 }
 
 concept<T> CreatureEffect {
-  void applyImpl(T*, GameObject mutable*, Game mutable*);
+  void apply(T*, GameObject mutable*, Game mutable*);
 };
 
 concept<T> PositionEffect {
-  void applyImpl(T*, vec2d, Game mutable*);
+  void apply(T*, vec2d, Game mutable*);
 };
 
-export bool objectContains(GameObject* obj, vec2d pos) {
+bool objectContains(GameObject* obj, vec2d pos) {
   return !!obj^.attributes.box && obj^.attributes.box^.isPenetrated(obj^.pos - pos);
 }
 
 template <T> requires CreatureEffect<T>
-void applyImpl(T* t, vec2d pos, Game mutable* game) {
+void apply(T* t, vec2d pos, Game mutable* game) {
   for (it : *game^.getObjects()) {
     const obj = it^.get();
     if (objectContains(obj, pos))
-      t^.applyImpl(obj, game);
+      t^.apply(obj, game);
   }
 }
 
-export vec2d getPos(GameObject* obj) {
+vec2d getPos(GameObject* obj) {
   return obj^.pos;
 }
 
 template <T> requires CreatureEffect<T>
-void applyImpl(T* t, GameObject mutable* object, Game mutable* game) {
-  t^.applyImpl(getPos(object), game);
+void apply(T* t, GameObject mutable* object, Game mutable* game) {
+  t^.apply(getPos(object), game);
 }
 
 export union ObjectEffect {
@@ -170,9 +170,5 @@ export union ObjectEffect {
 
 export ObjectEffect copy(ObjectEffect*) = default;
 
-// Fix compiler bug preventing these functions from being exported.
-void applyImpl(virtual ObjectEffect*, vec2d, Game mutable*);
-void applyImpl(virtual ObjectEffect*, GameObject mutable*, Game mutable*);
-
-export void apply(ObjectEffect* e, vec2d v, Game mutable* g) { applyImpl(e, v, g); }
-export void apply(ObjectEffect* e, GameObject mutable *obj, Game mutable* g) { applyImpl(e, obj, g); }
+export void apply(virtual ObjectEffect*, vec2d, Game mutable*) {}
+export void apply(virtual ObjectEffect*, GameObject mutable*, Game mutable*) {}

@@ -21,9 +21,9 @@ bool canReachMelee(GameObject* obj, GameObject* target, int? attackIndex) {
 
 export struct AIAvoidMelee {};
 
-export AIAvoidMelee copy(AIAvoidMelee*) = default;
+AIAvoidMelee copy(AIAvoidMelee*) = default;
 
-export bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
+bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game^.getPlayer();
   if (canReachMelee(obj, object, null) && !!obj^.ongoingAttack) {
     const dir = (object^.pos - obj^.pos).get_angle();
@@ -35,9 +35,9 @@ export bool makeMove(AIAvoidMelee*, Game mutable* game, GameObject mutable* obje
 
 export struct AIMelee {};
 
-export AIMelee copy(AIMelee*) = default;
+AIMelee copy(AIMelee*) = default;
 
-export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, double) {
+bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, double) {
   if (!object^.ongoingAttack)
     for (attack : object^.attributes.creature^.meleeAttack)
       if (object^.lastAttackIndex != attack.index || object^.attributes.creature^.meleeAttack.size() == 1) {
@@ -51,9 +51,9 @@ export bool makeMove(AIMelee*, Game mutable* game, GameObject mutable* object, d
 
 export struct AIAdjustMelee {};
 
-export AIAdjustMelee copy(AIAdjustMelee*) = default;
+AIAdjustMelee copy(AIAdjustMelee*) = default;
 
-export bool makeMove(AIAdjustMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
+bool makeMove(AIAdjustMelee*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game^.getPlayer();
   if (!!object^.ongoingAttack && canReachMelee(object, obj, null)) {
     const angle = (obj^.pos - object^.pos).get_angle();
@@ -71,9 +71,9 @@ export bool makeMove(AIAdjustMelee*, Game mutable* game, GameObject mutable* obj
 
 export struct AIRanged { int maxDist; };
 
-export AIRanged copy(AIRanged*) = default;
+AIRanged copy(AIRanged*) = default;
 
-export bool makeMove(AIRanged* ai, Game mutable* game, GameObject mutable* object, double) {
+bool makeMove(AIRanged* ai, Game mutable* game, GameObject mutable* object, double) {
   if (!object^.attributes.creature^.rangedAttack)
     return false;
   const obj = game^.getPlayer();
@@ -86,26 +86,29 @@ export bool makeMove(AIRanged* ai, Game mutable* game, GameObject mutable* objec
 }
 
 export struct AIStopWhenInMeleeRange {};
-export AIStopWhenInMeleeRange copy(AIStopWhenInMeleeRange*) = default;
 
-export bool makeMove(AIStopWhenInMeleeRange*, Game mutable* game, GameObject mutable* object, double timeDiff) {
+AIStopWhenInMeleeRange copy(AIStopWhenInMeleeRange*) = default;
+
+bool makeMove(AIStopWhenInMeleeRange*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game^.getPlayer();
   return canReachMelee(object, obj, null);
 }
 
 export struct AIPathfind {};
-export AIPathfind copy(AIPathfind*) = default;
 
-export bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object, double timeDiff) {
+AIPathfind copy(AIPathfind*) = default;
+
+bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game^.getPlayer();
   return game^.canSee(object, obj^.pos.as_int())
       && !!object^.walk(game, timeDiff, (obj^.pos - object^.pos).get_angle(), null);
 }
 
 export struct AICircle {};
-export AICircle copy(AICircle*) = default;
 
-export bool makeMove(AICircle*, Game mutable* game, GameObject mutable* object, double timeDiff) {
+AICircle copy(AICircle*) = default;
+
+bool makeMove(AICircle*, Game mutable* game, GameObject mutable* object, double timeDiff) {
   const obj = game^.getPlayer();
   return game^.canSee(object, obj^.pos.as_int())
       && !canReachMelee(object, obj, null)
@@ -116,9 +119,10 @@ export bool makeMove(AICircle*, Game mutable* game, GameObject mutable* object, 
 export struct AIAll {
   vector<AI> elems;
 };
-export AIAll copy(AIAll*) = default;
 
-export bool makeMove(AIAll* first, Game mutable* game, GameObject mutable* object, double timeDiff) {
+AIAll copy(AIAll*) = default;
+
+bool makeMove(AIAll* first, Game mutable* game, GameObject mutable* object, double timeDiff) {
   mutable res = false;
   for (elem : first^.elems)
     res = elem^.makeMove(game, object, timeDiff) || res;
@@ -128,9 +132,10 @@ export bool makeMove(AIAll* first, Game mutable* game, GameObject mutable* objec
 export struct AIFirst {
   vector<AI> elems;
 };
-export AIFirst copy(AIFirst*) = default;
 
-export bool makeMove(AIFirst* first, Game mutable* game, GameObject mutable* object, double timeDiff) {
+AIFirst copy(AIFirst*) = default;
+
+bool makeMove(AIFirst* first, Game mutable* game, GameObject mutable* object, double timeDiff) {
   for (elem : first^.elems)
     if (elem^.makeMove(game, object, timeDiff))
       return true;
@@ -152,4 +157,3 @@ export union AI {
 export AI copy(AI*) = default;
 
 export bool makeMove(virtual AI*, Game mutable* game, GameObject mutable* object, double timeDiff);
-
