@@ -19,7 +19,7 @@ void apply(HealEffect* effect, GameObject mutable* object, Game mutable* game) {
   if (!!object^.health && *object^.health < *object^.attributes.maxHealth) {
     *object^.health = min(*object^.attributes.maxHealth, *object^.health + effect^.amount);
     const curTime = current_time_milli();
-    game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::heal(HealAnimation()),
+    game^.getLevel()^.animations.push_back(LevelAnimation(LevelAnimationType::heal(),
         object^.pos, curTime));
   }
 }
@@ -32,7 +32,7 @@ WoundEffect copy(WoundEffect*) = default;
 
 void apply(WoundEffect* effect, GameObject mutable* object, Game mutable* game) {
   const curTime = current_time_milli();
-  const bloodAnim = [&] { return LevelAnimationType::blood(BloodAnimation(object^.attributes.bloodColor)); };
+  const bloodAnim = [&] { return LevelAnimationType::blood(object^.attributes.bloodColor); };
   if (object^.health) {
     game^.getLevel()^.animations.push_back(LevelAnimation(bloodAnim(), object^.pos, curTime));
     *object^.health -= effect^.amount;
