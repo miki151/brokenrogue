@@ -39,7 +39,7 @@ vector<vec2> get_shortest_path(rectangle* area, mutable vec2 from, mutable vec2 
       for (v : to.neighbors4())
         if (rectangle(vec2(0, 0), area^.size()).contains(&*v) && !!cost[*v] && (!next || *cost[*v] < *cost[*next]))
           next = *v;
-      ret.push_back(to);
+      ret.push_back(to + area^.v1);
       to = *next;
     }
     ret.push_back(from + area^.v1);
