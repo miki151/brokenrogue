@@ -44,6 +44,42 @@ Def ResetBlocking(NAME) Reset(NAME, "blocking") End
 Def CanSetBlocking() Not On("blocking") End
 
 {
+#10 10
+#{
+#  Set("floor")
+#  Position(RIGHT_CENTER, 1 1, Set("player_spawn"))
+#  #Position(TOP_CENTER, 1 1, Reset("trap"))
+#  Position(CENTER, 1 1, Set("boss1"))
+#}
+#}
+20 20
+{
+  Set("grass", "tutorial1")
+  Position(CENTER, 8 5, {
+      Margin(1, Reset("wall"), {
+          Reset("floor")
+          Inside(1, {
+              Position(LEFT_CENTER, 1 1, ResetBlocking("stairs"))
+              Position(RIGHT_CENTER, 1 1, {
+                  SetBlocking("dummy")
+                  Inside(-1, Set("tutorial2"))
+              })
+          })
+      })
+      Position(RIGHT_CENTER, 1 1, {
+          Reset("floor")
+          Inside(-3, Filter(On("tree"), Reset("grass")))
+      })
+  })
+  Filter(On("grass"), Filter(Chance(0.1), Reset("tree")))
+  Filter(On("grass"), Filter(Chance(0.1), Reset("bush")))
+  Filter(On("grass"), Filter(Chance(0.3), Reset("dirt")))
+  Inside(3,
+  Position(RIGHT_CENTER, 1 1, {
+    Reset("grass", "tutorial1", "player_spawn")
+    Inside(-3, Filter(On("tree"), Reset("grass")))
+  }))
+}
 
 Def BOULDERTRAP
   Place(5 1, {Position(LEFT_CENTER, 1 1, Set("trap")) Position(RIGHT_CENTER, 1 1, SetBlocking("boulder"))}, 1, CanSetBlocking(), 1)
@@ -114,6 +150,14 @@ Def MAYBE1IN5(GEN1, GEN2)
   Choose(GEN1, GEN1, GEN1, GEN1, GEN2)
 End
 
+20 15 ROOMLEVEL("nothing", "rat", 2, "kobold", 1)
+25 15 ROOMLEVEL("zombie", "rat", 2, "bee", 2, "kobold", 2, "goblin", 1)
+25 15 MAYBE1IN5(
+  ROOMLEVEL("adventurer", "rat", 2, "bee", 2, "zombie", 2, "berserker", 1),
+  ROOMLEVEL("nothing", "zombie", 25)
+)
+20 15 VAULTLEVEL("kobold", 10, "rat", 2, "goblin", 2)
+30 20 ROOMLEVEL("boss1", "rat", 2, "zombie", 3, "adventurer", 3, "kobold", 1)
 50 40
 {
   Border(1, SetBlocking("border"))
