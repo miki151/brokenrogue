@@ -169,7 +169,6 @@ export bool make(LevelGeneratorPlace* p, LevelCanvas* c) {
         return false;
   }
   return true;
-  
 }
 
 export struct LevelGeneratorChain {

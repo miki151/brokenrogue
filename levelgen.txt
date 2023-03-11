@@ -44,48 +44,12 @@ Def ResetBlocking(NAME) Reset(NAME, "blocking") End
 Def CanSetBlocking() Not On("blocking") End
 
 {
-#10 10
-#{
-#  Set("floor")
-#  Position(RIGHT_CENTER, 1 1, Set("player_spawn"))
-#  Position(TOP_CENTER, 1 1, Reset("trap"))
-#  Position(CENTER, 1 1, Set("boulder"))
-#}
-#}
-20 20
-{
-  Set("grass", "tutorial1")
-  Position(CENTER, 8 5, {
-      Margin(1, Reset("wall"), {
-          Reset("floor")
-          Inside(1, {
-              Position(LEFT_CENTER, 1 1, ResetBlocking("stairs"))
-              Position(RIGHT_CENTER, 1 1, {
-                  SetBlocking("dummy")
-                  Inside(-1, Set("tutorial2"))
-              })
-          })
-      })
-      Position(RIGHT_CENTER, 1 1, {
-          Reset("floor")
-          Inside(-3, Filter(On("tree"), Reset("grass")))
-      })
-  })
-  Filter(On("grass"), Filter(Chance(0.1), Reset("tree")))
-  Filter(On("grass"), Filter(Chance(0.1), Reset("bush")))
-  Filter(On("grass"), Filter(Chance(0.3), Reset("dirt")))
-  Inside(3,
-  Position(RIGHT_CENTER, 1 1, {
-    Reset("grass", "tutorial1", "player_spawn")
-    Inside(-3, Filter(On("tree"), Reset("grass")))
-  }))
-}
 
 Def BOULDERTRAP
   Place(5 1, {Position(LEFT_CENTER, 1 1, Set("trap")) Position(RIGHT_CENTER, 1 1, SetBlocking("boulder"))}, 1, CanSetBlocking(), 1)
 End
 
-20 15
+Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, CREATURE4, COUNT4)
 {
   Border(1, SetBlocking("border"))
   SetBlocking("wall")
@@ -96,45 +60,33 @@ End
     Position(RIGHT_CENTER, 5 5, {
         Reset("floor")
         Position(CENTER, 1 1, ResetBlocking("stairs"))
-        #Place(1 1, SetBlocking("goblin"), 1, CanSetBlocking(), 1)
+        Place(1 1, SetBlocking(BOSS), 1, CanSetBlocking(), 1)
     })
   })
   Place(
-      (1 1, SetBlocking("rat"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("kobold"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
-  )
-  Connect(On("floor"), 10, On("wall"), Reset("floor"))
-}
-30 20
-{
-  Border(1, SetBlocking("border"))
-  SetBlocking("wall")
-  CellularAutomaton(Reset("floor"), 0.45)
-  Margins(1, {}, Place(4 4, Reset("floor", "room"), {6 10}, On("wall"), 2))
-  Inside(1, {
-    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player_spawn"))})
-    Position(RIGHT_CENTER, 5 5, {
-        Reset("floor")
-        Position(CENTER, 1 1, ResetBlocking("stairs"))
-        Place(1 1, SetBlocking("zombie"), 1, CanSetBlocking(), 1)
-    })
-  })
-  Place(
-      (1 1, SetBlocking("rat"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("zombie"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("bee"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("kobold"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("goblin"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("fencer"), 1, CanSetBlocking(), 1),
+      (1 1, SetBlocking(CREATURE1), COUNT1, CanSetBlocking(), 1),
+      (1 1, SetBlocking(CREATURE2), COUNT2, CanSetBlocking(), 1),
+      (1 1, SetBlocking(CREATURE3), COUNT3, CanSetBlocking(), 1),
+      (1 1, SetBlocking(CREATURE4), COUNT4, CanSetBlocking(), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
   BOULDERTRAP()
 }
-20 15
+End
+Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3)
+  ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, "nothing", 0)
+End
+Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2)
+  ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, "nothing", 0, "nothing", 0)
+End
+
+Def ROOMLEVEL(BOSS, CREATURE1, COUNT1)
+  ROOMLEVEL(BOSS, CREATURE1, COUNT1, "nothing", 0, "nothing", 0, "nothing", 0)
+End
+
+Def VAULTLEVEL(CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3)
 {
   Border(1, SetBlocking("border"))
   SetBlocking("wall")
@@ -145,46 +97,23 @@ End
       Position(RIGHT_CENTER, 8 8, {
           Reset("floor")
           Position(RIGHT_CENTER, 1 1, ResetBlocking("stairs"))
-          Place(1 1, SetBlocking("kobold"), 10, CanSetBlocking(), 1)
+          Place(1 1, SetBlocking(CREATURE1), COUNT1, CanSetBlocking(), 1)
+          Place(1 1, SetBlocking(CREATURE2), COUNT2, CanSetBlocking(), 1)
+          Place(1 1, SetBlocking(CREATURE3), COUNT3, CanSetBlocking(), 1)
       })
   })
   Place(
-      (1 1, SetBlocking("rat"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("zombie"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("goblin"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("berserker"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
-  BOULDERTRAP()
 }
-30 20
-{
-  Border(1, SetBlocking("border"))
-  SetBlocking("wall")
-  CellularAutomaton(Reset("floor"), 0.45)
-  Margins(1, {}, Place(4 4, Reset("floor", "room"), {6 10}, On("wall"), 2))
-  Inside(1, {
-    Position(LEFT_CENTER, 4 4, { Reset("floor") Position(CENTER, 1 1, SetBlocking("player_spawn"))})
-    Position(RIGHT_CENTER, 5 5, {
-        Reset("floor")
-        Position(CENTER, 1 1, ResetBlocking("stairs"))
-        Place(1 1, SetBlocking("boss1"), 1, CanSetBlocking(), 1)
-    })
-  })
-  Place(
-      (1 1, SetBlocking("rat"), 2, CanSetBlocking(), 1),
-      (1 1, SetBlocking("zombie"), 3, CanSetBlocking(), 1),
-      (1 1, SetBlocking("kobold"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
-      (1 1, SetBlocking("adventurer"), 3, CanSetBlocking(), 1),
-      (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1),
-      (3 3, { Reset("floor") SetBlocking("bee")}, 1, CanSetBlocking(), 1)
-  )
-  Connect(On("floor"), 10, On("wall"), Reset("floor"))
-  BOULDERTRAP()
-}
+End
+
+Def MAYBE1IN5(GEN1, GEN2)
+  Choose(GEN1, GEN1, GEN1, GEN1, GEN2)
+End
+
 50 40
 {
   Border(1, SetBlocking("border"))
@@ -192,7 +121,7 @@ End
   Position(CENTER, 20 20, {
     CellularAutomaton(Reset("floor"), 0.75)
     CellularAutomaton(Reset("lava"), 0.45)
-    Position(TOP_CENTER, 1 1, {Reset("floor") Set("player_spawn")})
+    Position(TOP_CENTER, 3 3, {Reset("floor") Position(CENTER, 1 1, Set("player_spawn"))})
     Connect(On("floor"), 10, On("lava"), Reset("floor"))
     Place(
        (1 1, SetBlocking("salamander"), 5, CanSetBlocking(), 1)
