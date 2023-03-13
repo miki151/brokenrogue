@@ -90,9 +90,9 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   else if (ui^.backwardKey.covers(event))
     discard player^.walk(data^.game, -timeDiff, state^.playerDir, null);
   else if (ui^.leftKey.covers(event))
-    discard player^.walk(data^.game, timeDiff, state^.playerDir + 1.57, null);
-  else if (ui^.rightKey.covers(event))
     discard player^.walk(data^.game, timeDiff, state^.playerDir - 1.57, null);
+  else if (ui^.rightKey.covers(event))
+    discard player^.walk(data^.game, timeDiff, state^.playerDir + 1.57, null);
   else if (ui^.shootKey.covers(event))
     shoot(context);
   else if (ui^.meleeKey.covers(event)) {
@@ -110,8 +110,8 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
 vec2 projectOnScreen(GameLevelUI* ui, GameObject* player, vec2d pos, double playerDir) {
   const diff = pos - player^.pos;
   const dist = ui^.tileSize.as_double() * diff.length_d();
-  const angle = playerDir - atan2(diff.x, diff.y);
-  return vec2((sin(angle) * dist).as_int(), (-cos(angle) * dist * ui^.viewAngle).as_int());
+  const angle = playerDir - diff.get_angle();
+  return vec2((-sin(angle) * dist).as_int(), (-cos(angle) * dist * ui^.viewAngle).as_int());
 }
 
 export struct GameLevelUIState {
@@ -177,7 +177,7 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
   switch (event^.type) {
     case (MOUSE_MOVEMENT) {
       mutable diff = ui^.cameraSensitivity * event^.pos.x;
-      state^.playerDir -= diff;
+      state^.playerDir += diff;
     }
     case (JOYSTICK_LEFT) {
       mutable pos = event^.pos;
@@ -281,7 +281,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     if ((canSee || obj^.remember) && !!obj^.attributes.glyph) {
       if (!!state^.targetAngle || ui^.movementScheme == MovementScheme::KEYBOARD) {
         if (obj != player && !!obj^.attributes.creature) {
-          const angle = getAngleDifferenceAbs(atan2(obj^.pos.x - player^.pos.x, obj^.pos.y - player^.pos.y),
+          const angle = getAngleDifferenceAbs((obj^.pos - player^.pos).get_angle(),
               state^.targetAngle ?? state^.playerDir);
           if (angle < bestAngle) {
             bestAngle = angle;
@@ -300,7 +300,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
             : (ui^.getFontSize() * ui^.jumpHeight * getJumpOffset(jumpState)).as_int();
         mutable double? projectileDir = null;
         if (obj^.projectile)
-          projectileDir = 1.57 -obj^.projectile^.dir.get_angle();
+          projectileDir = -obj^.projectile^.dir.get_angle();
         mutable glyph = obj^.attributes.glyph^.copy();
         if (obj != player && !!obj^.attributes.creature && (
             !!state^.targetAngle && player^.canReachMelee(obj, *state^.targetAngle) ||
@@ -333,7 +333,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
   });
   for (elem : toRender) {
     elem^.glyph.render(context.canvas, ui^.getFontSize(), elem^.pos,
-        state^.playerDir + elem^.projectileDir ?? 0.0, elem^.glyph.layer == GlyphLayer::OBJECT, 
+        -state^.playerDir + 1.57 - elem^.projectileDir ?? 0.0, elem^.glyph.layer == GlyphLayer::OBJECT, 
         (elem^.pos - origin).length_d());
     if (ui^.showOutlines && elem^.radius > 0)
       context.canvas^.drawCircle(elem^.pos, elem^.radius, &color(150, 0, 0));
@@ -354,7 +354,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
             weapon^.pos1 + weapon^.glyphOffset.rotate(-weapon^.dir), state^.playerDir);
         if (to_draw.contains(&coord1)) {
           weapon^.glyph^.render(
-              context.canvas, ui^.getFontSize(), glyphCoord, state^.playerDir - weapon^.dir - 3.14 / 4, false, 0);
+              context.canvas, ui^.getFontSize(), glyphCoord, -state^.playerDir - weapon^.dir - 3.14 / 4, false, 0);
           if (ui^.showOutlines)
             context.canvas^.drawLine(coord1, coord2, &color(255, 255, 255));
         }

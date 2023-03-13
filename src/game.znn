@@ -158,7 +158,7 @@ export Game(int lineOfSight, vector<pair<vec2, LevelGenerator*>> generator,
 
 export int? walk(GameObject mutable* c, Game* g, double amount, double angle, double? facingDir) {
   c^.lastWalkDirection = facingDir ?? angle;
-  return c^.advance(g, vec2d(sin(angle), cos(angle)) * amount * c^.attributes.creature^.speed);
+  return c^.advance(g, from_polar(angle, amount * c^.attributes.creature^.speed));
 }
 
 int? advance(GameObject mutable* c, Game* g, vec2d dir) {
@@ -293,7 +293,7 @@ export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable d
     mutable origin = o^.pos;
     if (const pos = o^.getRangedWeaponPosition(null))
       origin = pos^.pos2;
-    game^.spawnProjectile(o^.id, origin, vec2d(sin(direction), cos(direction)) * attack^.velocity,
+    game^.spawnProjectile(o^.id, origin, from_polar(direction, attack^.velocity),
         attack^.glyph.randomizeColor(attack^.colorVariance), attack^.size, attack^.effect.copy(), 10000);
     o^.rangedAttackTimeout = attack^.timeout;
     if (attack^.extraTimeout) {

@@ -37,33 +37,33 @@ MeleeWeaponPosition getWeaponPosition(GameObject* object, MeleeWeaponOrigin orig
   const offset = object^.attributes.box^.size / 2.2;
   switch (origin) {
     case (LEFT) {
-      offsetV = vec2d(sin(dir + 1.57), cos(dir + 1.57)) * offset;
-      dir -= atan2(offset, length) / 2;
-    }
-    case (RIGHT) {
-      offsetV = vec2d(sin(dir - 1.57), cos(dir - 1.57)) * offset;
+      offsetV = from_polar(dir - 1.57, offset);
       dir += atan2(offset, length) / 2;
     }
+    case (RIGHT) {
+      offsetV = from_polar(dir + 1.57, offset);
+      dir -= atan2(offset, length) / 2;
+    }
     case (CENTER) {
-      offsetV = vec2d(sin(dir), cos(dir)) * (offset / 2.0);
+      offsetV = from_polar(dir, offset / 2.0);
     }
     case (LEFT_SWING) {
       const origDir = dir;
-      dir += 1.57 - min(1.0, state * 1.2) * 3.14;
-      offsetV = vec2d(sin(dir), cos(dir)) * offset;
+      dir += -1.57 + min(1.0, state * 1.2) * 3.14;
+      offsetV = from_polar(dir, offset);
       dir = origDir + (dir - origDir) * 2.0;
     }
     case (RIGHT_SWING) {
       const origDir = dir;
-      dir += -1.57 + min(1.0, state * 1.2) * 3.14;
-      offsetV = vec2d(sin(dir), cos(dir)) * offset;
+      dir += 1.57 - min(1.0, state * 1.2) * 3.14;
+      offsetV = from_polar(dir, offset);
       dir = origDir + (dir - origDir) * 2.0;
     }
   }
   return MeleeWeaponPosition(
-      object^.pos + offsetV + vec2d(sin(dir), cos(dir)) * reach * (1 - 2 * abs(state - 0.5)),
-      object^.pos + offsetV + vec2d(sin(dir), cos(dir)) * (reach * (1 - 2 * abs(state - 0.5)) + length),
-      dir, glyph, glyphOffset
+      object^.pos + offsetV + from_polar(dir, reach * (1 - 2 * abs(state - 0.5))),
+      object^.pos + offsetV + from_polar(dir, (reach * (1 - 2 * abs(state - 0.5)) + length)),
+      -dir, glyph, glyphOffset
   );
 }
 
