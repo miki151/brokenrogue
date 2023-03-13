@@ -146,7 +146,7 @@ int main(string[] args) {
     const player = game.getPlayer();
     const playerDead = !player^.health;
     if (!playerDead)
-      insertCreatureInfo(&uiData, "player_info", 
+      insertCreatureInfo(&uiData, "player_info",
           max(0.0, *player^.health / *player^.attributes.maxHealth), "Player", &*player^.attributes.glyph);
     else
       uiData.erase(&"player_info");

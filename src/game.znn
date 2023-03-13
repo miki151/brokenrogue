@@ -189,6 +189,8 @@ void updateOngoingAttacks(Game mutable* g, double timeDiff) {
               object2^.isPenetrated(object^.getMeleeWeaponPosition(null)[*object^.lastAttackIndex].pos2)) {
             object^.ongoingAttack^.woundedObjects.insert(object2^.id);
             object^.ongoingAttack^.attack.effect.apply(object2, g);
+            if (!!object2^.attributes.hitEffect)
+              object2^.attributes.hitEffect^.apply(object2^.pos, 3.14 + (object^.pos - object2^.pos).get_angle(), g);
             break;
           }
         }

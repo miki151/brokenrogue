@@ -104,6 +104,7 @@ Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, CRE
       (1 1, SetBlocking(CREATURE2), COUNT2, CanSetBlocking(), 1),
       (1 1, SetBlocking(CREATURE3), COUNT3, CanSetBlocking(), 1),
       (1 1, SetBlocking(CREATURE4), COUNT4, CanSetBlocking(), 1),
+      (1 1, SetBlocking("jelly"), 1, Area(1, 9, CanSetBlocking()), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
   )

@@ -83,7 +83,7 @@ End
       canRemember = true
       entryEffect = filter type "player" offset 4 0 filter type "boulder" all {
         filter type "boulder" remove
-        projectile 3.14 6 0.95 10 wound 1000 BOULDERGLYPH EFFECT
+        directed 3.14 projectile 6 0.95 10 wound 1000 BOULDERGLYPH EFFECT
       }
   )
   "stairs" (
@@ -159,22 +159,22 @@ Def pathfindUntilMelee first { stopWhenInMeleeRange pathfind } End
       maxLifeTime = 0.25
       deathEffect = all {
 Def Proj 5 0.3 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
-        projectile 0 Proj
-        projectile 0.39 Proj
-        projectile 0.78 Proj
-        projectile 1.17 Proj
-        projectile 1.57 Proj
-        projectile 1.96 Proj
-        projectile 2.35 Proj
-        projectile 2.74 Proj
-        projectile 3.14 Proj
-        projectile 3.53 Proj
-        projectile 3.92 Proj
-        projectile 4.29 Proj
-        projectile 4.71 Proj
-        projectile 5.1 Proj
-        projectile 5.49 Proj
-        projectile 5.86 Proj
+        directed 0 projectile Proj
+        directed 0.39 projectile Proj
+        directed 0.78 projectile Proj
+        directed 1.17 projectile Proj
+        directed 1.57 projectile Proj
+        directed 1.96 projectile Proj
+        directed 2.35 projectile Proj
+        directed 2.74 projectile Proj
+        directed 3.14 projectile Proj
+        directed 3.53 projectile Proj
+        directed 3.92 projectile Proj
+        directed 4.29 projectile Proj
+        directed 4.71 projectile Proj
+        directed 5.1 projectile Proj
+        directed 5.49 projectile Proj
+        directed 5.86 projectile Proj
       }
   )
   "goblin" (
@@ -282,6 +282,17 @@ Def Proj 5 0.3 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       )
       maxHealth = 3
       canRemember = true
+  )
+  "jelly" (
+      glyph = "j" 255 255 0 0.7 OBJECT
+      name = "Jelly"
+      box = 0.7
+      creature = (
+          speed = 1
+          ai = all { ranged 1 }
+      )
+      maxHealth = 4
+      hitEffect = translate 0.8 projectile 5 0.3 2.5 wound 10 "*" 160 160 40 0.4 EFFECT
   )
   "adventurer" (
       glyph = "g" 255 255 0 1.0 OBJECT

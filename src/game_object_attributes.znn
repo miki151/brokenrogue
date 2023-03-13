@@ -37,6 +37,7 @@ export struct GameObjectAttributes {
   string? message = null;
   ObjectEffect? entryEffect = null;
   ObjectEffect? deathEffect = null;
+  DirectedEffect? hitEffect = null;
   double? maxLifeTime = null;
   color bloodColor = color(255, 0, 0);
 };
