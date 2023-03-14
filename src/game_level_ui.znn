@@ -29,7 +29,7 @@ struct GameLevelUI {
   int explosionDuration;
   double jumpHeight;
   MovementScheme movementScheme;
-  double viewAngle;
+  double timeFlow;
   double cameraSensitivity;
   double joystickMovementDeadRange;
   double minJoystickMovement;
@@ -71,7 +71,7 @@ export HighlightedObjectInfo copy(HighlightedObjectInfo*) = default;
 
 export struct GameLevelUIData {
   Game mutable* game;
-  invoke<void, int>* timeSpentCallback;
+  invoke<void, double, int>* timeSpentCallback;
   invoke<void, HighlightedObjectInfo?>* highlightedObjectCallback;
   invoke<void>* restartCallback;
 };
@@ -84,7 +84,7 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
     data^.restartCallback^.invoke();
     return true;
   }
-  const timeDiff = context.timeDiff * 0.7;
+  const timeDiff = context.timeDiff * ui^.timeFlow / player^.attributes.creature^.speed;
   if (ui^.forwardKey.covers(event))
     discard player^.walk(data^.game, timeDiff, state^.playerDir, null);
   else if (ui^.backwardKey.covers(event))
@@ -94,7 +94,7 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   else if (ui^.rightKey.covers(event))
     discard player^.walk(data^.game, timeDiff, state^.playerDir + 1.57, null);
   else if (ui^.shootKey.covers(event))
-    shoot(context);
+    shoot(ui, context);
   else if (ui^.meleeKey.covers(event)) {
     discard player^.addMeleeAttack(state^.playerDir, 0);
   }
@@ -111,7 +111,7 @@ vec2 projectOnScreen(GameLevelUI* ui, GameObject* player, vec2d pos, double play
   const diff = pos - player^.pos;
   const dist = ui^.tileSize.as_double() * diff.length_d();
   const angle = playerDir - diff.get_angle();
-  return vec2((-sin(angle) * dist).as_int(), (-cos(angle) * dist * ui^.viewAngle).as_int());
+  return vec2((-sin(angle) * dist).as_int(), (-cos(angle) * dist).as_int());
 }
 
 export struct GameLevelUIState {
@@ -119,11 +119,11 @@ export struct GameLevelUIState {
   double? targetAngle = null;
 };
 
-void shoot(UIContext context) {
+void shoot(GameLevelUI* ui, UIContext context) {
   const state = context.state^.get_state<GameLevelUIState>();
   const data = *context.data^.cast_to<GameLevelUIData>();
   discard data^.game^.addRangedAttack(data^.game^.getPlayer(), state^.playerDir);
-  data^.timeSpentCallback^.invoke(30);
+  data^.timeSpentCallback^.invoke(ui^.timeFlow, 30);
 }
 
 bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_event* event) {
@@ -147,14 +147,16 @@ bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_ev
       const angle = state^.playerDir + pos.get_angle();
       const length = pos.length_d();
       if (length > 1000 * ui^.minJoystickMovement) {
-        discard player^.walk(data^.game, -context.timeDiff * length / 1000, angle, null);
-        data^.game^.advance(abs(context.timeDiff * length / 1000));
+        const timeDiff = context.timeDiff * ui^.timeFlow / player^.attributes.creature^.speed;
+        discard player^.walk(data^.game, timeDiff * length / 1000, angle, null);
+        data^.game^.advance(abs(timeDiff * length / 1000));
       }
     }
     case (LEFT) {
       if (!!state^.targetAngle) {
         discard player^.addMeleeAttack(*state^.targetAngle, 0);
-        data^.timeSpentCallback^.invoke(as_int(1000 * player^.attributes.creature^.meleeAttack[0].duration));
+        data^.timeSpentCallback^.invoke(player^.attributes.creature^.speed * 0.7 / ui^.timeFlow,
+            as_int(1010 * player^.attributes.creature^.meleeAttack[0].duration * 0.7 / ui^.timeFlow));
       }
     }
     case (RIGHT_RELEASED) {
@@ -199,7 +201,8 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
     }
     case (LEFT) {
       discard player^.addMeleeAttack(state^.playerDir, 0);
-      data^.timeSpentCallback^.invoke(as_int(1000 * player^.attributes.creature^.meleeAttack[0].duration));
+      data^.timeSpentCallback^.invoke(player^.attributes.creature^.speed * 0.7 / ui^.timeFlow,
+          as_int(1010 * player^.attributes.creature^.meleeAttack[0].duration * 0.7 / ui^.timeFlow));
     }
     default {
       return false;

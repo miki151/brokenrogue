@@ -117,7 +117,11 @@ int main(string[] args) {
   mutable timeDiff = 0.0;
   mutable last_update = current_time_milli();
   mutable realTimeEnd = last_update;
-  const timeSpentCallback = [&] (int time) { realTimeEnd = max(realTimeEnd, last_update + time); };
+  mutable timeFlow = 1.0;
+  const timeSpentCallback = [&] (double flow, int time) {
+    timeFlow = flow;
+    realTimeEnd = max(realTimeEnd, last_update + time);
+  };
   mutable HighlightedObjectInfo? highlightedObjectInfo = null;
   const highlightedObjectCallback = [&] (HighlightedObjectInfo? info) { highlightedObjectInfo = info.copy(); };
   mutable uiData = UIRecord();
@@ -158,7 +162,7 @@ int main(string[] args) {
     const cur_time = current_time_milli();
     timeDiff = 0.001 * (cur_time - last_update);
     if (cur_time <= realTimeEnd || playerDead)
-      game.advance(timeDiff);
+      game.advance(timeDiff / timeFlow);
     else if (flags.realTimeFlow)
       game.advance(timeDiff * *flags.realTimeFlow);
     last_update = cur_time;

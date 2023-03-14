@@ -82,7 +82,8 @@ export vector<MeleeWeaponPosition> getMeleeWeaponPosition(GameObject* object, do
     return move(ret);
   for (attack : object^.attributes.creature^.meleeAttack) {
     const state = (!object^.ongoingAttack || object^.lastAttackIndex != attack.index) ? 0
-      : 1 - object^.ongoingAttack^.remainingTime / object^.ongoingAttack^.attack.duration;
+      : 1 - object^.ongoingAttack^.remainingTime
+          / (object^.ongoingAttack^.attack.duration / object^.attributes.creature^.speed);
     mutable dir = (forceDir ?? (!object^.ongoingAttack ? object^.lastWalkDirection : object^.ongoingAttack^.dir));
     ret.push_back(getWeaponPosition(object, object^.currentOrigin ?? attack^.origin, dir, state, attack^.reach,
       attack^.length, &attack^.glyph, attack^.glyphOffset));
@@ -172,7 +173,7 @@ export GameObject(int id, vec2d pos, GameObjectAttributes attr, string? attribut
 export bool addMeleeAttack(GameObject mutable* o, double direction, int index) {
   if (!o^.ongoingAttack && !!o^.attributes.creature && index < o^.attributes.creature^.meleeAttack.size()) {
     const attack = &o^.attributes.creature^.meleeAttack[index];
-    const duration = attack^.duration;
+    const duration = attack^.duration / o^.attributes.creature^.speed;
     o^.ongoingAttack = MeleeAttackInfo(attack^.copy(), duration, direction, hash_set<int>());
     o^.lastAttackIndex = index;
     return true;

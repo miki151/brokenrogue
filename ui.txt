@@ -43,7 +43,7 @@ End
       explosionDuration = 400
       jumpHeight = 0.05
       movementScheme = KEYBOARD
-      viewAngle = 1.0
+      timeFlow = 2.8
       cameraSensitivity = 0.001
       joystickMovementDeadRange = 0.2
       minJoystickMovement = 0.5
