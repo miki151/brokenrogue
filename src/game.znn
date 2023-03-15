@@ -280,12 +280,38 @@ void updateEntryEffects(Game mutable* g) {
   }
 }
 
+void updateBuffs(Game mutable* g, double timeDiff) {
+  for (it : *g^.getObjects()) {
+    const object = it^.get();
+    for (i = object^.buffs.size() - 1; i >= 0; --i) {
+      const b = &object^.buffs[i];
+      b^.remainingTime -= timeDiff;
+      if (b^.remainingTime <= 0) {
+        b^.buff.endEffect^.apply(object, g);
+        object^.buffs.remove(i);
+      }
+    }
+  }
+}
+
 export void advance(Game mutable* g, double timeDiff) {
   g^.updateAIMoves(timeDiff);
   g^.updateOngoingAttacks(timeDiff);
   g^.updateProjectiles(timeDiff);
+  g^.updateBuffs(timeDiff);
   g^.updateEntryEffects();
   g^.updateDeadObjects(timeDiff);
+}
+
+export void addBuff(Game mutable* game, GameObject mutable* object, Buff buff) {
+  for (b : object^.buffs)
+    if (b^.buff.name == buff.name) {
+      b^.remainingTime = max(b^.remainingTime, buff.duration);
+      return;
+    }
+  buff.startEffect^.apply(object, game);
+  const duration = buff.duration;
+  object^.buffs.push_back(BuffInfo(move(buff), duration));
 }
 
 export bool addRangedAttack(Game mutable* game, GameObject mutable* o, mutable double direction) {

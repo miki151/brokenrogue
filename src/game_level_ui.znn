@@ -64,7 +64,7 @@ vec2 getScreenOrigin(MovementScheme scheme, rectangle* r) {
 export struct HighlightedObjectInfo {
   Glyph glyph;
   string name;
-  double hp;
+  double? hp;
 };
 
 export HighlightedObjectInfo copy(HighlightedObjectInfo*) = default;
@@ -80,6 +80,8 @@ export bool onKeyEvent(GameLevelUI* ui, UIContext context, rectangle*, key_event
   const state = context.state^.get_state<GameLevelUIState>();
   const data = *context.data^.cast_to<GameLevelUIData>();
   const player = data^.game^.getPlayer();
+  if (!player^.attributes.creature)
+    return false;
   if (!!data^.game^.status && event^.key == key_type::ENTER) {
     data^.restartCallback^.invoke();
     return true;
@@ -130,16 +132,19 @@ bool onMouseEventMouse2(GameLevelUI* ui, UIContext context, rectangle*, mouse_ev
   const state = context.state^.get_state<GameLevelUIState>();
   const data = *context.data^.cast_to<GameLevelUIData>();
   const player = data^.game^.getPlayer();
+  if (!player^.attributes.creature)
+    return false;
   const mousePos = event^.pos;
   switch (event^.type) {
     case (JOYSTICK_RIGHT) {
       if (mousePos.length_d() > 200)
-        state^.targetAngle = mousePos.get_angle();
+        state^.targetAngle = -mousePos.get_angle();
       else
         state^.targetAngle = null;
     }
     case (JOYSTICK_LEFT) {
       mutable pos = mousePos;
+      pos.y = -pos.y;
       if (abs(pos.x).as_double() < abs(pos.y) * ui^.joystickMovementDeadRange)
         pos.x = 0;
       if (abs(pos.y).as_double() < abs(pos.x) * ui^.joystickMovementDeadRange)
@@ -176,6 +181,8 @@ export bool onMouseEvent(GameLevelUI* ui, UIContext context, rectangle* r, mouse
   const state = context.state^.get_state<GameLevelUIState>();
   const data = *context.data^.cast_to<GameLevelUIData>();
   const player = data^.game^.getPlayer();
+  if (!player^.attributes.creature)
+    return false;
   switch (event^.type) {
     case (MOUSE_MOVEMENT) {
       mutable diff = ui^.cameraSensitivity * event^.pos.x;
@@ -283,7 +290,7 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     const canSee = ui^.seeWholeMap || data^.game^.canSee(player, obj^.pos.as_int());
     if ((canSee || obj^.remember) && !!obj^.attributes.glyph) {
       if (!!state^.targetAngle || ui^.movementScheme == MovementScheme::KEYBOARD) {
-        if (obj != player && !!obj^.attributes.creature) {
+        if (obj != player && obj^.attributes.glyph^.layer == GlyphLayer::OBJECT) {
           const angle = getAngleDifferenceAbs((obj^.pos - player^.pos).get_angle(),
               state^.targetAngle ?? state^.playerDir);
           if (angle < bestAngle) {
@@ -324,7 +331,8 @@ export void render(GameLevelUI* ui, UIContext context, rectangle* r) {
     data^.highlightedObjectCallback^.invoke(HighlightedObjectInfo(
         highlightedObject^.attributes.glyph^.copy(),
         highlightedObject^.attributes.name,
-        *highlightedObject^.health / *highlightedObject^.attributes.maxHealth));
+        highlightedObject^.health.map_to(&[&](double* hp) {
+            return *hp / *highlightedObject^.attributes.maxHealth; })));
   else {
     const HighlightedObjectInfo? tmp = null;
     data^.highlightedObjectCallback^.invoke(move(tmp));

@@ -8,6 +8,8 @@ export import "std/box.znn";
 export import "std/vector.znn";
 export import "ui/vec2.znn";
 export import "directed_effect.znn";
+export import "buff.znn";
+import "std/io.znn";
 
 export struct HealEffect {
   double amount;
@@ -121,6 +123,28 @@ void apply(OffsetEffect* effect, vec2d pos, Game mutable* game) {
   effect^.effect^.apply(pos + effect^.offset, game);
 }
 
+export struct BuffEffect {
+  Buff buff;
+};
+
+BuffEffect copy(BuffEffect*) = default;
+
+void apply(BuffEffect* effect, GameObject mutable* object, Game mutable* game) {
+  game^.addBuff(object, effect^.buff.copy());
+}
+
+export struct SpeedEffect {
+  double amount;
+};
+
+SpeedEffect copy(SpeedEffect*) = default;
+
+void apply(SpeedEffect* effect, GameObject mutable* object, Game mutable* game) {
+  if (object^.attributes.creature) {
+    object^.attributes.creature^.speed *= effect^.amount;
+  }
+}
+
 concept<T> CreatureEffect {
   void apply(T*, GameObject mutable*, Game mutable*);
 };
@@ -161,6 +185,8 @@ export union ObjectEffect {
   AddEffect add;
   AllEffect all;
   OffsetEffect offset;
+  BuffEffect buff;
+  SpeedEffect addSpeed;
 };
 
 export ObjectEffect copy(ObjectEffect*) = default;

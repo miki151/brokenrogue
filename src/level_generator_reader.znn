@@ -4,6 +4,7 @@ import "pretty_input.znn";
 import "std/io.znn";
 import "game_object_attributes.znn";
 import "ui/vec2.znn";
+export import "buff.znn";
 
 template <T> requires (T == LevelGeneratorMargins || T == LevelGenPredicateOn || T == LevelGenPredicateChance
     || T == LevelGeneratorMargin || T == LevelGeneratorPosition || T == LevelGeneratorFilter
@@ -116,6 +117,10 @@ bool round_brackets(pretty_dummy_struct<GameObjectAttributes>) {
 }
 
 bool round_brackets(pretty_dummy_struct<Creature>) {
+  return true;
+}
+
+bool round_brackets(pretty_dummy_struct<Buff>) {
   return true;
 }
 

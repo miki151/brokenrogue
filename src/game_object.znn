@@ -1,13 +1,17 @@
 
+import "std/math.znn";
+export import "std/range.znn";
+export import "std/hash_set.znn";
+export import "std/vector.znn";
+
+export import "ui/vec2.znn";
+
 export import "game_object_attributes.znn";
 export import "game_object_animation.znn";
-export import "ui/vec2.znn";
-export import "std/range.znn";
 export import "melee_attack.znn";
-import "std/math.znn";
 export import "table.znn";
 export import "projectile.znn";
-export import "std/hash_set.znn";
+export import "buff.znn";
 
 export struct MeleeWeaponPosition {
   vec2d pos1;
@@ -114,7 +118,7 @@ export vec2d calculateMeleeAttackPosition(GameObject* object, int index, double 
 }
 
 export vec2d calculateMeleeAttackPosition(GameObject* object, double dir, double state) {
-  if (object^.attributes.creature^.meleeAttack.empty())
+  if (!object^.attributes.creature || object^.attributes.creature^.meleeAttack.empty())
     return object^.pos;
   return object^.calculateMeleeAttackPosition(0, dir, state);
 }
@@ -135,6 +139,11 @@ export struct FOVInfo {
   table<int> data;
 };
 
+export struct BuffInfo {
+  Buff buff;
+  double remainingTime;
+};
+
 export struct GameObject {
   int id;
   vec2d pos;
@@ -153,6 +162,7 @@ export struct GameObject {
   MeleeWeaponOrigin? currentOrigin = null;
   bool isDead = false;
   double lifeTime = 0.0;
+  vector<BuffInfo> buffs = vector<BuffInfo>();
 };
 
 export GameObject(int id, vec2d pos, GameObjectAttributes attr, string? attributesId) {

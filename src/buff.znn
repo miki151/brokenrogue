@@ -1,0 +1,16 @@
+
+export import "std/box.znn";
+
+export import "ui/color.znn";
+
+import "object_effect.znn";
+
+export struct Buff {
+  string name;
+  color color;
+  box<ObjectEffect> startEffect;
+  box<ObjectEffect> endEffect;
+  double duration;
+};
+
+export Buff copy(Buff*) = default;

@@ -85,7 +85,7 @@ Def BOULDERTRAP
   Place(5 1, {Position(LEFT_CENTER, 1 1, Set("trap")) Position(RIGHT_CENTER, 1 1, SetBlocking("boulder"))}, 1, CanSetBlocking(), 1)
 End
 
-Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, CREATURE4, COUNT4)
+Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, CREATURE4, COUNT4, CREATURE5, COUNT5)
 {
   Border(1, SetBlocking("border"))
   SetBlocking("wall")
@@ -104,6 +104,7 @@ Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, CRE
       (1 1, SetBlocking(CREATURE2), COUNT2, CanSetBlocking(), 1),
       (1 1, SetBlocking(CREATURE3), COUNT3, CanSetBlocking(), 1),
       (1 1, SetBlocking(CREATURE4), COUNT4, CanSetBlocking(), 1),
+      (1 1, SetBlocking(CREATURE5), COUNT5, CanSetBlocking(), 1),
       (1 1, SetBlocking("jelly"), 1, Area(1, 9, CanSetBlocking()), 1),
       (1 1, SetBlocking("nymph"), 1, CanSetBlocking(), 1),
       (1 1, SetBlocking("statue"), 2, Area(1, 9, CanSetBlocking()), 1)
@@ -111,6 +112,9 @@ Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, CRE
   Connect(On("floor"), 10, On("wall"), Reset("floor"))
   BOULDERTRAP()
 }
+End
+Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, CREATURE4, COUNT4)
+  ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, CREATURE4, COUNT4, "nothing", 0)
 End
 Def ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3)
   ROOMLEVEL(BOSS, CREATURE1, COUNT1, CREATURE2, COUNT2, CREATURE3, COUNT3, "nothing", 0)
@@ -152,13 +156,13 @@ Def MAYBE1IN5(GEN1, GEN2)
 End
 
 20 15 ROOMLEVEL("nothing", "rat", 2, "kobold", 1)
-25 15 ROOMLEVEL("zombie", "rat", 2, "bee", 2, "kobold", 2, "goblin", 1)
+25 15 ROOMLEVEL("zombie", "rat", 2, "bee", 2, "wizard", 1, "kobold", 1, "goblin", 1)
 25 15 MAYBE1IN5(
-  ROOMLEVEL("adventurer", "rat", 2, "bee", 2, "zombie", 2, "berserker", 1),
+  ROOMLEVEL("adventurer", "rat", 2, "bee", 2, "wizard", 1, "kobold", 1, "berserker", 1),
   ROOMLEVEL("nothing", "zombie", 25)
 )
 20 15 VAULTLEVEL("kobold", 10, "rat", 2, "goblin", 2)
-30 20 ROOMLEVEL("boss1", "rat", 2, "zombie", 3, "adventurer", 3, "kobold", 1)
+30 20 ROOMLEVEL("boss1", "rat", 2, "zombie", 3, "adventurer", 3, "kobold", 1, "potion", 1)
 50 40
 {
   Border(1, SetBlocking("border"))

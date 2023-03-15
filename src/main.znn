@@ -61,12 +61,21 @@ UIRecord createRecord(string[] names, Types... values) {
   return move(ret);
 }
 
-void insertCreatureInfo(UIRecord mutable* record, string field, double hp, string name, Glyph* glyph) {
+box<any> getGlyphRecord(Glyph* glyph) {
+  return createRecord({"id", "color"}.slice(), glyph^.sym, glyph^.col.copy()).box_as<any>();
+}
+
+void insertCreatureInfo(UIRecord mutable* record, string field, double? hp, string name, Glyph* glyph,
+    vector<BuffInfo>* buffs) {
   mutable creatureData = UIRecord();
-  creatureData.insert("hp", hp.box_as<any>());
+  if (hp)
+    creatureData.insert("hp", hp^.box_as<any>());
   creatureData.insert("name", name.box_as<any>());
-  creatureData.insert("glyph", createRecord({"id", "color"}.slice(), glyph^.sym, glyph^.col.copy())
-      .box_as<any>());
+  creatureData.insert("glyph", getGlyphRecord(glyph));
+  creatureData.insert("buffs", buffs^.transform([](BuffInfo* b) {
+    return createRecord({"name", "color", "duration"}.slice(), b^.buff.name, b^.buff.color.copy(),
+        b^.remainingTime / b^.buff.duration).box_as<any>();
+  }).box_as<any>());
   record^.insert(field, move(creatureData).box_as<any>());
 }
 
@@ -150,13 +159,13 @@ int main(string[] args) {
     const player = game.getPlayer();
     const playerDead = !player^.health;
     if (!playerDead)
-      insertCreatureInfo(&uiData, "player_info",
-          max(0.0, *player^.health / *player^.attributes.maxHealth), "Player", &*player^.attributes.glyph);
+      insertCreatureInfo(&uiData, "player_info", max(0.0, *player^.health / *player^.attributes.maxHealth),
+          "Player", &*player^.attributes.glyph, &player^.buffs);
     else
       uiData.erase(&"player_info");
     if (highlightedObjectInfo)
       insertCreatureInfo(&uiData, "enemy_info", highlightedObjectInfo^.hp, highlightedObjectInfo^.name,
-          &highlightedObjectInfo^.glyph);
+          &highlightedObjectInfo^.glyph, &{<BuffInfo>}.as_vector());
     else
       uiData.erase(&"enemy_info");
     const cur_time = current_time_milli();
@@ -178,7 +187,7 @@ int main(string[] args) {
             if (const res = readUIFrom("ui.txt"))
               ui = *move(res);
             else
-              printf(res.get_error());
+              printf(res.get_error() + "\n");
             if (const res2 = readLevelMapping(*open_file_r("levelmapping.txt")^.read_content())) {
               levelMapping = *move(res2);
               game.reloadObjectAttributes(&levelMapping);

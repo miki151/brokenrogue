@@ -8,7 +8,7 @@ Def DeathScreenFont2 30 End
 
 Def CreatureWidget() {
   fill(50 50 50)
-  margins(10, vertical {
+  margins(10, width 370 vertical {
     horizontal {
       width 10 {}
       width 20 using "glyph" texture()
@@ -16,13 +16,25 @@ Def CreatureWidget() {
       using "name" label(20, 255 255 255)
     }
     height 10 {}
-    horizontal {
+    using "hp" horizontal {
       width 10 {}
       label(20, 255 255 255, "HP:")
-      width 10 {}
-      width 300 height 15 {
+      stretch {}
+      width 250 height 15 {
         fill(0 0 0)
-        using "hp" horibar(255 0 0)
+        horibar(255 0 0)
+      }
+    }
+    using "buffs" list vertical {
+      height 10 {}
+      horizontal {
+        width 10 {}
+        using "name" horizontal { label(20, 255 255 255) label(20, 255 255 255, ":")}
+        stretch {}
+        width 250 height 15 {
+          fill(0 0 0)
+          using "duration" horibar(0 0 255)
+        }
       }
     }
   })

@@ -62,10 +62,10 @@
       canRemember = true
   )
 Def BOULDERGLYPH()
-  "boulder" 100 100 100 1.5
+  "boulder" 100 100 100 1.5 OBJECT
 End
   "boulder" (
-      glyph = BOULDERGLYPH ITEM
+      glyph = BOULDERGLYPH
       name = "Boulder"
       box = 1
       canRemember = true
@@ -83,7 +83,22 @@ End
       canRemember = true
       entryEffect = filter type "player" offset 4 0 filter type "boulder" all {
         filter type "boulder" remove
-        directed 3.14 projectile 6 0.95 10 wound 1000 BOULDERGLYPH EFFECT
+        directed 3.14 projectile 6 0.95 10 wound 1000 BOULDERGLYPH
+      }
+  )
+  "potion" (
+      glyph = "potion" 0 0 255 0.8 OBJECT
+      name = "Speed potion"
+      canRemember = true
+      entryEffect = filter type "player" all {
+        buff (
+          name = "Speed"
+          color = 0 0 255
+          startEffect = addSpeed 2
+          endEffect = addSpeed 0.5
+          4
+        )
+        radius 2.0 filter type "potion" remove
       }
   )
   "stairs" (
@@ -248,6 +263,20 @@ Def Proj 5 0.3 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       )
       maxHealth = 1
   )
+  "wizard" (
+      glyph = "w" 250 0 255 0.85 OBJECT
+      name = "Wizard"
+      box = 0.8
+      creature = (
+          speed = 3
+          meleeAttack = {(")" 255 100 100 0.7 EFFECT, 0.15 0, RIGHT, 1.0, 0.5, 1.2, wound 1.5)}
+          rangedAttack = ("debuff" 250 0 255 0.5 EFFECT, "|" 100 200 200 0.8 EFFECT 0.4 0 LEFT 0.6, 2.0, 5.0, 0.2,
+              buff ( name = "Slowness" color = 255 0 255 startEffect = addSpeed 0.5 endEffect = addSpeed 2.0 4),
+              0.0, null, 0)
+          ai = all { ranged 5 keepDistance 2 melee }
+      )
+      maxHealth = 1
+  )
   "dragon" (
       glyph = "d" 255 0 0 2.2 OBJECT
       name = "Dragon"
@@ -273,7 +302,7 @@ Def Proj 5 0.3 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       maxHealth = 6
   )
   "dummy" (
-      glyph = "T" 0 100 250 1.0 OBJECT
+      glyph = "t" 0 100 250 1.0 OBJECT
       name = "Training dummy"
       box = 1.0
       creature = (
@@ -317,11 +346,8 @@ Def Proj 5 0.3 2.5 wound 1 "*" 40 160 40 0.4 EFFECT End
       maxHealth = 20
   )
   "dead_player" (
+      glyph = "dead" 255 0 0 1.0 OBJECT
       name = "Player"
-      creature = (
-          speed = 0
-          ai = all { pathfind }
-      )
   )
   "player_spawn" (
       name = "Player spawn"

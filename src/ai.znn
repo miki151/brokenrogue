@@ -104,6 +104,18 @@ bool makeMove(AIPathfind*, Game mutable* game, GameObject mutable* object, doubl
       && !!object^.walk(game, timeDiff, (obj^.pos - object^.pos).get_angle(), null);
 }
 
+export struct AIKeepDistance {
+  double dist;
+};
+
+AIKeepDistance copy(AIKeepDistance*) = default;
+
+bool makeMove(AIKeepDistance* ai, Game mutable* game, GameObject mutable* object, double timeDiff) {
+  const obj = game^.getPlayer();
+  return game^.canSee(object, obj^.pos.as_int()) && (obj^.pos - object^.pos).length_d() < ai^.dist
+      && !!object^.walk(game, timeDiff, (object^.pos - obj^.pos).get_angle(), null);
+}
+
 export struct AICircle {};
 
 AICircle copy(AICircle*) = default;
@@ -146,6 +158,7 @@ export union AI {
   AIMelee melee;
   AIRanged ranged;
   AIAvoidMelee avoidMelee;
+  AIKeepDistance keepDistance;
   AIAdjustMelee adjustMelee;
   AIPathfind pathfind;
   AIStopWhenInMeleeRange stopWhenInMeleeRange;
